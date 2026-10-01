@@ -1,53 +1,55 @@
 using UnityEngine;
+using Unity.Netcode; // ★ 네트워크 패키지 추가
 
-public class PlayerMovement : MonoBehaviour
+// ★ MonoBehaviour 대신 NetworkBehaviour를 상속받습니다.
+public class PlayerMovement : NetworkBehaviour
 {
+    [Header("기본 설정")]
     public float moveSpeed = 5f;
-    public float rotationSpeed = 10f; // 몸을 돌리는 속도
+    public float rotationSpeed = 10f;
     public float jumpForce = 5f;
+
+    [Header("상태 확인")]
+    public bool isKnockedBack = false;
 
     private Animator anim;
     private Rigidbody rb;
     private bool isGrounded = true;
-
-    // 캐릭터가 바라볼 목표 방향을 기억할 변수
     private Quaternion targetRotation;
 
     void Start()
     {
         anim = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
-        // 게임 시작 시 처음 바라보는 방향 저장
         targetRotation = transform.rotation;
     }
 
     void Update()
     {
+        // ★ IsOwner: 서버가 인정한 '내 클라이언트 소유 캐릭터'일 때만 조종 가능
+        if (!IsOwner) return;
+        if (isKnockedBack) return;
+
         float horizontalInput = Input.GetAxisRaw("Horizontal");
         float verticalInput = Input.GetAxisRaw("Vertical");
 
         Vector3 movement = new Vector3(horizontalInput, 0f, verticalInput).normalized;
 
-        // 키보드를 눌렀을 때만 이동 및 목표 방향 업데이트
         if (movement.magnitude >= 0.1f)
         {
-            // 월드 기준 이동
-            transform.Translate(movement * moveSpeed * Time.deltaTime, Space.World);
-
-            // 바라볼 목표 방향 계산
             targetRotation = Quaternion.LookRotation(movement);
-
             anim.SetBool("isMoving", true);
+
+            rb.velocity = new Vector3(movement.x * moveSpeed, rb.velocity.y, movement.z * moveSpeed);
         }
         else
         {
             anim.SetBool("isMoving", false);
+            rb.velocity = new Vector3(0f, rb.velocity.y, 0f);
         }
 
-        // if문 바깥에 배치! -> 이동 중이든 멈추든 항상 부드럽게 목표 방향으로 몸을 돌림
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
 
-        // 점프 처리
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
@@ -62,5 +64,10 @@ public class PlayerMovement : MonoBehaviour
         {
             isGrounded = true;
         }
+    }
+
+    public void ResetKnockback()
+    {
+        isKnockedBack = false;
     }
 }
