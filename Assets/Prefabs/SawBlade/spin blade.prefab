@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 4351198353872914099}
   - component: {fileID: 2652000747378082284}
   - component: {fileID: 5998448373975398473}
-  - component: {fileID: 2031342164748444004}
   - component: {fileID: 1632973612782329525}
-  m_Layer: 0
+  - component: {fileID: 440368165871720523}
+  m_Layer: 8
   m_Name: spin blade
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -113,21 +113,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &2031342164748444004
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1525069960973320479}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4404cf5c349cf7043baa1b83abf1649c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  speed: 15
-  randomStartDirection: 1
-  startDirection: {x: 1, y: 0, z: 1}
 --- !u!135 &1632973612782329525
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -135,7 +120,7 @@ SphereCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1525069960973320479}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: c96f742728643c34dbff48129537a157, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -147,5 +132,21 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.61468434
+  m_Radius: 0.61
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &440368165871720523
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1525069960973320479}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4404cf5c349cf7043baa1b83abf1649c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  speed: 6
+  enterMargin: 0.2
+  maxEnterTime: 10
+  maxLeaveTime: 10
