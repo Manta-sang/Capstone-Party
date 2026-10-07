@@ -1,6 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 벽에 닿으면 반사각으로 튕기는 톱날 (탑다운 3D, XZ 평면 이동)
+/// 상태: Entering(벽을 뚫고 진입) -> Active(벽 반사) -> Leaving(벽을 뚫고 퇴장 후 파괴)
+/// 정해진 횟수만큼 튕기면, 또는 시간 제한이 지나면 벽을 뚫고 나가 경기장 밖에서 사라진다.
+/// 필요: Rigidbody + Collider
+/// </summary>
 [RequireComponent(typeof(Rigidbody))]
 public class SawBlade : MonoBehaviour
 {
@@ -9,10 +15,10 @@ public class SawBlade : MonoBehaviour
     // 톱날끼리의 충돌을 관리하기 위한 전체 목록
     private static readonly List<SawBlade> allBlades = new List<SawBlade>();
 
-    private float speed = 6f; // 테스트용 기본값
+    private float speed = 6f; // 스포너가 Launch()로 덮어씀 (스포너 없이 단독 테스트할 때만 쓰는 기본값)
     [SerializeField] private float enterMargin = 0.2f;   // 완전히 들어온 뒤 여유 거리
-    [SerializeField] private float maxEnterTime = 10f;   // 안전장치
-    [SerializeField] private float maxLeaveTime = 10f;   // 안전장치
+    [SerializeField] private float maxEnterTime = 10f;   // 이 시간 안에 못 들어오면 제거 (안전장치)
+    [SerializeField] private float maxLeaveTime = 10f;   // 이 시간 안에 못 나가면 제거 (안전장치)
 
     private Rigidbody rb;
     private Collider[] myColliders;
@@ -52,6 +58,7 @@ public class SawBlade : MonoBehaviour
         allBlades.Remove(this);
     }
 
+    /// <summary>"완전히 안쪽에 들어왔다"고 판정되는 데 필요한 깊이 (반지름 + 여유). 프리팹에서도 계산 가능</summary>
     public float EnterDepth => EstimateRadius() + enterMargin;
 
     private float EstimateRadius()
@@ -141,6 +148,7 @@ public class SawBlade : MonoBehaviour
         }
     }
 
+    /// <summary>경기장 밖에서 안쪽으로 진입시키며 발사</summary>
     /// <param name="bounces">이 횟수만큼 튕긴 뒤, 다음 벽 접촉에서 튕기지 않고 뚫고 나감</param>
     /// <param name="newTimeLimit">활성화(벽 반사 시작) 후 이 시간이 지나면 벽을 뚫고 나감</param>
     /// <param name="newExitDistance">경기장 경계에서 이 거리만큼 바깥으로 나가면 파괴</param>
@@ -197,6 +205,14 @@ public class SawBlade : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
+        // 플레이어와 닿으면 톱날 상태와 관계없이 즉사. 톱날은 반사나 횟수 계산 없이 그대로 진행한다
+        SawDodgePlayerLife player = collision.collider.GetComponentInParent<SawDodgePlayerLife>();
+        if (player != null)
+        {
+            player.Die();
+            return;
+        }
+
         if (state != State.Active) return; // 진입/퇴장 중에는 반사하지 않음
 
         Vector3 normal = Flatten(collision.GetContact(0).normal);

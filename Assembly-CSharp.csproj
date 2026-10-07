@@ -64,7 +64,9 @@
     <Compile Include="Assets\Scripts\UgsBootstrap.cs" />
     <Compile Include="Assets\Scripts\PlayerMovement.cs" />
     <Compile Include="Assets\Scripts\LobbyRelayManager.cs" />
+    <Compile Include="Assets\Scripts\SawBlade\SawDodgePlayerMovement.cs" />
     <Compile Include="Assets\Scripts\LobbyUI.cs" />
+    <Compile Include="Assets\Scripts\SawBlade\SawDodgePlayerLife.cs" />
     <Compile Include="Assets\Scripts\PlayerInteraction.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SawBladeSpawner.cs" />
   </ItemGroup>
