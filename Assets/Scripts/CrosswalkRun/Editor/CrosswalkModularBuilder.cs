@@ -12,34 +12,47 @@ namespace CrosswalkRun.Editor
         private const string MatDir = "Assets/Materials/CrosswalkRun";
         private const string PrefabDir = "Assets/Prefabs/CrosswalkRun";
 
-        [InitializeOnLoadMethod]
+       /* [InitializeOnLoadMethod]
         private static void OnEditorLoad()
         {
-            // 컴파일 후 1회 자동 실행 (이미 빌드된 세션이면 건너뜀)
-            if (!SessionState.GetBool("CrosswalkModularBuilt_v1", false))
+            // 컴파일 후 1회 자동 실행
+            if (!SessionState.GetBool("CrosswalkVisibleSceneBuilt_v4", false))
             {
-                SessionState.SetBool("CrosswalkModularBuilt_v1", true);
+                SessionState.SetBool("CrosswalkVisibleSceneBuilt_v4", true);
                 EditorApplication.delayCall += () =>
                 {
-                    // 현재 씬이 CrosswalkRun인 경우 자동 빌드
-                    if (SceneManager.GetActiveScene().name == "CrosswalkRun")
-                    {
-                        BuildAll();
-                    }
+                    BuildAll();
                 };
             }
-        }
+        }*/
 
-        [MenuItem("Tools/CrosswalkRun/Build Modular Scene and Prefabs", false, 2)]
+        [MenuItem("Tools/CrosswalkRun/Build Visible Scene and Prefabs", false, 1)]
+        [MenuItem("Tools/CrosswalkRun/Build Prefab Pool Scene and Assets", false, 2)]
         public static void BuildAll()
         {
+            if (SceneManager.GetActiveScene().name != "CrosswalkRun")
+            {
+                if (File.Exists("Assets/Scenes/CrosswalkRun.unity"))
+                {
+                    EditorSceneManager.OpenScene("Assets/Scenes/CrosswalkRun.unity");
+                }
+            }
+
             EnsureDirectories();
             CreateMaterials(out Material matAsphalt, out Material matSidewalk, out Material matStripe, out Material matCar, out PhysicMaterial physMat);
-            CreatePrefabs(matAsphalt, matSidewalk, matStripe, matCar, physMat, out GameObject carPrefab, out GameObject sidewalkPrefab, out GameObject lanePrefab);
-            SetupModularScene(carPrefab, sidewalkPrefab, lanePrefab);
+
+            CreatePrefabs(matAsphalt, matSidewalk, matStripe, matCar, physMat,
+                out GameObject carPrefab,
+                out GameObject startPlatformPrefab,
+                out GameObject chunkStandard,
+                out GameObject chunkHighway,
+                out GameObject chunkRestStop);
+
+            SetupVisibleModularScene(startPlatformPrefab, chunkStandard, chunkHighway, chunkRestStop);
+
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[CrosswalkRun] 프리팹 에셋 생성 및 모듈형 씬(CrosswalkRun) 빌드가 완벽히 완료되었습니다!");
+            Debug.Log("[CrosswalkRun] 에디터 씬에 실제 도로 모듈들이 눈에 보이게 배치되었으며, 프리팹 풀 빌드가 완료되었습니다!");
         }
 
         private static void EnsureDirectories()
@@ -102,7 +115,11 @@ namespace CrosswalkRun.Editor
         }
 
         private static void CreatePrefabs(Material matAsphalt, Material matSidewalk, Material matStripe, Material matCar, PhysicMaterial physMat,
-            out GameObject carPrefab, out GameObject sidewalkPrefab, out GameObject lanePrefab)
+            out GameObject carPrefab,
+            out GameObject startPlatformPrefab,
+            out GameObject chunkStandard,
+            out GameObject chunkHighway,
+            out GameObject chunkRestStop)
         {
             // 1. Car_Obstacle.prefab
             string carPath = $"{PrefabDir}/Car_Obstacle.prefab";
@@ -119,25 +136,76 @@ namespace CrosswalkRun.Editor
             carPrefab = PrefabUtility.SaveAsPrefabAsset(tempCar, carPath);
             Object.DestroyImmediate(tempCar);
 
-            // 2. Sidewalk_Module.prefab
-            string sidewalkPath = $"{PrefabDir}/Sidewalk_Module.prefab";
-            GameObject tempSidewalk = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            tempSidewalk.name = "Sidewalk_Module";
-            tempSidewalk.transform.localScale = new Vector3(36f, 0.5f, 3.5f);
-            tempSidewalk.GetComponent<Renderer>().sharedMaterial = matSidewalk;
-            tempSidewalk.GetComponent<Collider>().sharedMaterial = physMat;
+            // 2. Sidewalk_Start_Platform.prefab (시작 발판: 길이 11m, local 0~11)
+            string startPlatformPath = $"{PrefabDir}/Sidewalk_Start_Platform.prefab";
+            GameObject tempStart = new GameObject("Sidewalk_Start_Platform");
+            RoadChunk startChunk = tempStart.AddComponent<RoadChunk>();
+            startChunk.SetCustomLength(11f);
 
-            sidewalkPrefab = PrefabUtility.SaveAsPrefabAsset(tempSidewalk, sidewalkPath);
-            Object.DestroyImmediate(tempSidewalk);
+            GameObject startSurface = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            startSurface.name = "Sidewalk_Surface";
+            startSurface.transform.SetParent(tempStart.transform, false);
+            startSurface.transform.localPosition = new Vector3(0, -0.25f, 5.5f);
+            startSurface.transform.localScale = new Vector3(36f, 0.5f, 11f);
+            startSurface.GetComponent<Renderer>().sharedMaterial = matSidewalk;
+            startSurface.GetComponent<Collider>().sharedMaterial = physMat;
 
-            // 3. RoadLane_Module.prefab
-            string lanePath = $"{PrefabDir}/RoadLane_Module.prefab";
-            GameObject tempLane = new GameObject("RoadLane_Module");
+            startPlatformPrefab = PrefabUtility.SaveAsPrefabAsset(tempStart, startPlatformPath);
+            Object.DestroyImmediate(tempStart);
 
-            // 차도 바닥
+            // 3. Chunk_Standard_3Lanes.prefab (3차선 + 안전 인도 = 17m)
+            string stdPath = $"{PrefabDir}/Chunk_Standard_3Lanes.prefab";
+            GameObject tempStd = new GameObject("Chunk_Standard_3Lanes");
+            RoadChunk stdChunk = tempStd.AddComponent<RoadChunk>();
+            stdChunk.SetCustomLength(17f);
+
+            CreateLaneChild(carPrefab, matAsphalt, matStripe, physMat, tempStd.transform, "Lane_01", new Vector3(0, 0, 2.25f), Vector3.right, 8f, 14f, 1.5f, 3.0f);
+            CreateLaneChild(carPrefab, matAsphalt, matStripe, physMat, tempStd.transform, "Lane_02", new Vector3(0, 0, 6.75f), Vector3.left, 9f, 15f, 1.4f, 2.8f);
+            CreateLaneChild(carPrefab, matAsphalt, matStripe, physMat, tempStd.transform, "Lane_03", new Vector3(0, 0, 11.25f), Vector3.right, 10f, 16f, 1.2f, 2.5f);
+            CreateSidewalkChild(matSidewalk, physMat, tempStd.transform, "Sidewalk_Safety", new Vector3(0, 0, 15.25f), 3.5f);
+
+            chunkStandard = PrefabUtility.SaveAsPrefabAsset(tempStd, stdPath);
+            Object.DestroyImmediate(tempStd);
+
+            // 4. Chunk_Highway_4Lanes.prefab (4차선 고속도로 = 18m)
+            string hwyPath = $"{PrefabDir}/Chunk_Highway_4Lanes.prefab";
+            GameObject tempHwy = new GameObject("Chunk_Highway_4Lanes");
+            RoadChunk hwyChunk = tempHwy.AddComponent<RoadChunk>();
+            hwyChunk.SetCustomLength(18f);
+
+            CreateLaneChild(carPrefab, matAsphalt, matStripe, physMat, tempHwy.transform, "Lane_01_FastRight", new Vector3(0, 0, 2.25f), Vector3.right, 14f, 20f, 1.0f, 2.2f);
+            CreateLaneChild(carPrefab, matAsphalt, matStripe, physMat, tempHwy.transform, "Lane_02_FastRight", new Vector3(0, 0, 6.75f), Vector3.right, 15f, 22f, 0.9f, 2.0f);
+            CreateLaneChild(carPrefab, matAsphalt, matStripe, physMat, tempHwy.transform, "Lane_03_FastLeft", new Vector3(0, 0, 11.25f), Vector3.left, 15f, 21f, 1.0f, 2.2f);
+            CreateLaneChild(carPrefab, matAsphalt, matStripe, physMat, tempHwy.transform, "Lane_04_FastLeft", new Vector3(0, 0, 15.75f), Vector3.left, 16f, 24f, 0.8f, 1.8f);
+
+            chunkHighway = PrefabUtility.SaveAsPrefabAsset(tempHwy, hwyPath);
+            Object.DestroyImmediate(tempHwy);
+
+            // 5. Chunk_RestStop_1Lane.prefab (넓은 인도 6m + 1차선 4.5m + 인도 4.5m = 15m)
+            string restPath = $"{PrefabDir}/Chunk_RestStop_1Lane.prefab";
+            GameObject tempRest = new GameObject("Chunk_RestStop_1Lane");
+            RoadChunk restChunk = tempRest.AddComponent<RoadChunk>();
+            restChunk.SetCustomLength(15f);
+
+            CreateSidewalkChild(matSidewalk, physMat, tempRest.transform, "Sidewalk_RestArea_A", new Vector3(0, 0, 3.0f), 6.0f);
+            CreateLaneChild(carPrefab, matAsphalt, matStripe, physMat, tempRest.transform, "Lane_Slow", new Vector3(0, 0, 8.25f), Vector3.right, 6f, 10f, 2.5f, 4.5f);
+            CreateSidewalkChild(matSidewalk, physMat, tempRest.transform, "Sidewalk_RestArea_B", new Vector3(0, 0, 12.75f), 4.5f);
+
+            chunkRestStop = PrefabUtility.SaveAsPrefabAsset(tempRest, restPath);
+            Object.DestroyImmediate(tempRest);
+        }
+
+        private static void CreateLaneChild(GameObject carPrefab, Material matAsphalt, Material matStripe, PhysicMaterial physMat,
+            Transform parent, string name, Vector3 localCenter, Vector3 moveDir, float minSpd, float maxSpd, float minInt, float maxInt)
+        {
+            GameObject lane = new GameObject(name);
+            lane.transform.SetParent(parent, false);
+            lane.transform.localPosition = localCenter;
+
+            // 차도 바닥 (Y 표면 = 0.0)
             GameObject roadSurface = GameObject.CreatePrimitive(PrimitiveType.Cube);
             roadSurface.name = "Road_Surface";
-            roadSurface.transform.SetParent(tempLane.transform, false);
+            roadSurface.transform.SetParent(lane.transform, false);
             roadSurface.transform.localPosition = new Vector3(0, -0.25f, 0);
             roadSurface.transform.localScale = new Vector3(36f, 0.5f, 4.5f);
             roadSurface.GetComponent<Renderer>().sharedMaterial = matAsphalt;
@@ -150,36 +218,49 @@ namespace CrosswalkRun.Editor
             {
                 GameObject stripe = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 stripe.name = $"Stripe_{s}";
-                stripe.transform.SetParent(tempLane.transform, false);
+                stripe.transform.SetParent(lane.transform, false);
                 stripe.transform.localPosition = new Vector3(startX + (s * stripeSpacing), 0.002f, 0);
                 stripe.transform.localScale = new Vector3(1.0f, 0.004f, 3.3f);
                 stripe.GetComponent<Renderer>().sharedMaterial = matStripe;
                 Object.DestroyImmediate(stripe.GetComponent<Collider>());
             }
 
-            // 스포너 자식 오브젝트 (기본 우측 진행)
+            // 스포너 자식 오브젝트
             GameObject spawnerObj = new GameObject("CarSpawner");
-            spawnerObj.transform.SetParent(tempLane.transform, false);
-            spawnerObj.transform.localPosition = new Vector3(-20f, 0.6f, 0);
-            CarSpawner spawner = spawnerObj.AddComponent<CarSpawner>();
-            spawner.Configure(Vector3.right, 9f, 15f, 1.5f, 3.0f);
+            spawnerObj.transform.SetParent(lane.transform, false);
+            bool moveRight = (moveDir.x > 0);
+            spawnerObj.transform.localPosition = new Vector3(moveRight ? -20f : 20f, 0.6f, 0);
 
-            // Spawner에 carPrefab 연결 (SerializedObject 활용)
+            CarSpawner spawner = spawnerObj.AddComponent<CarSpawner>();
+            spawner.Configure(moveDir, minSpd, maxSpd, minInt, maxInt);
+
             SerializedObject spawnerSo = new SerializedObject(spawner);
             spawnerSo.FindProperty("carPrefab").objectReferenceValue = carPrefab;
             spawnerSo.ApplyModifiedPropertiesWithoutUndo();
-
-            lanePrefab = PrefabUtility.SaveAsPrefabAsset(tempLane, lanePath);
-            Object.DestroyImmediate(tempLane);
         }
 
-        private static void SetupModularScene(GameObject carPrefab, GameObject sidewalkPrefab, GameObject lanePrefab)
+        private static void CreateSidewalkChild(Material matSidewalk, PhysicMaterial physMat,
+            Transform parent, string name, Vector3 localCenter, float depth)
+        {
+            GameObject sidewalk = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            sidewalk.name = name;
+            sidewalk.transform.SetParent(parent, false);
+            sidewalk.transform.localPosition = localCenter + new Vector3(0, -0.25f, 0);
+            sidewalk.transform.localScale = new Vector3(36f, 0.5f, depth);
+            sidewalk.GetComponent<Renderer>().sharedMaterial = matSidewalk;
+            sidewalk.GetComponent<Collider>().sharedMaterial = physMat;
+        }
+
+        private static void SetupVisibleModularScene(GameObject startPlatformPrefab, GameObject chunkStd, GameObject chunkHwy, GameObject chunkRest)
         {
             Scene scene = SceneManager.GetActiveScene();
 
-            // 기존 자동 런타임 매니저가 씬에 있다면 교체
+            // 이전 버전의 시스템 정리
             GameObject oldSystem = GameObject.Find("[Crosswalk_System]");
             if (oldSystem != null) Object.DestroyImmediate(oldSystem);
+
+            GameObject oldMap = GameObject.Find("Map_Environment");
+            if (oldMap != null) Object.DestroyImmediate(oldMap);
 
             // 1. 카메라 설정
             Camera cam = Camera.main;
@@ -220,7 +301,7 @@ namespace CrosswalkRun.Editor
                 managerObj.AddComponent<CrosswalkGameManager>();
             }
 
-            // 4. 플레이어
+            // 4. 테스트 플레이어 (출발 인도 위 Z = -3.0m에 배치)
             GameObject playerObj = GameObject.Find("Test_Player");
             if (playerObj == null)
             {
@@ -253,73 +334,62 @@ namespace CrosswalkRun.Editor
                 playerObj.AddComponent<CrosswalkTestPlayer>();
             }
 
-            // 5. 하이어라키에 실제 눈에 보이는 모듈들 배치 (Map_Environment)
-            GameObject mapRoot = GameObject.Find("Map_Environment");
-            if (mapRoot != null) Object.DestroyImmediate(mapRoot);
-
-            mapRoot = new GameObject("Map_Environment");
-            mapRoot.AddComponent<ModularRoadLooper>();
-
-            // (1) 시작 발판 (인도)
-            GameObject startPlatform = (GameObject)PrefabUtility.InstantiatePrefab(sidewalkPrefab, mapRoot.transform);
-            startPlatform.name = "Sidewalk_Start";
-            startPlatform.transform.position = new Vector3(0, 0, -4.5f);
-            startPlatform.transform.localScale = new Vector3(36f, 0.5f, 11f);
-
-            // (2) 차선 및 인도 모듈들을 일렬로 배치 (총 4개 구역, 12개 차선 + 4개 인도)
-            float currentZ = 1.0f; // 시작 발판 끝 좌표 (Z = -4.5 + 5.5 = 1.0f)
-            int laneGlobalIndex = 1;
-
-            for (int section = 1; section <= 4; section++)
+            // 5. Map_RoadManager 구성
+            GameObject roadManagerObj = GameObject.Find("Map_RoadManager");
+            if (roadManagerObj == null)
             {
-                GameObject sectionGroup = new GameObject($"Section_{section:00}");
-                sectionGroup.transform.SetParent(mapRoot.transform, false);
-                sectionGroup.transform.position = new Vector3(0, 0, currentZ);
-
-                float sectionLocalZ = 0f;
-
-                // 3개 차선 배치
-                for (int l = 0; l < 3; l++)
-                {
-                    float laneCenterZ = sectionLocalZ + (4.5f * 0.5f);
-                    GameObject laneObj = (GameObject)PrefabUtility.InstantiatePrefab(lanePrefab, sectionGroup.transform);
-                    laneObj.name = $"Lane_{laneGlobalIndex:00}";
-                    laneObj.transform.localPosition = new Vector3(0, 0, laneCenterZ);
-
-                    // 좌/우 방향 교대 설정
-                    bool moveRight = (laneGlobalIndex % 2 == 1);
-                    CarSpawner spawnerComp = laneObj.GetComponentInChildren<CarSpawner>();
-                    if (spawnerComp != null)
-                    {
-                        Transform spawnerTr = spawnerComp.transform;
-                        spawnerTr.localPosition = new Vector3(moveRight ? -20f : 20f, 0.6f, 0);
-
-                        float minSpd = 8f + (section * 1.5f);
-                        float maxSpd = minSpd + 6f;
-                        float minInt = Mathf.Max(1.0f, 2.0f - (section * 0.2f));
-                        float maxInt = minInt + 1.2f;
-
-                        spawnerComp.Configure(moveRight ? Vector3.right : Vector3.left, minSpd, maxSpd, minInt, maxInt);
-                    }
-
-                    sectionLocalZ += 4.5f;
-                    laneGlobalIndex++;
-                }
-
-                // 1개 중간 안전지대(인도) 배치
-                float sidewalkCenterZ = sectionLocalZ + (3.5f * 0.5f);
-                GameObject sidewalkObj = (GameObject)PrefabUtility.InstantiatePrefab(sidewalkPrefab, sectionGroup.transform);
-                sidewalkObj.name = $"Sidewalk_Safety_{section:00}";
-                sidewalkObj.transform.localPosition = new Vector3(0, 0, sidewalkCenterZ);
-                sidewalkObj.transform.localScale = new Vector3(36f, 0.5f, 3.5f);
-
-                sectionLocalZ += 3.5f;
-
-                currentZ += sectionLocalZ;
+                roadManagerObj = new GameObject("Map_RoadManager");
             }
 
-            // Looper 컴포넌트 세그먼트 등록 갱신
-            mapRoot.GetComponent<ModularRoadLooper>().CollectSegments();
+            // 기존 자식 오브젝트 정리 (중복 생성 방지)
+            while (roadManagerObj.transform.childCount > 0)
+            {
+                Object.DestroyImmediate(roadManagerObj.transform.GetChild(0).gameObject);
+            }
+
+            // 6. [핵심] 에디터 씬에 실제 도로 모듈들을 눈에 보이게 펼쳐서 배치!
+            // (1) 출발 인도 (Z = -10m ~ +1m)
+            GameObject instStart = (GameObject)PrefabUtility.InstantiatePrefab(startPlatformPrefab, roadManagerObj.transform);
+            instStart.name = "Sidewalk_Start_Platform";
+            instStart.transform.position = new Vector3(0, 0, -10f);
+
+            // (2) 표준 3차선 청크 (Z = 1m ~ 18m)
+            GameObject instStd = (GameObject)PrefabUtility.InstantiatePrefab(chunkStd, roadManagerObj.transform);
+            instStd.name = "Chunk_Standard_3Lanes";
+            instStd.transform.position = new Vector3(0, 0, 1.0f);
+
+            // (3) 고속도로 4차선 청크 (Z = 18m ~ 36m)
+            GameObject instHwy = (GameObject)PrefabUtility.InstantiatePrefab(chunkHwy, roadManagerObj.transform);
+            instHwy.name = "Chunk_Highway_4Lanes";
+            instHwy.transform.position = new Vector3(0, 0, 18.0f);
+
+            // (4) 쉼터 1차선 청크 (Z = 36m ~ 51m)
+            GameObject instRest = (GameObject)PrefabUtility.InstantiatePrefab(chunkRest, roadManagerObj.transform);
+            instRest.name = "Chunk_RestStop_1Lane";
+            instRest.transform.position = new Vector3(0, 0, 36.0f);
+
+            // 7. PrefabRoadManager 컴포넌트 설정 및 바인딩
+            PrefabRoadManager roadManager = roadManagerObj.GetComponent<PrefabRoadManager>();
+            if (roadManager == null)
+            {
+                roadManager = roadManagerObj.AddComponent<PrefabRoadManager>();
+            }
+
+            SerializedObject roadManagerSo = new SerializedObject(roadManager);
+            roadManagerSo.FindProperty("targetCamera").objectReferenceValue = cam.transform;
+            roadManagerSo.FindProperty("startPlatformPrefab").objectReferenceValue = startPlatformPrefab;
+            roadManagerSo.FindProperty("chunksParent").objectReferenceValue = roadManagerObj.transform;
+            roadManagerSo.FindProperty("viewDistanceAhead").floatValue = 90f;
+            roadManagerSo.FindProperty("despawnDistanceBehind").floatValue = 50f;
+
+            GameObject[] poolPrefabs = new GameObject[] { chunkStd, chunkHwy, chunkRest };
+            SerializedProperty prefabsProp = roadManagerSo.FindProperty("roadChunkPrefabs");
+            prefabsProp.arraySize = poolPrefabs.Length;
+            for (int i = 0; i < poolPrefabs.Length; i++)
+            {
+                prefabsProp.GetArrayElementAtIndex(i).objectReferenceValue = poolPrefabs[i];
+            }
+            roadManagerSo.ApplyModifiedPropertiesWithoutUndo();
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);

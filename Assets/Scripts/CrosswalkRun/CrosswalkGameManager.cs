@@ -34,6 +34,7 @@ namespace CrosswalkRun
 
         public bool IsGameActive => isGameActive;
         public int AlivePlayerCount => alivePlayers.Count;
+        public IReadOnlyList<GameObject> AlivePlayers => alivePlayers;
 
         private void Awake()
         {

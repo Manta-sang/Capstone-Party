@@ -62,6 +62,7 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\LobbyRelayManager.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CarSpawner.cs" />
+    <Compile Include="Assets\Scripts\CrosswalkRun\PrefabRoadManager.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\AutoScrollCamera.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CarObstacle.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CameraDeathZone.cs" />
