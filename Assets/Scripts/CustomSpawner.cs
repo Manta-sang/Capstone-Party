@@ -3,59 +3,56 @@ using Unity.Netcode;
 
 public class CustomSpawner : MonoBehaviour
 {
-    [Header("만들어둔 캐릭터 프리팹 4개 등록")]
-    [SerializeField] private GameObject characterPrefabA;
-    [SerializeField] private GameObject characterPrefabB;
-    [SerializeField] private GameObject characterPrefabC; // 새로 추가
-    [SerializeField] private GameObject characterPrefabD; // 새로 추가
+    [Header("스폰할 캐릭터 프리팹 리스트 (원하는 만큼 넣으세요)")]
+    [SerializeField] private GameObject[] characterPrefabs;
 
     void Start()
     {
-        if (NetworkManager.Singleton != null)
-        {
-            NetworkManager.Singleton.OnServerStarted += OnServerStarted;
-        }
-    }
+        // 네트워크가 켜져 있고, 내가 방장(서버)일 때만 작동
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return;
 
-    void OnServerStarted()
-    {
-        if (NetworkManager.Singleton.IsServer)
+        // 씬이 열리자마자 이미 방에 들어와 있는 사람들 전부 스폰
+        foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
         {
-            NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
+            SpawnPlayerIfNoCharacter(clientId);
         }
+
+        // 게임 중에 뒤늦게 들어오는 사람들을 위해 이벤트 연결
+        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
     }
 
     void OnClientConnected(ulong clientId)
     {
-        if (!NetworkManager.Singleton.IsServer) return;
+        SpawnPlayerIfNoCharacter(clientId);
+    }
 
-        // ★ [핵심] 클라이언트 ID에 따라 4개의 프리팹 중 하나를 번갈아가며 선택 (나머지 연산 % 4)
-        GameObject prefabToSpawn = null;
-        int selection = (int)(clientId % 4);
+    void SpawnPlayerIfNoCharacter(ulong clientId)
+    {
+        // 이미 씬에 내 캐릭터가 있다면 중복 스폰 방지
+        if (NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(clientId) != null) return;
 
-        switch (selection)
+        // 인스펙터에 등록된 프리팹이 하나도 없으면 경고
+        if (characterPrefabs == null || characterPrefabs.Length == 0)
         {
-            case 0: prefabToSpawn = characterPrefabA; break;
-            case 1: prefabToSpawn = characterPrefabB; break;
-            case 2: prefabToSpawn = characterPrefabC; break;
-            case 3: prefabToSpawn = characterPrefabD; break;
-        }
-
-        if (prefabToSpawn == null)
-        {
-            Debug.LogError($"클라이언트 {clientId}번에 해당하는 스폰 프리팹이 비어있습니다!");
+            Debug.LogError("CustomSpawner에 등록된 캐릭터 프리팹이 없습니다!");
             return;
         }
 
-        // 플레이어들이 겹치지 않게 옆으로 살짝 간격을 두고 스폰
-        Vector3 spawnPosition = new Vector3(clientId * 2f, 1f, 0f);
+        // ★ 핵심: 등록된 프리팹 개수에 맞춰서 알아서 번갈아가며 스폰 (2개면 0, 1, 0, 1...)
+        int selection = (int)(clientId % (ulong)characterPrefabs.Length);
+        GameObject prefabToSpawn = characterPrefabs[selection];
 
+        if (prefabToSpawn == null) return;
+
+        // 안 겹치게 옆으로 살짝 띄워서 스폰
+        Vector3 spawnPosition = new Vector3(clientId * 2f, 1f, 0f);
         GameObject spawnedInstance = Instantiate(prefabToSpawn, spawnPosition, Quaternion.identity);
 
         NetworkObject netObj = spawnedInstance.GetComponent<NetworkObject>();
         if (netObj != null)
         {
             netObj.SpawnAsPlayerObject(clientId, true);
+            Debug.Log($"플레이어 {clientId}번 스폰 완료! (선택된 캐릭터 인덱스: {selection})");
         }
     }
     //변경
