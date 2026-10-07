@@ -58,7 +58,7 @@ public class CustomSpawner : MonoBehaviour
             netObj.SpawnAsPlayerObject(clientId, true);
         }
     }
-
+    //º¯°æ
     void OnDestroy()
     {
         if (NetworkManager.Singleton != null)

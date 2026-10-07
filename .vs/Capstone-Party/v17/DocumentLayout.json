@@ -3,12 +3,12 @@
   "WorkspaceRootPath": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|c:\\users\\kjs\\desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\capstone-party\\assets\\scripts\\sceneloader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\sceneloader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\assets\\scripts\\customspawner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\customspawner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|c:\\users\\kjs\\desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\capstone-party\\assets\\scripts\\sceneloader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\sceneloader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\assets\\scripts\\netcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -30,11 +30,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "SceneLoader.cs",
               "DocumentMoniker": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\Assets\\Scripts\\SceneLoader.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\SceneLoader.cs",
@@ -47,15 +47,16 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "CustomSpawner.cs",
               "DocumentMoniker": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\Assets\\Scripts\\CustomSpawner.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\CustomSpawner.cs",
               "ToolTip": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\Assets\\Scripts\\CustomSpawner.cs",
               "RelativeToolTip": "Assets\\Scripts\\CustomSpawner.cs",
-              "ViewState": "AgIAAC8AAAAAAAAAAAAAAEQAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAC8AAAAAAAAAAAAAADwAAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-01T05:22:16.297Z"
+              "WhenOpened": "2026-10-01T05:22:16.297Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
