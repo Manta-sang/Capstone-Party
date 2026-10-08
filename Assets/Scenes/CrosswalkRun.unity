@@ -438,10 +438,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   scrollDirection: {x: 0, y: 0, z: 1}
-  initialSpeed: 3.5
+  initialSpeed: 4
   speedIncreasePerSecond: 0.08
-  maxSpeed: 25
-  startDelay: 2
+  maxSpeed: 30
+  startDelay: 3
   enableViewportBoundaryCheck: 1
   bottomThreshold: -0.05
   horizontalMargin: 0.05
