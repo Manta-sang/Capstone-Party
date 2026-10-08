@@ -1,7 +1,6 @@
 using UnityEngine;
-using Unity.Netcode; // ★ 네트워크 패키지 추가
+using Unity.Netcode;
 
-// ★ MonoBehaviour 대신 NetworkBehaviour를 상속받습니다.
 public class PlayerMovement : NetworkBehaviour
 {
     [Header("기본 설정")]
@@ -14,6 +13,7 @@ public class PlayerMovement : NetworkBehaviour
 
     private Animator anim;
     private Rigidbody rb;
+    private ClientNetworkAnimator netAnim; // ★ 네트워크 애니메이터 추가
     private bool isGrounded = true;
     private Quaternion targetRotation;
 
@@ -21,12 +21,12 @@ public class PlayerMovement : NetworkBehaviour
     {
         anim = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
+        netAnim = GetComponent<ClientNetworkAnimator>(); // ★ 컴포넌트 가져오기
         targetRotation = transform.rotation;
     }
 
     void Update()
     {
-        // ★ IsOwner: 서버가 인정한 '내 클라이언트 소유 캐릭터'일 때만 조종 가능
         if (!IsOwner) return;
         if (isKnockedBack) return;
 
@@ -38,7 +38,7 @@ public class PlayerMovement : NetworkBehaviour
         if (movement.magnitude >= 0.1f)
         {
             targetRotation = Quaternion.LookRotation(movement);
-            anim.SetBool("isMoving", true);
+            anim.SetBool("isMoving", true); // Bool은 기본 anim으로 해도 자동 동기화됨
 
             rb.velocity = new Vector3(movement.x * moveSpeed, rb.velocity.y, movement.z * moveSpeed);
         }
@@ -53,7 +53,11 @@ public class PlayerMovement : NetworkBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-            anim.SetTrigger("doJump");
+
+            // ★ Trigger(점프)는 반드시 네트워크 애니메이터를 통해서 실행해야 동기화됩니다!
+            if (netAnim != null) netAnim.SetTrigger("doJump");
+            else anim.SetTrigger("doJump");
+
             isGrounded = false;
         }
     }

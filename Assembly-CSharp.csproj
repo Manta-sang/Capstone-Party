@@ -64,6 +64,8 @@
     <Compile Include="Assets\Scripts\NetController.cs" />
     <Compile Include="Assets\Scripts\LobbyUI.cs" />
     <Compile Include="Assets\Scripts\PlayerInteraction.cs" />
+    <Compile Include="Assets\Scripts\ClientNetworkAnimator.cs" />
+    <Compile Include="Assets\Scripts\ClientNetworkTransform.cs" />
     <Compile Include="Assets\Scripts\SceneLoader.cs" />
     <Compile Include="Assets\Scripts\CustomSpawner.cs" />
     <Compile Include="Assets\Scripts\UgsBootstrap.cs" />
