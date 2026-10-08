@@ -60,16 +60,18 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.62f2\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\SawBlade\SawBlade.cs" />
+    <Compile Include="Assets\Scripts\SawBlade\SD_Blade.cs" />
+    <Compile Include="Assets\Scripts\SawBlade\SD_GameManager.cs" />
+    <Compile Include="Assets\Scripts\SawBlade\SD_PlayerLife.cs" />
+    <Compile Include="Assets\Scripts\SawBlade\SD_PlayerMovement.cs" />
     <Compile Include="Assets\Scripts\UgsBootstrap.cs" />
     <Compile Include="Assets\Scripts\PlayerMovement.cs" />
     <Compile Include="Assets\Scripts\LobbyRelayManager.cs" />
-    <Compile Include="Assets\Scripts\SawBlade\SawDodgePlayerMovement.cs" />
     <Compile Include="Assets\Scripts\LobbyUI.cs" />
-    <Compile Include="Assets\Scripts\SawBlade\SawDodgePlayerLife.cs" />
     <Compile Include="Assets\Scripts\PlayerInteraction.cs" />
     <Compile Include="Assets\Scripts\SawBlade\CustomCylinderCollider.cs" />
-    <Compile Include="Assets\Scripts\SawBlade\SawBladeSpawner.cs" />
+    <Compile Include="Assets\Scripts\SawBlade\SD_BladeSpawner.cs" />
+    <Compile Include="Assets\Scripts\SawBlade\SD_CameraFollow.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

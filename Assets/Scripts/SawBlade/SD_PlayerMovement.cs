@@ -11,7 +11,7 @@ using UnityEngine;
 /// - 바닥 오브젝트에는 "Ground" 태그가 필요하다.
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
-public class SawDodgePlayerMovement : MonoBehaviour
+public class SD_PlayerMovement : MonoBehaviour
 {
     [Header("Move")]
     public float moveSpeed = 5f;

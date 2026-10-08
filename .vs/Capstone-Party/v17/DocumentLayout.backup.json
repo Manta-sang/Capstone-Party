@@ -3,16 +3,32 @@
   "WorkspaceRootPath": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|c:\\users\\imsik\\desktop\\schproject\\capstone-party\\assets\\scripts\\sawblade\\sawblade.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\sawblade\\sawblade.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|c:\\users\\imsik\\desktop\\schproject\\capstone-party\\assets\\scripts\\sawblade\\sawdodgeplayermovement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\sawblade\\sawdodgeplayermovement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|c:\\users\\imsik\\desktop\\schproject\\capstone-party\\assets\\scripts\\sawblade\\sawdodgeplayerlife.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\sawblade\\sawdodgeplayerlife.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\assets\\scripts\\sawblade\\customcylindercollider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\sawblade\\customcylindercollider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\assets\\scripts\\sawblade\\sawbladespawner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\sawblade\\sawbladespawner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\assets\\scripts\\sawblade\\sawblade.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:assets\\scripts\\sawblade\\sawblade.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\assets\\scripts\\sawblade\\sawbladespawner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:assets\\scripts\\sawblade\\sawbladespawner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\assets\\scripts\\sawblade\\sawdodgecamerafollow.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:assets\\scripts\\sawblade\\sawdodgecamerafollow.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\assets\\scripts\\sawblade\\sawdodgegamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:assets\\scripts\\sawblade\\sawdodgegamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\assets\\scripts\\sawblade\\sawdodgeplayerlife.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:assets\\scripts\\sawblade\\sawdodgeplayerlife.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -22,45 +38,92 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "SawDodgePlayerMovement.cs",
+              "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SawDodgePlayerMovement.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\SawBlade\\SawDodgePlayerMovement.cs",
+              "ToolTip": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SawDodgePlayerMovement.cs",
+              "RelativeToolTip": "Assets\\Scripts\\SawBlade\\SawDodgePlayerMovement.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-08T04:46:28.107Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "SawDodgeCameraFollow.cs",
+              "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SawDodgeCameraFollow.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\SawBlade\\SawDodgeCameraFollow.cs",
+              "ToolTip": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SawDodgeCameraFollow.cs",
+              "RelativeToolTip": "Assets\\Scripts\\SawBlade\\SawDodgeCameraFollow.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-08T04:46:27.403Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "SawDodgeGameManager.cs",
+              "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SawDodgeGameManager.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\SawBlade\\SawDodgeGameManager.cs",
+              "ToolTip": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SawDodgeGameManager.cs",
+              "RelativeToolTip": "Assets\\Scripts\\SawBlade\\SawDodgeGameManager.cs",
+              "ViewState": "AgIAAEwAAAAAAAAAAAAcwGoAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-08T04:19:02.247Z"
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 1,
+              "Title": "CustomCylinderCollider.cs",
+              "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\CustomCylinderCollider.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\SawBlade\\CustomCylinderCollider.cs",
+              "ToolTip": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\CustomCylinderCollider.cs",
+              "RelativeToolTip": "Assets\\Scripts\\SawBlade\\CustomCylinderCollider.cs",
+              "ViewState": "AgIAALwAAAAAAAAAAAAcwNoAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-08T01:47:06.382Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
               "Title": "SawDodgePlayerLife.cs",
               "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SawDodgePlayerLife.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\SawBlade\\SawDodgePlayerLife.cs",
               "ToolTip": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SawDodgePlayerLife.cs",
               "RelativeToolTip": "Assets\\Scripts\\SawBlade\\SawDodgePlayerLife.cs",
-              "ViewState": "AgIAAEgAAAAAAAAAAAAcwGYAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAACAAAAAAAAAAAAAUwDEAAAAtAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-07T08:18:00.674Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-07T08:18:00.674Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "SawBladeSpawner.cs",
               "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SawBladeSpawner.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\SawBlade\\SawBladeSpawner.cs",
               "ToolTip": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SawBladeSpawner.cs",
               "RelativeToolTip": "Assets\\Scripts\\SawBlade\\SawBladeSpawner.cs",
-              "ViewState": "AgIAAF4AAAAAAAAAAAAYwHsAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAKUAAAAAAAAAAAAAAKUAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-10-02T16:12:32.556Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "SawBlade.cs",
               "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SawBlade.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\SawBlade\\SawBlade.cs",
               "ToolTip": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SawBlade.cs",
               "RelativeToolTip": "Assets\\Scripts\\SawBlade\\SawBlade.cs",
-              "ViewState": "AgIAABABAAAAAAAAAAAcwC4BAAABAAAAAAAAAA==",
+              "ViewState": "AgIAABgBAAAAAAAAAAAiwCoBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-01T05:24:19.538Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-01T05:24:19.538Z"
             }
           ]
         }

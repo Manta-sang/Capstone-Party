@@ -8,12 +8,12 @@ using UnityEngine;
 /// 필요: Rigidbody + Collider
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
-public class SawBlade : MonoBehaviour
+public class SD_Blade : MonoBehaviour
 {
     private enum State { Entering, Active, Leaving }
 
     // 톱날끼리의 충돌을 관리하기 위한 전체 목록
-    private static readonly List<SawBlade> allBlades = new List<SawBlade>();
+    private static readonly List<SD_Blade> allBlades = new List<SD_Blade>();
 
     private float speed = 6f; // 스포너가 Launch()로 덮어씀 (스포너 없이 단독 테스트할 때만 쓰는 기본값)
     [SerializeField] private float enterMargin = 0.2f;   // 완전히 들어온 뒤 여유 거리
@@ -37,7 +37,7 @@ public class SawBlade : MonoBehaviour
     private int bounceCount;
 
     // 활성화된 뒤, 겹침이 풀리면 충돌을 켜줄 다른 톱날들
-    private readonly List<SawBlade> pendingBlades = new List<SawBlade>();
+    private readonly List<SD_Blade> pendingBlades = new List<SD_Blade>();
 
     private void Awake()
     {
@@ -78,21 +78,21 @@ public class SawBlade : MonoBehaviour
     // 다른 모든 톱날과의 충돌 on/off (ignore = true면 서로 통과)
     private void SetIgnoreOtherBlades(bool ignore)
     {
-        foreach (SawBlade other in allBlades)
+        foreach (SD_Blade other in allBlades)
         {
             if (other == null || other == this) continue;
             SetIgnorePair(other, ignore);
         }
     }
 
-    private void SetIgnorePair(SawBlade other, bool ignore)
+    private void SetIgnorePair(SD_Blade other, bool ignore)
     {
         foreach (Collider mine in myColliders)
             foreach (Collider theirs in other.myColliders)
                 Physics.IgnoreCollision(mine, theirs, ignore);
     }
 
-    private bool OverlapsBlade(SawBlade other)
+    private bool OverlapsBlade(SD_Blade other)
     {
         foreach (Collider mine in myColliders)
         {
@@ -112,7 +112,7 @@ public class SawBlade : MonoBehaviour
     private void QueueBladeCollisions()
     {
         pendingBlades.Clear();
-        foreach (SawBlade other in allBlades)
+        foreach (SD_Blade other in allBlades)
         {
             if (other != null && other != this && other.state == State.Active)
                 pendingBlades.Add(other);
@@ -124,7 +124,7 @@ public class SawBlade : MonoBehaviour
     {
         for (int i = pendingBlades.Count - 1; i >= 0; i--)
         {
-            SawBlade other = pendingBlades[i];
+            SD_Blade other = pendingBlades[i];
             if (other == null || other.state != State.Active)
             {
                 pendingBlades.RemoveAt(i);
@@ -206,7 +206,7 @@ public class SawBlade : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         // 플레이어와 닿으면 톱날 상태와 관계없이 즉사. 톱날은 반사나 횟수 계산 없이 그대로 진행한다
-        SawDodgePlayerLife player = collision.collider.GetComponentInParent<SawDodgePlayerLife>();
+        SD_PlayerLife player = collision.collider.GetComponentInParent<SD_PlayerLife>();
         if (player != null)
         {
             player.Die();
@@ -219,7 +219,7 @@ public class SawBlade : MonoBehaviour
         if (normal == Vector3.zero) return; // 바닥 등 수직 면은 무시
 
         // 다른 톱날과의 충돌은 반사만 하고 튕김 횟수에는 포함하지 않는다
-        bool hitBlade = collision.collider.GetComponentInParent<SawBlade>() != null;
+        bool hitBlade = collision.collider.GetComponentInParent<SD_Blade>() != null;
 
         if (!hitBlade && bounceCount >= maxBounces)
         {
@@ -260,6 +260,41 @@ public class SawBlade : MonoBehaviour
         Vector3 p = rb.position - arenaCenter;
         return Mathf.Abs(p.x) > arenaHalfSize.x + exitDistance
             || Mathf.Abs(p.z) > arenaHalfSize.y + exitDistance;
+    }
+
+    public void Freeze()
+    {
+        speed = 0f;
+        if (rb != null)
+        {
+            rb.velocity = Vector3.zero; // Unity 6 이상이면 rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            rb.isKinematic = true; // 더 이상 물리 충돌이나 이동 영향을 받지 않도록 고정
+        }
+        enabled = false; // FixedUpdate 등 업데이트 스크립트 비활성화
+    }
+
+    public static void FreezeAll()
+    {
+        foreach (SD_Blade blade in allBlades)
+        {
+            if (blade != null)
+            {
+                blade.Freeze();
+            }
+        }
+    }
+
+    public static void DestroyAll()
+    {
+        for (int i = allBlades.Count - 1; i >= 0; i--)
+        {
+            if (allBlades[i] != null)
+            {
+                Destroy(allBlades[i].gameObject);
+            }
+        }
+        allBlades.Clear();
     }
 
     // 톱날이 아직 벽 콜라이더와 겹쳐 있는지 (겹친 채로 충돌을 켜면 벽에 끼어 멈춤)
