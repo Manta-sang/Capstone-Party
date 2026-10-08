@@ -34,6 +34,7 @@ public class SD_Blade : MonoBehaviour
     private int maxBounces = int.MaxValue;
     private float timeLimit = float.PositiveInfinity;
     private float exitDistance = 3f;
+    private float despawnDistance = float.PositiveInfinity; // 경기장 경계에서 이 거리 이상 벗어나면 상태와 관계없이 삭제 (단독 테스트 시에는 무제한)
     private int bounceCount;
 
     // 활성화된 뒤, 겹침이 풀리면 충돌을 켜줄 다른 톱날들
@@ -152,8 +153,9 @@ public class SD_Blade : MonoBehaviour
     /// <param name="bounces">이 횟수만큼 튕긴 뒤, 다음 벽 접촉에서 튕기지 않고 뚫고 나감</param>
     /// <param name="newTimeLimit">활성화(벽 반사 시작) 후 이 시간이 지나면 벽을 뚫고 나감</param>
     /// <param name="newExitDistance">경기장 경계에서 이 거리만큼 바깥으로 나가면 파괴</param>
+    /// <param name="newDespawnDistance">사라지는 범위: 경기장 경계에서 이 거리 이상 벗어나면 어떤 상태든 삭제</param>
     public void Launch(Vector3 dir, float newSpeed, Vector3 center, Vector2 arenaSize, Collider[] walls,
-                       int bounces, float newTimeLimit, float newExitDistance)
+                       int bounces, float newTimeLimit, float newExitDistance, float newDespawnDistance)
     {
         direction = Flatten(dir);
         speed = newSpeed;
@@ -163,6 +165,7 @@ public class SD_Blade : MonoBehaviour
         maxBounces = bounces;
         timeLimit = newTimeLimit;
         exitDistance = newExitDistance;
+        despawnDistance = newDespawnDistance;
 
         ChangeState(State.Entering);
         SetIgnoreWalls(true);
@@ -172,6 +175,13 @@ public class SD_Blade : MonoBehaviour
     private void FixedUpdate()
     {
         rb.velocity = direction * speed; // Unity 6 이상이면 rb.linearVelocity
+
+        // 사라지는 범위를 벗어났으면 상태와 관계없이 삭제 (진입이 끝나지 않고 멀리 날아가는 톱날 대비)
+        if (IsOutsideDespawn())
+        {
+            Destroy(gameObject);
+            return;
+        }
 
         switch (state)
         {
@@ -252,6 +262,14 @@ public class SD_Blade : MonoBehaviour
         float limitX = arenaHalfSize.x - radius - enterMargin;
         float limitZ = arenaHalfSize.y - radius - enterMargin;
         return Mathf.Abs(p.x) < limitX && Mathf.Abs(p.z) < limitZ;
+    }
+
+    // 사라지는 범위(경기장 경계에서 despawnDistance만큼 바깥)를 벗어났는지
+    private bool IsOutsideDespawn()
+    {
+        Vector3 p = rb.position - arenaCenter;
+        return Mathf.Abs(p.x) > arenaHalfSize.x + despawnDistance
+            || Mathf.Abs(p.z) > arenaHalfSize.y + despawnDistance;
     }
 
     // 경기장 경계에서 exitDistance만큼 바깥으로 나갔는지

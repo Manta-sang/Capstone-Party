@@ -40,6 +40,10 @@ public class SD_BladeSpawner : MonoBehaviour
     [SerializeField] private float maxSpeed = 8f;
     [SerializeField] private bool autoStart = true;
 
+    [Header("Despawn (사라지는 범위)")]
+    [Tooltip("경기장 가장자리에서 이 거리만큼 바깥으로 벗어난 톱날은 상태와 관계없이 삭제된다. 생성 위치 범위보다 작게 두면 자동으로 그보다 조금 크게 맞춰진다")]
+    [SerializeField] private float despawnMargin = 12f;
+
     [Header("Difficulty (시간이 지날수록 톱날이 많아짐)")]
     [Tooltip("생성이 시작된 뒤 이 시간(초) 동안 서서히 어려워진다. 0이면 난이도가 올라가지 않는다")]
     [SerializeField] private float rampDuration = 60f;
@@ -114,7 +118,7 @@ public class SD_BladeSpawner : MonoBehaviour
 
         SD_Blade blade = Instantiate(bladePrefab, spawnPos, Quaternion.identity);
         blade.Launch(dir, Random.Range(minSpeed, maxSpeed), c, arenaSize, wallColliders,
-                     Random.Range(minBounces, maxBounces + 1), timeLimit, spawnOffset);
+                     Random.Range(minBounces, maxBounces + 1), timeLimit, spawnOffset, GetDespawnDistance());
         blades.Add(blade);
     }
 
@@ -129,6 +133,15 @@ public class SD_BladeSpawner : MonoBehaviour
         else if (r < arenaSize.x * 2f + arenaSize.y) { inward = Vector3.left; lateral = Vector3.forward; halfNormal = hx; halfLateral = hz; } // 오른쪽(+X)
         else { inward = Vector3.right; lateral = Vector3.forward; halfNormal = hx; halfLateral = hz; } // 왼쪽(-X)
     }
+    // 실제로 적용되는 사라지는 범위 거리. 생성 위치(진입 각도 때문에 옆으로 밀려난 범위 포함)보다 항상 크게 유지한다
+    private float GetDespawnDistance()
+    {
+        float depth = bladePrefab != null ? bladePrefab.EnterDepth + 0.1f : 1f;
+        float tan = Mathf.Tan(maxEntryAngle * Mathf.Deg2Rad);
+        float spawnReach = Mathf.Max(spawnOffset, tan * (spawnOffset + depth) - depth); // 경기장 가장자리에서 생성 위치까지 가장 먼 거리
+        return Mathf.Max(despawnMargin, spawnReach + 1f);
+    }
+
     public void ResetSpawner()
     {
         StopSpawning();
@@ -162,5 +175,10 @@ public class SD_BladeSpawner : MonoBehaviour
         Gizmos.DrawLine(c + new Vector3(-hx - extra, 0f, -oz), c + new Vector3(hx + extra, 0f, -oz));
         Gizmos.DrawLine(c + new Vector3(ox, 0f, -hz - extra), c + new Vector3(ox, 0f, hz + extra));
         Gizmos.DrawLine(c + new Vector3(-ox, 0f, -hz - extra), c + new Vector3(-ox, 0f, hz + extra));
+
+        // 사라지는 범위 (파랑): 이 영역 밖으로 벗어난 톱날은 삭제된다
+        float d = GetDespawnDistance();
+        Gizmos.color = new Color(0.3f, 0.6f, 1f);
+        Gizmos.DrawWireCube(c, new Vector3(arenaSize.x + d * 2f, 0.05f, arenaSize.y + d * 2f));
     }
 }
