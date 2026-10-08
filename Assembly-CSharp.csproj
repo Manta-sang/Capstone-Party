@@ -60,6 +60,7 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.62f2\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\CustomCylinderCollider.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_Blade.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_GameManager.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_PlayerLife.cs" />
@@ -69,7 +70,6 @@
     <Compile Include="Assets\Scripts\LobbyRelayManager.cs" />
     <Compile Include="Assets\Scripts\LobbyUI.cs" />
     <Compile Include="Assets\Scripts\PlayerInteraction.cs" />
-    <Compile Include="Assets\Scripts\SawBlade\CustomCylinderCollider.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_BladeSpawner.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_CameraFollow.cs" />
   </ItemGroup>
