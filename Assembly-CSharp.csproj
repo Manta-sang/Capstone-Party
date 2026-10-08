@@ -68,8 +68,6 @@
     <Compile Include="Assets\Scripts\CrosswalkRun\CameraDeathZone.cs" />
     <Compile Include="Assets\Scripts\LobbyUI.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\IKillable.cs" />
-    <Compile Include="Assets\Scripts\CrosswalkRun\ModularRoadLooper.cs" />
-    <Compile Include="Assets\Scripts\CrosswalkRun\InfiniteRoadManager.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CrosswalkPlayer.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CrosswalkTestPlayer.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CrosswalkGameManager.cs" />
