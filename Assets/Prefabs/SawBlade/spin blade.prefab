@@ -12,8 +12,10 @@ GameObject:
   - component: {fileID: 4351198353872914099}
   - component: {fileID: 2652000747378082284}
   - component: {fileID: 5998448373975398473}
-  - component: {fileID: 1632973612782329525}
   - component: {fileID: 440368165871720523}
+  - component: {fileID: 2228634043408776989}
+  - component: {fileID: 9057519654255889178}
+  - component: {fileID: 7681963999129025870}
   m_Layer: 8
   m_Name: spin blade
   m_TagString: Untagged
@@ -113,8 +115,23 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!135 &1632973612782329525
-SphereCollider:
+--- !u!114 &440368165871720523
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1525069960973320479}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4404cf5c349cf7043baa1b83abf1649c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enterMargin: 0.2
+  maxEnterTime: 10
+  maxLeaveTime: 10
+--- !u!64 &2228634043408776989
+MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -131,10 +148,11 @@ SphereCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.61
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &440368165871720523
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 0}
+--- !u!114 &9057519654255889178
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -143,10 +161,32 @@ MonoBehaviour:
   m_GameObject: {fileID: 1525069960973320479}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4404cf5c349cf7043baa1b83abf1649c, type: 3}
+  m_Script: {fileID: 11500000, guid: c8dedd285f4fefc48901f5d2489a2cc4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 6
-  enterMargin: 0.2
-  maxEnterTime: 10
-  maxLeaveTime: 10
+  radius: 0.61
+  height: 0.2
+  segments: 52
+  axis: 1
+  isTrigger: 0
+--- !u!95 &7681963999129025870
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1525069960973320479}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 7a633c843ee76644fb2f460dbbfb07c5, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

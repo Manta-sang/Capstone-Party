@@ -68,6 +68,7 @@
     <Compile Include="Assets\Scripts\LobbyUI.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SawDodgePlayerLife.cs" />
     <Compile Include="Assets\Scripts\PlayerInteraction.cs" />
+    <Compile Include="Assets\Scripts\SawBlade\CustomCylinderCollider.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SawBladeSpawner.cs" />
   </ItemGroup>
   <ItemGroup>
