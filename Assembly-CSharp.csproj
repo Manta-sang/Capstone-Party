@@ -65,6 +65,7 @@
     <Compile Include="Assets\Scripts\SawBlade\SD_GameManager.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_PlayerLife.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_PlayerMovement.cs" />
+    <Compile Include="Assets\Scripts\SawBlade\SD_SpectatorCamera.cs" />
     <Compile Include="Assets\Scripts\UgsBootstrap.cs" />
     <Compile Include="Assets\Scripts\PlayerMovement.cs" />
     <Compile Include="Assets\Scripts\LobbyRelayManager.cs" />

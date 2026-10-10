@@ -15,6 +15,9 @@ public class SD_GameManager : MonoBehaviour
     public SD_PlayerLife Winner { get; private set; }
     public int AliveCount => alivePlayers.Count;
 
+    /// <summary>현재 살아있는 플레이어 목록 (관전 카메라 등에서 읽기 전용으로 사용)</summary>
+    public IReadOnlyList<SD_PlayerLife> AlivePlayers => alivePlayers;
+
     /// <summary>승자가 정해졌을 때 한 번 호출된다 (UI나 결과 처리를 연결할 때 사용)</summary>
     public event Action<SD_PlayerLife> GameOver;
 
