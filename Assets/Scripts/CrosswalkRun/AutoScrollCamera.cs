@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode; // [Crosswalk 연동] 네트워크 시작 대기 여부를 확인합니다.
 
 namespace CrosswalkRun
 {
@@ -41,6 +42,8 @@ namespace CrosswalkRun
 
         public float CurrentSpeed => currentSpeed;
         public float InitialSpeed => initialSpeed;
+        // [Crosswalk 연동] 기존 Inspector 대기 시간을 네트워크 공통 시작 시각 계산에 재사용합니다.
+        public float StartDelay => startDelay;
         public float ElapsedTime => elapsedTime;
         public float DifficultyMultiplier => Mathf.Max(1.0f, currentSpeed / Mathf.Max(0.1f, initialSpeed));
 
@@ -53,7 +56,10 @@ namespace CrosswalkRun
         {
             currentSpeed = initialSpeed;
             SetupGroundDeathZone();
-            Invoke(nameof(StartScrolling), startDelay);
+            // [Crosswalk 연동] 네트워크에서는 참가자 등록 완료 후 게임 매니저가 시작합니다.
+            // 기존 단독 실행의 지연 시작 동작은 그대로 유지합니다.
+            if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening)
+                Invoke(nameof(StartScrolling), startDelay);
         }
 
         public void StartScrolling()
@@ -85,6 +91,13 @@ namespace CrosswalkRun
 
         private void LateUpdate()
         {
+            // [Crosswalk 연동] 로딩 대기 중인 캐릭터를 화면 이탈로 잘못 탈락시키지 않습니다.
+            if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening && !isScrolling)
+            {
+                UpdateDeathZonePosition();
+                return;
+            }
+
             // 1. 뷰포트(화면 경계) 기준 실시간 이탈 검사 (100% 확실한 탈락 판정)
             CheckPlayersInViewport();
 

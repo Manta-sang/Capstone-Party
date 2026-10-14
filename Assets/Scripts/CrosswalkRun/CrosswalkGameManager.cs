@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode; // [Crosswalk 연동] 기존 네트워크 연결 여부만 확인합니다.
 
 namespace CrosswalkRun
 {
@@ -54,6 +55,14 @@ namespace CrosswalkRun
         private void Start()
         {
             // 씬에 이미 배치된 플레이어가 있다면 자동 탐색 (Tag = "Player" 또는 IKillable)
+            // [Crosswalk 연동] 네트워크 참가자는 씬 로딩과 스폰 확인이 끝난 뒤
+            // CrosswalkNetworkEntry가 등록하고 StartGame을 호출합니다.
+            // 연결하지 않은 기존 단독 실행은 아래 원래 흐름을 그대로 사용합니다.
+            if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+            {
+                gameResultText = "참가자 로딩 및 캐릭터 생성 확인 중...";
+                return;
+            }
             FindInitialPlayers();
             StartGame();
         }
@@ -79,6 +88,14 @@ namespace CrosswalkRun
             {
                 alivePlayers.Add(player);
             }
+        }
+
+        /// <summary>
+        /// [Crosswalk 연동] 준비 실패/대기 사유를 기존 HUD에 표시합니다. 게임 판정은 변경하지 않습니다.
+        /// </summary>
+        public void SetNetworkWaitingStatus(string status)
+        {
+            if (!isGameActive) gameResultText = status;
         }
 
         public void StartGame()
