@@ -1141,7 +1141,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46a381e90bce6304f8d7cd779784f0e2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 5
+  moveSpeed: 10
   rotationSpeed: 10
   jumpForce: 5
   isKnockedBack: 0
@@ -1159,6 +1159,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pushPower: 10
   pushRadius: 3
+  pushCooldown: 3
+  stunDuration: 0.8
 --- !u!114 &4056044379567361265
 MonoBehaviour:
   m_ObjectHideFlags: 0
