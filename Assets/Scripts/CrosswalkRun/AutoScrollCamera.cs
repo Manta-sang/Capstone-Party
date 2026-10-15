@@ -7,7 +7,7 @@ namespace CrosswalkRun
     /// <summary>
     /// 카메라를 일정한 속도 및 가속도로 전진시키는 오토스크롤 스크립트입니다.
     /// 화면 밖으로 벗어난 플레이어(뷰포트 이탈)를 실시간 감지하여 자동 탈락시키며,
-    /// 지면(Y=0)을 관통하는 후방 물리 데스존을 함께 제공하여 완벽한 탈락 판정을 보장합니다.
+    /// 경계 탈락은 화면 기준으로만 판정하며 물리 데스존은 생성하지 않습니다.
     /// </summary>
     public class AutoScrollCamera : MonoBehaviour
     {
@@ -28,7 +28,7 @@ namespace CrosswalkRun
         [Tooltip("화면 좌우 이탈 마진 (0.05 = 화면 좌우 바깥 5%)")]
         [SerializeField] private float horizontalMargin = 0.05f;
 
-        [Header("후방 물리 데스존 보조 설정")]
+        [Header("미사용: 기존 물리 데스존 설정 보관")]
         [Tooltip("지면(Y=0)에 배치되는 후방 물리 데스존 오브젝트")]
         [SerializeField] private GameObject deathZoneObject;
         [Tooltip("카메라 Z 위치 대비 지면 데스존의 후방 거리 (미터)")]
@@ -55,7 +55,8 @@ namespace CrosswalkRun
         private void Start()
         {
             currentSpeed = initialSpeed;
-            SetupGroundDeathZone();
+            // 화면 경계 검사만 사용하므로 물리 데스존 자동 생성을 중단합니다.
+            // SetupGroundDeathZone();
             // [Crosswalk 연동] 네트워크에서는 참가자 등록 완료 후 게임 매니저가 시작합니다.
             // 기존 단독 실행의 지연 시작 동작은 그대로 유지합니다.
             if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening)
@@ -94,15 +95,12 @@ namespace CrosswalkRun
             // [Crosswalk 연동] 로딩 대기 중인 캐릭터를 화면 이탈로 잘못 탈락시키지 않습니다.
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening && !isScrolling)
             {
-                UpdateDeathZonePosition();
                 return;
             }
 
-            // 1. 뷰포트(화면 경계) 기준 실시간 이탈 검사 (100% 확실한 탈락 판정)
+            // 물리 데스존 없이 기존 뷰포트(화면 경계) 기준으로 이탈을 검사합니다.
             CheckPlayersInViewport();
 
-            // 2. 지면 물리 데스존 위치를 카메라 Z에 맞춰 갱신
-            UpdateDeathZonePosition();
         }
 
         /// <summary>
@@ -211,9 +209,12 @@ namespace CrosswalkRun
 
         private void OnDrawGizmosSelected()
         {
+            // 사용하지 않는 물리 데스존이 에디터에 표시되지 않도록 기존 표시 코드를 보관합니다.
+            /*
             Gizmos.color = new Color(1f, 0f, 0f, 0.4f);
             float targetZ = transform.position.z - deathZoneBehindDistance;
             Gizmos.DrawCube(new Vector3(0f, 0f, targetZ), deathZoneSize);
+            */
         }
     }
 }
