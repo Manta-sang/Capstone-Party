@@ -345,14 +345,18 @@ public class SD_GameManager : NetworkBehaviour
         }
     }
 
-    private HashSet<SD_PlayerLife> SpawnMissingPlayers()
+private HashSet<SD_PlayerLife> SpawnMissingPlayers()
     {
         var spawned = new HashSet<SD_PlayerLife>();
         if (!IsSpawned || !IsServer) return spawned;
 
         NetworkManager manager = NetworkManager.Singleton;
         GameObject prefab = manager.NetworkConfig.PlayerPrefab;
-        if (prefab == null) return spawned;
+        if (prefab == null)
+        {
+            Debug.LogError("[SD_GameManager] NetworkConfig에 PlayerPrefab이 등록되어 있지 않습니다!");
+            return spawned;
+        }
 
         if (spawnPoints == null) spawnPoints = FindObjectOfType<SD_SpawnPoints>();
 
@@ -361,16 +365,25 @@ public class SD_GameManager : NetworkBehaviour
             if (manager.SpawnManager.GetPlayerNetworkObject(clientId) != null) continue;
 
             Vector3 position = spawnPoints != null ? spawnPoints.GetSpawnPosition(clientId) : Vector3.zero;
-            GameObject instance = Instantiate(prefab, position, Quaternion.identity);
+            Quaternion rotation = Quaternion.identity; // 필요시 회전값 추가 가능
+
+            GameObject instance = Instantiate(prefab, position, rotation);
             instance.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId, true);
 
             SD_PlayerLife life = instance.GetComponent<SD_PlayerLife>();
-            if (life != null) spawned.Add(life);
+            if (life != null) 
+            {
+                spawned.Add(life);
+                Debug.Log($"[SD_GameManager] 플레이어 스폰 성공! ClientID: {clientId}, 생성 위치: {position}");
+            }
+            else
+            {
+                Debug.LogWarning($"[SD_GameManager] 스폰된 오브젝트에 SD_PlayerLife 컴포넌트가 없습니다! ClientID: {clientId}");
+            }
         }
 
         return spawned;
     }
-
     private void EndGame(SD_PlayerLife winner)
     {
         Debug.Log($"[GM t={Time.time:F2}] EndGame 승자={PlayerLabel(winner)}");
