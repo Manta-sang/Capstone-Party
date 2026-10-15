@@ -34,6 +34,7 @@ namespace CrosswalkRun
         public event Action<GameObject> OnGameOver;
 
         public bool IsGameActive => isGameActive;
+        public GameObject WinnerPlayer => winnerPlayer;
         public int AlivePlayerCount => alivePlayers.Count;
         public IReadOnlyList<GameObject> AlivePlayers => alivePlayers;
 
@@ -130,6 +131,9 @@ namespace CrosswalkRun
 
         private void CheckGameOverCondition()
         {
+            // 온라인 승자와 종료 여부는 호스트만 계산하고 참가자는 확정 결과를 받습니다.
+            if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening &&
+                !NetworkManager.Singleton.IsServer) return;
             // 멀티플레이어 환경 (최소 2인 이상 시작 시)
             if (allPlayers.Count >= 2)
             {
@@ -169,6 +173,14 @@ namespace CrosswalkRun
             OnGameOver?.Invoke(winnerPlayer);
         }
 
+        // 참가자는 호스트가 지정한 승자만 적용하며 자체 생존자 수로 종료를 판단하지 않습니다.
+        internal void ApplyNetworkRoundEnd(GameObject winner)
+        {
+            if (!isGameActive) return;
+            winnerPlayer = winner;
+            EndGame(winner != null ? $"승리! 최후의 생존자: {winner.name}" : "모두 탈락했습니다! (게임 오버)");
+        }
+
         private void OnGUI()
         {
             if (!showDebugHUD) return;
@@ -179,7 +191,9 @@ namespace CrosswalkRun
             GUILayout.Label($"생존 플레이어: {alivePlayers.Count}명");
             GUILayout.Label($"상태: {gameResultText}");
 
-            if (!isGameActive && GUILayout.Button("씬 재시작 (Restart)"))
+            // 온라인 재시작은 Character 복귀 후 호스트가 수행하므로 로컬 씬 재시작을 막습니다.
+            bool online = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
+            if (!online && !isGameActive && GUILayout.Button("씬 재시작 (Restart)"))
             {
                 UnityEngine.SceneManagement.SceneManager.LoadScene(
                     UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex

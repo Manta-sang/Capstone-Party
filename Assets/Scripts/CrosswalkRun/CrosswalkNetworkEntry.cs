@@ -11,7 +11,7 @@ namespace CrosswalkRun
 {
     /// <summary>
     /// 기존 방 연결을 그대로 사용하여 Crosswalk 입장, 캐릭터 생성, 참가 등록과 시작 시점만 연결합니다.
-    /// 차량 생성 및 탈락·승리 판정은 기존 코드에 맡기며 이 클래스에서 변경하지 않습니다.
+    /// 호스트의 탈락·승리 결과를 전달하고 게임 종료 후 같은 방을 유지한 채 Character로 복귀합니다.
     /// </summary>
     [DefaultExecutionOrder(-100)]
     public sealed class CrosswalkNetworkEntry : MonoBehaviour
@@ -22,6 +22,18 @@ namespace CrosswalkRun
         [SerializeField] private Transform[] spawnPoints;
         [SerializeField] private CrosswalkGameManager gameManager;
         [SerializeField] private AutoScrollCamera scrollCamera;
+
+        public static CrosswalkNetworkEntry Instance { get; private set; }
+        private const string ResultMessage = "Crosswalk.Round.Result";
+        private int resultVersion;
+        private int receivedVersion;
+        private int eliminatedMask;
+        private int pendingMask;
+        private bool pendingEnded;
+        private ulong pendingWinner;
+        private string pendingReason;
+        private bool hasPendingResult;
+        private bool returning;
 
         private const string RosterMessage = "Crosswalk.Entry.Roster";
         private const string ReadyMessage = "Crosswalk.Entry.Ready";
@@ -54,12 +66,14 @@ namespace CrosswalkRun
                 enabled = false;
                 return;
             }
+            Instance = this;
             sceneManager = network.SceneManager;
             messages = network.CustomMessagingManager;
             sceneManager.OnLoadEventCompleted += OnSceneLoadCompleted;
             messages.RegisterNamedMessageHandler(RosterMessage, OnRosterReceived);
             messages.RegisterNamedMessageHandler(ReadyMessage, OnReadyReceived);
             messages.RegisterNamedMessageHandler(StartMessage, OnStartReceived);
+            messages.RegisterNamedMessageHandler(ResultMessage, OnResultReceived);
         }
 
         // 호스트만 생성합니다. 로딩 실패자가 있으면 일부 인원만으로 조용히 시작하지 않습니다.
@@ -154,7 +168,12 @@ namespace CrosswalkRun
         // 생성된 각자의 캐릭터를 모든 화면에서 등록한 다음에만 준비 응답과 게임 시작을 진행합니다.
         private void Update()
         {
-            if (network == null || !network.IsListening || failed || started || !rosterReceived) return;
+            if (network == null || !network.IsListening || failed || !rosterReceived) return;
+            if (started)
+            {
+                ApplyPendingResult();
+                return;
+            }
             if (!localReady)
             {
                 bool allPresent = true;
@@ -191,6 +210,7 @@ namespace CrosswalkRun
                 RestoreControls();
                 started = true;
                 gameManager.StartGame();
+                ApplyPendingResult();
                 Debug.Log("[Crosswalk 입장] 전체 참가자 등록 완료, 게임 시작");
             }
             else if (startsAt < 0 && Time.realtimeSinceStartup > readyDeadline)
@@ -254,6 +274,102 @@ namespace CrosswalkRun
             if (token == entryToken) startsAt = time;
         }
 
+        // 호스트가 이번 라운드의 참가자만 한 번 탈락시키고 전체 결과를 전송합니다.
+        internal void ConfirmElimination(CrosswalkPlayer player, string reason)
+        {
+            if (!network.IsServer || !started || returning || !gameManager.IsGameActive || player == null) return;
+            var netObject = player.GetComponent<NetworkObject>();
+            if (netObject == null) return;
+            int slot = objectIds.IndexOf(netObject.NetworkObjectId);
+            if (slot < 0 || (eliminatedMask & (1 << slot)) != 0) return;
+            eliminatedMask |= 1 << slot;
+            player.ApplyConfirmedElimination(reason);
+            bool ended = !gameManager.IsGameActive;
+            ulong winner = gameManager.WinnerPlayer != null
+                ? gameManager.WinnerPlayer.GetComponent<NetworkObject>().NetworkObjectId : ulong.MaxValue;
+            using (var writer = new FastBufferWriter(512, Allocator.Temp))
+            {
+                writer.WriteValueSafe(entryToken);
+                writer.WriteValueSafe(++resultVersion);
+                writer.WriteValueSafe(eliminatedMask);
+                writer.WriteValueSafe(ended);
+                writer.WriteValueSafe(winner);
+                // 판정 사유는 짧은 안내 문구만 전달하여 메시지 크기를 제한합니다.
+                writer.WriteValueSafe(new FixedString128Bytes("호스트 확정: 탈락"));
+                foreach (ulong id in owners)
+                    if (id != NetworkManager.ServerClientId && network.ConnectedClients.ContainsKey(id))
+                        messages.SendNamedMessage(ResultMessage, id, writer, NetworkDelivery.ReliableSequenced);
+            }
+            if (ended) BeginReturn();
+        }
+
+        // 입장 토큰과 버전으로 이전 라운드/중복 결과를 제외하고 호스트 메시지만 받습니다.
+        private void OnResultReceived(ulong sender, FastBufferReader reader)
+        {
+            if (sender != NetworkManager.ServerClientId || network.IsServer || !rosterReceived || failed) return;
+            reader.ReadValueSafe(out int token);
+            reader.ReadValueSafe(out int version);
+            if (token != entryToken || version <= receivedVersion) return;
+            reader.ReadValueSafe(out pendingMask);
+            reader.ReadValueSafe(out pendingEnded);
+            reader.ReadValueSafe(out pendingWinner);
+            reader.ReadValueSafe(out FixedString128Bytes reason);
+            pendingReason = reason.ToString();
+            receivedVersion = version;
+            hasPendingResult = true;
+            // 시작 직전 도착한 결과는 Update에서 로컬 게임 시작 후 적용합니다.
+            if (started) ApplyPendingResult();
+        }
+
+        // 전체 탈락 비트 목록을 적용하므로 결과가 연속 도착해도 생존자 상태가 일치합니다.
+        private void ApplyPendingResult()
+        {
+            if (!hasPendingResult || network.IsServer) return;
+            hasPendingResult = false;
+            for (int slot = 0; slot < objectIds.Count; slot++)
+                if ((pendingMask & (1 << slot)) != 0 &&
+                    network.SpawnManager.SpawnedObjects.TryGetValue(objectIds[slot], out var player))
+                    player.GetComponent<CrosswalkPlayer>()?.ApplyConfirmedElimination(pendingReason);
+            if (!pendingEnded) return;
+            GameObject winner = null;
+            if (pendingWinner != ulong.MaxValue &&
+                network.SpawnManager.SpawnedObjects.TryGetValue(pendingWinner, out var winnerObject))
+                winner = winnerObject.gameObject;
+            gameManager.ApplyNetworkRoundEnd(winner);
+            BeginReturn();
+        }
+
+        // 종료 후 모든 캐릭터의 조작을 멈추고 호스트만 복귀 타이머를 실행합니다.
+        private void BeginReturn()
+        {
+            if (returning) return;
+            returning = true;
+            foreach (ulong id in objectIds)
+                if (network.SpawnManager.SpawnedObjects.TryGetValue(id, out var player))
+                {
+                    // 종료 대기 중에는 입력만 차단하고 물리를 유지하여 차량 충돌의 힘과 회전이 이어지게 합니다.
+                    // 입장 준비용 PauseControls는 Rigidbody까지 멈추므로 여기서는 사용하지 않습니다.
+                    var movement = player.GetComponent<PlayerMovement>();
+                    var interaction = player.GetComponent<PlayerInteraction>();
+                    if (movement != null) movement.enabled = false;
+                    if (interaction != null) interaction.enabled = false;
+                }
+            if (network.IsServer) StartCoroutine(ReturnToCharacter());
+        }
+
+        // 방 연결은 유지하고 네트워크 씬 전환으로 3초 뒤 전원을 함께 복귀시킵니다.
+        private IEnumerator ReturnToCharacter()
+        {
+            yield return new WaitForSecondsRealtime(3f);
+            if (network == null || !network.IsListening || !network.IsServer) yield break;
+            var status = sceneManager.LoadScene("Character", LoadSceneMode.Single);
+            if (status != SceneEventProgressStatus.Started)
+            {
+                gameManager.SetNetworkWaitingStatus("Character 복귀 실패: " + status);
+                Debug.LogError("[Crosswalk 복귀] 씬 이동 실패: " + status);
+            }
+        }
+
         // 실패 시 일부 인원만으로 시작하지 않고 원인을 콘솔과 기존 게임 상태 표시로 알립니다.
         private void Fail(string reason)
         {
@@ -265,12 +381,14 @@ namespace CrosswalkRun
         // 씬을 나갈 때 구독과 메시지 핸들러를 해제하여 다음 입장에 중복 실행되지 않게 합니다.
         private void OnDestroy()
         {
+            if (Instance == this) Instance = null;
             RestoreControls();
             if (sceneManager != null) sceneManager.OnLoadEventCompleted -= OnSceneLoadCompleted;
             if (messages == null) return;
             messages.UnregisterNamedMessageHandler(RosterMessage);
             messages.UnregisterNamedMessageHandler(ReadyMessage);
             messages.UnregisterNamedMessageHandler(StartMessage);
+            messages.UnregisterNamedMessageHandler(ResultMessage);
         }
     }
 }
