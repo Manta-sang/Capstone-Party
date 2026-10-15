@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 /// <summary>
@@ -56,6 +57,17 @@ public class SD_BladeSpawner : MonoBehaviour
     private Collider[] wallColliders = new Collider[0];
     private Coroutine spawnRoutine; // 생성 루프는 항상 하나만 돌게 관리
 
+    // 톱날 생성은 Host(서버)에서만 한다.
+    // 씬에 NetworkManager가 없으면(네트워크를 쓰지 않는 단독 테스트) 그대로 생성한다
+    private bool CanSpawn
+    {
+        get
+        {
+            NetworkManager manager = NetworkManager.Singleton;
+            return manager == null || manager.IsServer;
+        }
+    }
+
     private void Awake()
     {
         if (wallsRoot != null) wallColliders = wallsRoot.GetComponentsInChildren<Collider>();
@@ -64,12 +76,25 @@ public class SD_BladeSpawner : MonoBehaviour
 
     private void Start()
     {
+        // Host가 시작되는 순간 생성을 시작한다 (Client는 생성하지 않는다)
+        if (NetworkManager.Singleton != null) NetworkManager.Singleton.OnServerStarted += OnServerStarted;
         if (autoStart) StartSpawning();
+    }
+
+    private void OnServerStarted()
+    {
+        if (autoStart) StartSpawning();
+    }
+
+    private void OnDestroy()
+    {
+        if (NetworkManager.Singleton != null) NetworkManager.Singleton.OnServerStarted -= OnServerStarted;
     }
 
     // 이미 돌고 있는 생성 루프가 있으면 멈추고 새로 시작한다 (루프가 두 개 돌지 않게)
     private void StartSpawning()
     {
+        if (!CanSpawn) return; // Host가 아니면 생성하지 않는다
         if (spawnRoutine != null) StopCoroutine(spawnRoutine);
         spawnRoutine = StartCoroutine(SpawnLoop());
     }
@@ -120,6 +145,14 @@ public class SD_BladeSpawner : MonoBehaviour
         blade.Launch(dir, Random.Range(minSpeed, maxSpeed), c, arenaSize, wallColliders,
                      Random.Range(minBounces, maxBounces + 1), timeLimit, spawnOffset, GetDespawnDistance());
         blades.Add(blade);
+
+        // 네트워크를 쓰는 중이면 모든 참가자에게 이 톱날을 생성한다 (톱날 프리팹에 NetworkObject가 필요)
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+        {
+            NetworkObject networkObject = blade.GetComponent<NetworkObject>();
+            if (networkObject != null) networkObject.Spawn(true);
+            else Debug.LogError("SD_BladeSpawner: 톱날 프리팹에 NetworkObject가 없어요.", blade);
+        }
     }
 
     private void GetSide(float value, out Vector3 inward, out Vector3 lateral, out float halfNormal, out float halfLateral)
@@ -146,14 +179,13 @@ public class SD_BladeSpawner : MonoBehaviour
     {
         StopSpawning();
 
+        if (!CanSpawn) return; // Client는 톱날을 지우지 않는다 (Host가 지우면 모두에게 반영된다)
+
         // 씬에 남아있던 모든 톱날 제거
         SD_Blade.DestroyAll();
         blades.Clear();
 
-        if (autoStart)
-        {
-            StartSpawning();
-        }
+        StartSpawning(); // 라운드(재)시작: 톱날을 모두 지우고 처음부터 다시 생성한다 (난이도도 처음부터)
     }
 
     private void OnDrawGizmos()

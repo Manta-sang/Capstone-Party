@@ -1,3 +1,4 @@
+using Unity.Netcode;
 using UnityEngine;
 
 /// <summary>
@@ -11,7 +12,7 @@ using UnityEngine;
 /// - 바닥 오브젝트에는 "Ground" 태그가 필요하다.
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
-public class SD_PlayerMovement : MonoBehaviour
+public class SD_PlayerMovement : NetworkBehaviour
 {
     [Header("Move")]
     public float moveSpeed = 5f;
@@ -32,11 +33,15 @@ public class SD_PlayerMovement : MonoBehaviour
     private bool jumpRequested;
     private bool isGrounded = true;
 
+    // 네트워크에 생성되기 전(단독 테스트)에는 항상 조작 가능, 생성된 뒤에는 내 캐릭터만 조작한다
+    private bool CanControl => !IsSpawned || IsOwner;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
         anim = GetComponentInChildren<Animator>();
 
+        rb.maxDepenetrationVelocity = 3f;                  // 겹쳤을 때 서로 밀려나는 속도를 제한 (바닥을 뚫고 튕겨 나가는 것 방지)
         rb.freezeRotation = true;                           // 충돌로 캐릭터가 쓰러지지 않게
         rb.interpolation = RigidbodyInterpolation.Interpolate;
 
@@ -45,6 +50,8 @@ public class SD_PlayerMovement : MonoBehaviour
 
     private void Update()
     {
+        if (!CanControl) return; // 다른 사람의 캐릭터는 입력을 받지 않는다
+
         // 입력은 Update에서 읽고, 실제 이동은 FixedUpdate에서 처리한다
         float horizontal = Input.GetAxisRaw("Horizontal");
         float vertical = Input.GetAxisRaw("Vertical");
@@ -64,6 +71,8 @@ public class SD_PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (!CanControl) return; // 다른 사람의 캐릭터는 위치를 공유받아 따라가므로 직접 움직이지 않는다
+
         // 월드 기준 이동. 속도(velocity)를 건드리지 않아서 PlayerInteraction의 밀치기 힘이 지워지지 않는다
         if (moveInput != Vector3.zero)
             rb.MovePosition(rb.position + moveInput * moveSpeed * Time.fixedDeltaTime);

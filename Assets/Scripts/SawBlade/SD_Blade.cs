@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 /// <summary>
@@ -8,7 +9,7 @@ using UnityEngine;
 /// 필요: Rigidbody + Collider
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
-public class SD_Blade : MonoBehaviour
+public class SD_Blade : NetworkBehaviour
 {
     private enum State { Entering, Active, Leaving }
 
@@ -40,6 +41,21 @@ public class SD_Blade : MonoBehaviour
     // 활성화된 뒤, 겹침이 풀리면 충돌을 켜줄 다른 톱날들
     private readonly List<SD_Blade> pendingBlades = new List<SD_Blade>();
 
+    // 톱날의 이동/충돌 계산은 Host(서버)에서만 한다. 네트워크에 생성되기 전(단독 테스트)에는 항상 계산
+    private bool RunsLogic => !IsSpawned || IsServer;
+
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+
+        if (IsServer) return;
+
+        // Client의 톱날은 Host가 보내주는 위치를 따라가기만 한다.
+        // 내 캐릭터를 물리적으로 밀지 않도록 충돌을 끄고(트리거), 보간은 NetworkTransform에 맡긴다
+        foreach (Collider col in myColliders) col.isTrigger = true;
+        rb.interpolation = RigidbodyInterpolation.None;
+    }
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -54,9 +70,10 @@ public class SD_Blade : MonoBehaviour
         allBlades.Add(this);
     }
 
-    private void OnDestroy()
+    public override void OnDestroy()
     {
         allBlades.Remove(this);
+        base.OnDestroy();
     }
 
     /// <summary>"완전히 안쪽에 들어왔다"고 판정되는 데 필요한 깊이 (반지름 + 여유). 프리팹에서도 계산 가능</summary>
@@ -142,7 +159,7 @@ public class SD_Blade : MonoBehaviour
     private void Start()
     {
         // 스포너 없이 단독 테스트할 때: 랜덤 방향으로 바로 반사 시작
-        if (direction == Vector3.zero)
+        if (RunsLogic && direction == Vector3.zero)
         {
             float a = Random.Range(0f, Mathf.PI * 2f);
             direction = new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a));
@@ -174,12 +191,14 @@ public class SD_Blade : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (!RunsLogic) return; // Client의 톱날은 Host가 보내주는 위치를 따라가기만 한다
+
         rb.velocity = direction * speed; // Unity 6 이상이면 rb.linearVelocity
 
         // 사라지는 범위를 벗어났으면 상태와 관계없이 삭제 (진입이 끝나지 않고 멀리 날아가는 톱날 대비)
         if (IsOutsideDespawn())
         {
-            Destroy(gameObject);
+            DespawnSelf();
             return;
         }
 
@@ -196,7 +215,7 @@ public class SD_Blade : MonoBehaviour
                 else
                 {
                     stateTimer += Time.fixedDeltaTime;
-                    if (stateTimer > maxEnterTime) Destroy(gameObject);
+                    if (stateTimer > maxEnterTime) DespawnSelf();
                 }
                 break;
 
@@ -208,13 +227,15 @@ public class SD_Blade : MonoBehaviour
 
             case State.Leaving:
                 stateTimer += Time.fixedDeltaTime;
-                if (IsOutsideExit() || stateTimer > maxLeaveTime) Destroy(gameObject);
+                if (IsOutsideExit() || stateTimer > maxLeaveTime) DespawnSelf();
                 break;
         }
     }
 
     private void OnCollisionEnter(Collision collision)
     {
+        if (!RunsLogic) return; // 충돌 판정과 반사는 Host에서만
+
         // 플레이어와 닿으면 톱날 상태와 관계없이 즉사. 톱날은 반사나 횟수 계산 없이 그대로 진행한다
         SD_PlayerLife player = collision.collider.GetComponentInParent<SD_PlayerLife>();
         if (player != null)
@@ -264,6 +285,13 @@ public class SD_Blade : MonoBehaviour
         return Mathf.Abs(p.x) < limitX && Mathf.Abs(p.z) < limitZ;
     }
 
+    // 네트워크에 생성된 톱날은 Despawn(모든 참가자의 화면에서 삭제), 아니면 일반 삭제
+    private void DespawnSelf()
+    {
+        if (IsSpawned && IsServer) NetworkObject.Despawn(true);
+        else Destroy(gameObject);
+    }
+
     // 사라지는 범위(경기장 경계에서 despawnDistance만큼 바깥)를 벗어났는지
     private bool IsOutsideDespawn()
     {
@@ -309,7 +337,7 @@ public class SD_Blade : MonoBehaviour
         {
             if (allBlades[i] != null)
             {
-                Destroy(allBlades[i].gameObject);
+                allBlades[i].DespawnSelf();
             }
         }
         allBlades.Clear();
