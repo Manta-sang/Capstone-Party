@@ -87,7 +87,6 @@
     <Compile Include="Assets\Scripts\PlayerInteraction.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\IKillable.cs" />
     <Compile Include="Assets\Scripts\ClientNetworkAnimator.cs" />
-    <Compile Include="Assets\Scripts\SawBlade\SD_NetworkTestUI.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_BladeSpawner.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_CameraFollow.cs" />
     <Compile Include="Assets\Scripts\SceneLoader.cs" />

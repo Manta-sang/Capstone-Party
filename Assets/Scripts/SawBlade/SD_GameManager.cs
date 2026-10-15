@@ -1,17 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
-/// 톱날 피하기 미니게임의 라운드 진행과 승패 판정. 마지막까지 살아남은 한 명이 승리한다.
-///
-/// 멀티에서는 Host(서버)만 판정하고, 결과는 모든 참가자에게 공유된다.
-/// 죽은 플레이어의 오브젝트는 몇 초 뒤 제거되므로(SD_PlayerLife), 라운드를 (다시) 시작할 때
-/// 접속해 있는데 플레이어 오브젝트가 없는 사람은 이 매니저가 새로 생성한다.
-/// 네트워크 없이 단독으로 돌릴 때(NetworkManager 없음)도 그대로 동작한다.
-///
-/// 씬에 이 오브젝트를 하나 두고 NetworkObject를 같이 붙인다 (씬에 배치된 NetworkObject).
+/// 톱날 피하기 미니게임의 라운드 진행 및 승패 판정
+/// (2번 묶음 CrosswalkNetworkEntry의 Named Message 동기화 패턴 적용 버전)
 /// </summary>
 public class SD_GameManager : NetworkBehaviour
 {
@@ -23,14 +20,35 @@ public class SD_GameManager : NetworkBehaviour
     [SerializeField] private SD_SpawnPoints spawnPoints;
 
     [Header("설정")]
-    [Tooltip("이 인원 이상이 접속하면 라운드가 자동으로 시작된다. 혼자 테스트하려면 1 (1명일 때는 승패를 가리지 않는다)")]
+    [Tooltip("이 인원 이상이 접속하면 라운드가 자동으로 시작된다. 혼자 테스트하려면 1")]
     [SerializeField] private int minPlayersToStart = 2;
     [SerializeField] private bool showDebugHUD = true;
+
+    // 레퍼런스(2번 묶음)와 동일한 네트워크 메시지 프로토콜 상수
+    private const string RosterMessage = "SD.Entry.Roster";
+    private const string ReadyMessage = "SD.Entry.Ready";
+    private const string StartMessage = "SD.Entry.Start";
+    private const float ReadyTimeout = 30f;
 
     // 모든 참가자에게 공유되는 상태 (값을 바꾸는 건 Host만)
     private readonly NetworkVariable<bool> runningNet = new NetworkVariable<bool>(false);
     private readonly NetworkVariable<ulong> winnerIdNet = new NetworkVariable<ulong>(NoWinner);
     private readonly NetworkVariable<int> connectedCountNet = new NetworkVariable<int>(0);
+
+    // 레퍼런스 동기화 관련 변수들
+    private NetworkManager network;
+    private NetworkSceneManager sceneManager;
+    private CustomMessagingManager messages;
+    private readonly List<ulong> owners = new List<ulong>();
+    private readonly List<ulong> objectIds = new List<ulong>();
+    private readonly HashSet<ulong> readyClients = new HashSet<ulong>();
+    private int entryToken;
+    private bool spawnRequested;
+    private bool rosterReceived;
+    private bool localReady;
+    private bool networkStarted;
+    private double startsAt = -1;
+    private float readyDeadline;
 
     // 네트워크 없이 단독으로 돌릴 때 쓰는 상태
     private bool localRunning;
@@ -39,16 +57,13 @@ public class SD_GameManager : NetworkBehaviour
     private bool gameOverRaised;
     private int playersAtStart;
 
-    /// <summary>승자가 정해졌을 때 한 번 호출된다. 멀티에서는 모든 컴퓨터에서 호출된다</summary>
     public event Action<SD_PlayerLife> GameOver;
 
-    // Host이거나 단독 실행일 때만 판정한다
     private bool RunsLogic => !IsSpawned || IsServer;
 
     public bool IsRunning => IsSpawned ? runningNet.Value : localRunning;
     public bool IsGameOver => IsSpawned ? winnerIdNet.Value != NoWinner : localWinner != null;
 
-    // 접속해 있는 인원. 죽은 플레이어의 오브젝트가 제거돼도 줄어들지 않는다
     private int ConnectedPlayerCount => IsSpawned ? connectedCountNet.Value : SD_PlayerLife.All.Count;
 
     public SD_PlayerLife Winner
@@ -83,18 +98,168 @@ public class SD_GameManager : NetworkBehaviour
     {
         winnerIdNet.OnValueChanged += OnWinnerChanged;
         if (winnerIdNet.Value != NoWinner) RaiseGameOver();
+
+        // 레퍼런스 메시지 시스템 초기화
+        network = NetworkManager.Singleton;
+        if (network != null && network.IsListening)
+        {
+            sceneManager = network.SceneManager;
+            messages = network.CustomMessagingManager;
+
+            sceneManager.OnLoadEventCompleted += OnSceneLoadCompleted;
+            messages.RegisterNamedMessageHandler(RosterMessage, OnRosterReceived);
+            messages.RegisterNamedMessageHandler(ReadyMessage, OnReadyReceived);
+            messages.RegisterNamedMessageHandler(StartMessage, OnStartReceived);
+        }
     }
 
     public override void OnNetworkDespawn()
     {
         winnerIdNet.OnValueChanged -= OnWinnerChanged;
+
+        if (sceneManager != null) sceneManager.OnLoadEventCompleted -= OnSceneLoadCompleted;
+        if (messages != null)
+        {
+            messages.UnregisterNamedMessageHandler(RosterMessage);
+            messages.UnregisterNamedMessageHandler(ReadyMessage);
+            messages.UnregisterNamedMessageHandler(StartMessage);
+        }
+    }
+
+    // 2번 묶음 벤치마킹: 씬 로딩 완료 시 서버가 참가자 명단(Roster) 전파
+    private void OnSceneLoadCompleted(string sceneName, LoadSceneMode mode, List<ulong> completed, List<ulong> timedOut)
+    {
+        if (!IsServer || sceneName != gameObject.scene.name || spawnRequested) return;
+        spawnRequested = true;
+
+        var clients = network.ConnectedClientsIds.OrderBy(id => id).ToArray();
+        StartCoroutine(SetupRoster(clients));
+    }
+
+    private System.Collections.IEnumerator SetupRoster(ulong[] clients)
+    {
+        yield return null;
+        if (!IsServer) yield break;
+
+        clients = clients.Where(id => network.ConnectedClients.ContainsKey(id)).ToArray();
+        if (clients.Length == 0) yield break;
+
+        entryToken = Guid.NewGuid().GetHashCode();
+
+        // 현재 씬에 스폰된 플레이어들의 객체 ID 수집
+        foreach (ulong id in clients)
+        {
+            var playerObj = network.SpawnManager.GetPlayerNetworkObject(id);
+            if (playerObj != null)
+            {
+                owners.Add(id);
+                objectIds.Add(playerObj.NetworkObjectId);
+            }
+        }
+
+        rosterReceived = true;
+        readyDeadline = Time.realtimeSinceStartup + ReadyTimeout;
+
+        // 클라이언트들에게 Roster 전송 (2번 묶음 패턴)
+        using (var writer = new FastBufferWriter(128, Allocator.Temp))
+        {
+            writer.WriteValueSafe(entryToken);
+            writer.WriteValueSafe(owners.Count);
+            for (int i = 0; i < owners.Count; i++)
+            {
+                writer.WriteValueSafe(owners[i]);
+                writer.WriteValueSafe(objectIds[i]);
+            }
+            foreach (ulong id in owners)
+            {
+                if (id != NetworkManager.ServerClientId)
+                    messages.SendNamedMessage(RosterMessage, id, writer, NetworkDelivery.ReliableSequenced);
+            }
+        }
+    }
+
+    private void OnRosterReceived(ulong sender, FastBufferReader reader)
+    {
+        if (sender != NetworkManager.ServerClientId || IsServer || rosterReceived) return;
+        reader.ReadValueSafe(out entryToken);
+        reader.ReadValueSafe(out int count);
+        for (int i = 0; i < count; i++)
+        {
+            reader.ReadValueSafe(out ulong owner);
+            reader.ReadValueSafe(out ulong objectId);
+            owners.Add(owner);
+            objectIds.Add(objectId);
+        }
+        rosterReceived = true;
+        readyDeadline = Time.realtimeSinceStartup + ReadyTimeout;
     }
 
     private void Update()
     {
+        // 멀티플레이어 환경에서의 동기화 시작 대기 처리
+        if (IsSpawned && !networkStarted && rosterReceived)
+        {
+            if (!localReady)
+            {
+                bool allPresent = true;
+                foreach (ulong objId in objectIds)
+                {
+                    if (!network.SpawnManager.SpawnedObjects.TryGetValue(objId, out var player) || !player.IsPlayerObject)
+                    {
+                        allPresent = false;
+                        break;
+                    }
+                }
+
+                if (allPresent)
+                {
+                    localReady = true;
+                    if (IsServer)
+                    {
+                        readyClients.Add(network.LocalClientId);
+                    }
+                    else
+                    {
+                        using (var writer = new FastBufferWriter(4, Allocator.Temp))
+                        {
+                            writer.WriteValueSafe(entryToken);
+                            messages.SendNamedMessage(ReadyMessage, NetworkManager.ServerClientId, writer);
+                        }
+                    }
+                }
+            }
+
+            // 서버: 모든 클라이언트가 Ready이고 최소 인원이 찼을 때 시작 시간 예약 및 전파
+            if (IsServer && startsAt < 0 && owners.Count > 0 && owners.All(readyClients.Contains))
+            {
+                if (ConnectedPlayerCount >= minPlayersToStart)
+                {
+                    startsAt = network.ServerTime.Time + 2.0; // 2초 뒤 공통 시작
+                    using (var writer = new FastBufferWriter(12, Allocator.Temp))
+                    {
+                        writer.WriteValueSafe(entryToken);
+                        writer.WriteValueSafe(startsAt);
+                        foreach (ulong id in owners)
+                        {
+                            if (id != NetworkManager.ServerClientId)
+                                messages.SendNamedMessage(StartMessage, id, writer);
+                        }
+                    }
+                }
+            }
+
+            // 공통 시작 시점에 도달하면 게임 시작
+            if (startsAt >= 0 && localReady && network.ServerTime.Time >= startsAt)
+            {
+                networkStarted = true;
+                if (RunsLogic) StartRound();
+            }
+            return;
+        }
+
+        // --- 기존 SD_GameManager 핵심 로직 ---
         if (!RunsLogic) return;
 
-        // 접속 인원을 모두에게 공유한다 (대기 중 화면 표시와 시작 조건에 사용)
         if (IsSpawned)
         {
             int connected = NetworkManager.ConnectedClientsIds.Count;
@@ -103,15 +268,13 @@ public class SD_GameManager : NetworkBehaviour
 
         if (IsGameOver) return;
 
-        // 대기 중: 인원이 모이면 라운드 시작
         if (!IsRunning)
         {
-            if (ConnectedPlayerCount >= minPlayersToStart) StartRound();
+            // 네트워크가 아닐 때의 단독 실행 방어 코드
+            if (!IsSpawned && ConnectedPlayerCount >= minPlayersToStart) StartRound();
             return;
         }
 
-        // 진행 중: 시작할 때 2명 이상이었는데 생존자가 1명만 남으면 그 사람이 승자
-        // (도중에 나간 사람은 탈락으로 본다. 모두 동시에 탈락한 경우는 처리하지 않는다)
         if (playersAtStart < 2) return;
 
         SD_PlayerLife lastAlive = null;
@@ -126,20 +289,35 @@ public class SD_GameManager : NetworkBehaviour
         if (alive == 1) EndGame(lastAlive);
     }
 
-    /// <summary>라운드를 처음부터 다시 시작한다 (Host만)</summary>
+    private void OnReadyReceived(ulong sender, FastBufferReader reader)
+    {
+        if (!IsServer || !rosterReceived || !owners.Contains(sender)) return;
+        reader.ReadValueSafe(out int token);
+        if (token == entryToken) readyClients.Add(sender);
+    }
+
+    private void OnStartReceived(ulong sender, FastBufferReader reader)
+    {
+        if (sender != NetworkManager.ServerClientId || IsServer || !rosterReceived) return;
+        reader.ReadValueSafe(out int token);
+        reader.ReadValueSafe(out double time);
+        if (token == entryToken) startsAt = time;
+    }
+
     public void RestartGame()
     {
         if (!RunsLogic) return;
         Debug.Log($"[GM t={Time.time:F2}] RestartGame 호출");
 
-        // 죽었다가 제거된 플레이어는 새로 만들고, 살아 있는 플레이어는 시작 위치로 되돌린다
         PrepareAllPlayers();
-
         SetWinner(null);
-        SetRunning(false); // 다음 Update에서 인원이 충분하면 StartRound가 호출된다
+        SetRunning(false);
+        networkStarted = false;
+        startsAt = -1;
+        readyClients.Clear();
+        localReady = false;
     }
 
-    /// <summary>이전 이름과의 호환용. RestartGame과 같다</summary>
     public void InitGame()
     {
         RestartGame();
@@ -147,34 +325,30 @@ public class SD_GameManager : NetworkBehaviour
 
     private void StartRound()
     {
-        Debug.Log($"[GM t={Time.time:F2}] StartRound");
+        Debug.Log($"[GM t={Time.time:F2}] StartRound 실행");
 
         PrepareAllPlayers();
         playersAtStart = ConnectedPlayerCount;
 
-        // 남아있는 톱날을 지우고 처음부터 생성 시작
         if (spawner != null) spawner.ResetSpawner();
 
         SetRunning(true);
     }
 
-    // 모든 접속자가 살아있는 플레이어를 갖게 하고 시작 위치로 되돌린다
     private void PrepareAllPlayers()
     {
         HashSet<SD_PlayerLife> newlySpawned = SpawnMissingPlayers();
 
         foreach (SD_PlayerLife player in SD_PlayerLife.All)
         {
-            // 방금 만든 플레이어는 이미 시작 위치에 있으므로 되돌릴 필요가 없다
             if (player != null && !newlySpawned.Contains(player)) player.ResetLife();
         }
     }
 
-    // 접속해 있는데 플레이어 오브젝트가 없는 사람(죽어서 제거된 경우)에게 새 플레이어를 만들어 준다
     private HashSet<SD_PlayerLife> SpawnMissingPlayers()
     {
         var spawned = new HashSet<SD_PlayerLife>();
-        if (!IsSpawned || !IsServer) return spawned; // 단독 테스트에서는 제거된 플레이어를 ResetLife가 되살린다
+        if (!IsSpawned || !IsServer) return spawned;
 
         NetworkManager manager = NetworkManager.Singleton;
         GameObject prefab = manager.NetworkConfig.PlayerPrefab;
@@ -192,8 +366,6 @@ public class SD_GameManager : NetworkBehaviour
 
             SD_PlayerLife life = instance.GetComponent<SD_PlayerLife>();
             if (life != null) spawned.Add(life);
-
-            Debug.Log($"[GM t={Time.time:F2}] 플레이어 {clientId} 새로 생성");
         }
 
         return spawned;
@@ -242,7 +414,6 @@ public class SD_GameManager : NetworkBehaviour
         if (gameOverRaised) return;
         gameOverRaised = true;
 
-        Debug.Log($"[SawDodge] 승리: {PlayerLabel(Winner)}");
         GameOver?.Invoke(Winner);
     }
 
@@ -269,7 +440,8 @@ public class SD_GameManager : NetworkBehaviour
         }
         else
         {
-            GUILayout.Label($"대기 중 ({ConnectedPlayerCount}/{minPlayersToStart}명)");
+            string status = (IsSpawned && !networkStarted) ? "참가자 동기화 대기 중..." : $"대기 중 ({ConnectedPlayerCount}/{minPlayersToStart}명)";
+            GUILayout.Label(status);
         }
 
         if (IsGameOver && RunsLogic && GUILayout.Button("다시 시작"))

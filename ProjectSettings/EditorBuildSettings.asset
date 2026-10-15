@@ -11,4 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/CrosswalkRun.unity
     guid: 3bfabba4ada758947b5f021ab4c735cb
+  - enabled: 1
+    path: Assets/Scenes/SawBladeDodge.unity
+    guid: b0223d676bb19e54f8d5b9a27b18df7e
   m_configObjects: {}

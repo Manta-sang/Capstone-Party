@@ -2,15 +2,16 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
+/// <summary>
+/// 최대 4명의 플레이어를 미리 지정된 4개의 스폰 위치 중 랜덤으로 중복 없이 배정합니다.
+/// </summary>
 public class SD_SpawnPoints : MonoBehaviour
 {
-    [Tooltip("첫 번째 플레이어(Host)가 서는 위치")]
-    [SerializeField] private Vector3 firstSpawnPosition = new Vector3(0f, 1f, 0f);
+    [Header("스폰 포인트 설정 (정확히 4개 등록)")]
+    [SerializeField] private Transform[] spawnPoints;
 
-    [Tooltip("다음 플레이어마다 X축으로 이만큼 옆에 선다. 캐릭터 지름보다 충분히 크게")]
-    [SerializeField] private float spacing = 2f;
-
-    private readonly Dictionary<ulong, int> slotByClient = new Dictionary<ulong, int>();
+    private readonly Dictionary<ulong, int> assignedIndicesByClient = new Dictionary<ulong, int>();
+    private List<int> availableIndices = new List<int>();
     private NetworkManager manager;
 
     private void Start()
@@ -35,39 +36,88 @@ public class SD_SpawnPoints : MonoBehaviour
 
     private void OnServerStarted()
     {
-        slotByClient.Clear();
+        ResetSpawnPool();
+    }
+
+    private void ResetSpawnPool()
+    {
+        assignedIndicesByClient.Clear();
+        availableIndices.Clear();
+
+        if (spawnPoints != null && spawnPoints.Length > 0)
+        {
+            for (int i = 0; i < spawnPoints.Length; i++)
+            {
+                availableIndices.Add(i);
+            }
+            // 랜덤으로 섞기 (Fisher-Yates Shuffle)
+            for (int i = 0; i < availableIndices.Count; i++)
+            {
+                int rand = Random.Range(i, availableIndices.Count);
+                int temp = availableIndices[i];
+                availableIndices[i] = availableIndices[rand];
+                availableIndices[rand] = temp;
+            }
+        }
     }
 
     private void OnClientDisconnect(ulong clientId)
     {
-        slotByClient.Remove(clientId);
+        assignedIndicesByClient.Remove(clientId);
+        // 필요시 나간 자리를 다시 풀에 넣는 로직을 추가할 수 있습니다.
     }
 
     private void OnConnectionApproval(NetworkManager.ConnectionApprovalRequest request,
                                       NetworkManager.ConnectionApprovalResponse response)
     {
-        int slot = GetSlot(request.ClientNetworkId);
+        Vector3 spawnPos = Vector3.zero;
+        Quaternion spawnRot = Quaternion.identity;
+
+        if (GetSpawnTransform(request.ClientNetworkId, out Transform t))
+        {
+            spawnPos = t.position;
+            spawnRot = t.rotation;
+        }
 
         response.Approved = true;
         response.CreatePlayerObject = true;
-        response.Position = GetSpawnPosition(request.ClientNetworkId);
-        response.Rotation = Quaternion.identity;
+        response.Position = spawnPos;
+        response.Rotation = spawnRot;
     }
 
-    private int GetSlot(ulong clientId)
+    private bool GetSpawnTransform(ulong clientId, out Transform spawnTransform)
     {
-        if (slotByClient.TryGetValue(clientId, out int existing)) return existing;
+        spawnTransform = null;
+        if (spawnPoints == null || spawnPoints.Length == 0) return false;
 
-        int slot = 0;
-        while (slotByClient.ContainsValue(slot)) slot++;
+        if (assignedIndicesByClient.TryGetValue(clientId, out int existingIndex))
+        {
+            spawnTransform = spawnPoints[existingIndex];
+            return true;
+        }
 
-        slotByClient[clientId] = slot;
-        return slot;
+        // 남은 스폰 포인트가 있다면 앞에서부터 하나씩 할당
+        if (availableIndices.Count > 0)
+        {
+            int index = availableIndices[0];
+            availableIndices.RemoveAt(0);
+
+            assignedIndicesByClient[clientId] = index;
+            spawnTransform = spawnPoints[index];
+            return true;
+        }
+
+        // 4명을 초과할 경우 첫 번째 위치로 예외 처리
+        spawnTransform = spawnPoints[0];
+        return false;
     }
 
     public Vector3 GetSpawnPosition(ulong clientId)
     {
-        int slot = GetSlot(clientId);
-        return firstSpawnPosition + Vector3.right * (spacing * slot);
+        if (GetSpawnTransform(clientId, out Transform t))
+        {
+            return t.position;
+        }
+        return (spawnPoints != null && spawnPoints.Length > 0) ? spawnPoints[0].position : Vector3.zero;
     }
 }
