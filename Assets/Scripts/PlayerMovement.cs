@@ -1,57 +1,63 @@
 using UnityEngine;
+using Unity.Netcode;
 
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovement : NetworkBehaviour
 {
+    [Header("기본 설정")]
     public float moveSpeed = 5f;
-    public float rotationSpeed = 10f; // 몸을 돌리는 속도
+    public float rotationSpeed = 10f;
     public float jumpForce = 5f;
+
+    [Header("상태 확인")]
+    public bool isKnockedBack = false;
 
     private Animator anim;
     private Rigidbody rb;
+    private ClientNetworkAnimator netAnim; // ★ 네트워크 애니메이터 추가
     private bool isGrounded = true;
-
-    // 캐릭터가 바라볼 목표 방향을 기억할 변수
     private Quaternion targetRotation;
 
     void Start()
     {
         anim = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
-        // 게임 시작 시 처음 바라보는 방향 저장
+        netAnim = GetComponent<ClientNetworkAnimator>(); // ★ 컴포넌트 가져오기
         targetRotation = transform.rotation;
     }
 
     void Update()
     {
+        if (!IsOwner) return;
+        if (isKnockedBack) return;
+
         float horizontalInput = Input.GetAxisRaw("Horizontal");
         float verticalInput = Input.GetAxisRaw("Vertical");
 
         Vector3 movement = new Vector3(horizontalInput, 0f, verticalInput).normalized;
 
-        // 키보드를 눌렀을 때만 이동 및 목표 방향 업데이트
         if (movement.magnitude >= 0.1f)
         {
-            // 월드 기준 이동
-            transform.Translate(movement * moveSpeed * Time.deltaTime, Space.World);
-
-            // 바라볼 목표 방향 계산
             targetRotation = Quaternion.LookRotation(movement);
+            anim.SetBool("isMoving", true); // Bool은 기본 anim으로 해도 자동 동기화됨
 
-            anim.SetBool("isMoving", true);
+            rb.velocity = new Vector3(movement.x * moveSpeed, rb.velocity.y, movement.z * moveSpeed);
         }
         else
         {
             anim.SetBool("isMoving", false);
+            rb.velocity = new Vector3(0f, rb.velocity.y, 0f);
         }
 
-        // if문 바깥에 배치! -> 이동 중이든 멈추든 항상 부드럽게 목표 방향으로 몸을 돌림
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
 
-        // 점프 처리
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-            anim.SetTrigger("doJump");
+
+            // ★ Trigger(점프)는 반드시 네트워크 애니메이터를 통해서 실행해야 동기화됩니다!
+            if (netAnim != null) netAnim.SetTrigger("doJump");
+            else anim.SetTrigger("doJump");
+
             isGrounded = false;
         }
     }
@@ -62,5 +68,10 @@ public class PlayerMovement : MonoBehaviour
         {
             isGrounded = true;
         }
+    }
+
+    public void ResetKnockback()
+    {
+        isKnockedBack = false;
     }
 }
