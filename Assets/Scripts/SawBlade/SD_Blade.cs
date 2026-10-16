@@ -237,10 +237,10 @@ public class SD_Blade : NetworkBehaviour
         if (!RunsLogic) return; // 충돌 판정과 반사는 Host에서만
 
         // 플레이어와 닿으면 톱날 상태와 관계없이 즉사. 톱날은 반사나 횟수 계산 없이 그대로 진행한다
-        SD_PlayerLife player = collision.collider.GetComponentInParent<SD_PlayerLife>();
+        SD_PlayerDeath player = collision.collider.GetComponentInParent<SD_PlayerDeath>();
         if (player != null)
         {
-            player.Die();
+            if (SD_GameManager.Instance != null) SD_GameManager.Instance.ReportHit(player); // 죽음 확정은 게임 매니저가 한다
             return;
         }
 

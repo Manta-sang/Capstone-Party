@@ -65,15 +65,12 @@
     <Compile Include="Assets\Scripts\CrosswalkRun\PrefabRoadManager.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\AutoScrollCamera.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_Blade.cs" />
-    <Compile Include="Assets\Scripts\SawBlade\SD_PlayerNetwork.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_GameManager.cs" />
-    <Compile Include="Assets\Scripts\SawBlade\SD_SpawnPoints.cs" />
     <Compile Include="Assets\Scripts\ClientNetworkTransform.cs" />
-    <Compile Include="Assets\Scripts\SawBlade\SD_PlayerLife.cs" />
+    <Compile Include="Assets\Scripts\SawBlade\SD_PlayerDeath.cs" />
     <Compile Include="Assets\Scripts\CustomSpawner.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CrosswalkPlayer.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CrosswalkTestPlayer.cs" />
-    <Compile Include="Assets\Scripts\SawBlade\SD_PlayerMovement.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_SpectatorCamera.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\RoadChunk.cs" />
     <Compile Include="Assets\Scripts\UgsBootstrap.cs" />

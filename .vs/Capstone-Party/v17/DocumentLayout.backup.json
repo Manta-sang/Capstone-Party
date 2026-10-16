@@ -3,12 +3,24 @@
   "WorkspaceRootPath": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|c:\\users\\imsik\\desktop\\schproject\\capstone-party\\assets\\scripts\\sawblade\\sd_spawnpoints.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\sawblade\\sd_spawnpoints.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|c:\\users\\imsik\\desktop\\schproject\\capstone-party\\assets\\scripts\\sawblade\\sd_playernetwork.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\sawblade\\sd_playernetwork.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|c:\\users\\imsik\\desktop\\schproject\\capstone-party\\assets\\scripts\\sawblade\\sd_blade.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\sawblade\\sd_blade.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|c:\\users\\imsik\\desktop\\schproject\\capstone-party\\assets\\scripts\\sawblade\\sd_spectatorcamera.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\sawblade\\sd_spectatorcamera.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|c:\\users\\imsik\\desktop\\schproject\\capstone-party\\assets\\scripts\\sawblade\\sd_gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\sawblade\\sd_gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\assets\\scripts\\sawblade\\sd_spawnpoints.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\sawblade\\sd_spawnpoints.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\assets\\scripts\\sceneloader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -55,32 +67,70 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "SD_SpawnPoints.cs",
-              "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SD_SpawnPoints.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\SawBlade\\SD_SpawnPoints.cs",
-              "ToolTip": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SD_SpawnPoints.cs",
-              "RelativeToolTip": "Assets\\Scripts\\SawBlade\\SD_SpawnPoints.cs",
-              "ViewState": "AgIAAFwAAAAAAAAAAAAcwHoAAAABAAAAAAAAAA==",
+              "Title": "SD_PlayerNetwork.cs",
+              "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SD_PlayerNetwork.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\SawBlade\\SD_PlayerNetwork.cs",
+              "ToolTip": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SD_PlayerNetwork.cs",
+              "RelativeToolTip": "Assets\\Scripts\\SawBlade\\SD_PlayerNetwork.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAABOAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-15T03:56:58.862Z",
+              "WhenOpened": "2026-10-16T01:27:10.291Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
+              "Title": "SD_Blade.cs",
+              "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SD_Blade.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\SawBlade\\SD_Blade.cs",
+              "ToolTip": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SD_Blade.cs",
+              "RelativeToolTip": "Assets\\Scripts\\SawBlade\\SD_Blade.cs",
+              "ViewState": "AgIAAGEBAAAAAAAAAAAcwH8BAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-16T01:26:53.113Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "SD_SpectatorCamera.cs",
+              "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SD_SpectatorCamera.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\SawBlade\\SD_SpectatorCamera.cs",
+              "ToolTip": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SD_SpectatorCamera.cs",
+              "RelativeToolTip": "Assets\\Scripts\\SawBlade\\SD_SpectatorCamera.cs",
+              "ViewState": "AgIAAEoAAAAAAAAAAAAcwGgAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-16T01:26:37.667Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "SD_SpawnPoints.cs",
+              "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SD_SpawnPoints.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\SawBlade\\SD_SpawnPoints.cs",
+              "ToolTip": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SD_SpawnPoints.cs",
+              "RelativeToolTip": "Assets\\Scripts\\SawBlade\\SD_SpawnPoints.cs",
+              "ViewState": "AgIAAHAAAAAAAAAAAAAgwGgAAAA2AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-15T03:56:58.862Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "SD_GameManager.cs",
               "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SD_GameManager.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\SawBlade\\SD_GameManager.cs",
               "ToolTip": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SD_GameManager.cs",
               "RelativeToolTip": "Assets\\Scripts\\SawBlade\\SD_GameManager.cs",
-              "ViewState": "AgIAAEUBAAAAAAAAAAAywFcBAABVAAAAAAAAAA==",
+              "ViewState": "AgIAAGsBAAAAAAAAAAAcwIMBAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-10-15T01:44:39.296Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 6,
               "Title": "SD_ClientNetworkTransform.cs",
               "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SD_ClientNetworkTransform.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\SawBlade\\SD_ClientNetworkTransform.cs",
@@ -91,7 +141,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 7,
               "Title": "ClientNetworkTransform.cs",
               "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\ClientNetworkTransform.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\ClientNetworkTransform.cs",
@@ -103,7 +153,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 10,
               "Title": "ClientNetworkAnimator.cs",
               "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\ClientNetworkAnimator.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\ClientNetworkAnimator.cs",
@@ -115,7 +165,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 5,
               "Title": "SceneLoader.cs",
               "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SceneLoader.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\SceneLoader.cs",
@@ -123,12 +173,11 @@
               "RelativeToolTip": "Assets\\Scripts\\SceneLoader.cs",
               "ViewState": "AgIAAAMAAAAAAAAAAAAAAAkAAAAbAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-15T00:49:32.207Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-15T00:49:32.207Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 11,
               "Title": "CustomSpawner.cs",
               "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\CustomSpawner.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\CustomSpawner.cs",
@@ -140,7 +189,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 12,
               "Title": "NetController.cs",
               "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\NetController.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\NetController.cs",
@@ -152,7 +201,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 9,
               "Title": "PlayerMovement.cs",
               "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\PlayerMovement.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\PlayerMovement.cs",
@@ -164,7 +213,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 8,
               "Title": "PlayerInteraction.cs",
               "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\PlayerInteraction.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\PlayerInteraction.cs",
