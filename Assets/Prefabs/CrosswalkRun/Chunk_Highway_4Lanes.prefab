@@ -863,8 +863,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   carPrefab: {fileID: 6716390966418322819, guid: 8d33c3e62bea5364a9959351282a3aaa, type: 3}
-  minSpawnInterval: 0.8
-  maxSpawnInterval: 1.8
+  minSpawnInterval: 2
+  maxSpawnInterval: 3
   minSpeed: 16
   maxSpeed: 24
   moveDirection: {x: -1, y: 0, z: 0}
@@ -2299,8 +2299,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   carPrefab: {fileID: 6716390966418322819, guid: 8d33c3e62bea5364a9959351282a3aaa, type: 3}
-  minSpawnInterval: 1
-  maxSpawnInterval: 2.2
+  minSpawnInterval: 2
+  maxSpawnInterval: 3
   minSpeed: 15
   maxSpeed: 21
   moveDirection: {x: -1, y: 0, z: 0}
@@ -2434,8 +2434,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   carPrefab: {fileID: 6716390966418322819, guid: 8d33c3e62bea5364a9959351282a3aaa, type: 3}
-  minSpawnInterval: 0.9
-  maxSpawnInterval: 2
+  minSpawnInterval: 2
+  maxSpawnInterval: 3
   minSpeed: 15
   maxSpeed: 22
   moveDirection: {x: 1, y: 0, z: 0}
@@ -2735,8 +2735,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   carPrefab: {fileID: 6716390966418322819, guid: 8d33c3e62bea5364a9959351282a3aaa, type: 3}
-  minSpawnInterval: 1
-  maxSpawnInterval: 2.2
+  minSpawnInterval: 2
+  maxSpawnInterval: 3
   minSpeed: 14
   maxSpeed: 20
   moveDirection: {x: 1, y: 0, z: 0}

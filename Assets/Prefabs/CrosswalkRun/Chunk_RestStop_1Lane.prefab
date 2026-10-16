@@ -211,8 +211,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   carPrefab: {fileID: 6716390966418322819, guid: 8d33c3e62bea5364a9959351282a3aaa, type: 3}
-  minSpawnInterval: 2.5
-  maxSpawnInterval: 4.5
+  minSpawnInterval: 2
+  maxSpawnInterval: 4
   minSpeed: 6
   maxSpeed: 10
   moveDirection: {x: 1, y: 0, z: 0}

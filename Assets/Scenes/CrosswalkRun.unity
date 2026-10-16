@@ -290,9 +290,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   scrollDirection: {x: 0, y: 0, z: 1}
-  initialSpeed: 4
+  initialSpeed: 3
   speedIncreasePerSecond: 0.08
-  maxSpeed: 30
+  maxSpeed: 20
   startDelay: 3
   enableViewportBoundaryCheck: 1
   bottomThreshold: -2
@@ -599,6 +599,12 @@ MonoBehaviour:
   viewDistanceAhead: 90
   despawnDistanceBehind: 50
   chunksParent: {fileID: 1568375947}
+  slipperyZonePrefab: {fileID: 11400001, guid: c540a1285d305ef7b16eed2035fe24c0, type: 3}
+  slipperyChance: 1
+  slipperyWidth: {x: 3, y: 20}
+  slipperyDepth: {x: 5, y: 5}
+  minimumBypassWidth: 3
+  slipperyAcceleration: 4.5
 --- !u!4 &1568375947
 Transform:
   m_ObjectHideFlags: 0

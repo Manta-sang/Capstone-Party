@@ -55,6 +55,7 @@ namespace CrosswalkRun
         private bool failed;
         private double startsAt = -1;
         private float readyDeadline;
+        private PrefabRoadManager roadManager;
 
         // 전체 씬 로딩 완료 알림을 놓치지 않도록 Start보다 먼저 구독합니다.
         private void Awake()
@@ -67,6 +68,7 @@ namespace CrosswalkRun
                 return;
             }
             Instance = this;
+            roadManager = FindObjectOfType<PrefabRoadManager>();
             sceneManager = network.SceneManager;
             messages = network.CustomMessagingManager;
             sceneManager.OnLoadEventCompleted += OnSceneLoadCompleted;
@@ -176,7 +178,8 @@ namespace CrosswalkRun
             }
             if (!localReady)
             {
-                bool allPresent = true;
+                // 호스트의 도로·미끄러운 구역 배치를 받은 참가자만 게임 시작 준비를 완료합니다.
+                bool allPresent = roadManager == null || roadManager.IsLayoutReady;
                 for (int i = 0; i < objectIds.Count; i++)
                 {
                     if (!network.SpawnManager.SpawnedObjects.TryGetValue(objectIds[i], out var player) ||

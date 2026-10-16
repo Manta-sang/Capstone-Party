@@ -3,17 +3,18 @@ using Unity.Netcode;
 
 public class PlayerMovement : NetworkBehaviour
 {
-    [Header("±âº» ¼³Á¤")]
+    [Header("ê¸°ë³¸ ì„¤ì •")]
     public float moveSpeed = 5f;
     public float rotationSpeed = 10f;
     public float jumpForce = 5f;
 
-    [Header("»óÅÂ È®ÀÎ")]
+    [Header("ìƒíƒœ í™•ì¸")]
     public bool isKnockedBack = false;
 
     private Animator anim;
     private Rigidbody rb;
-    private ClientNetworkAnimator netAnim; // ¡Ú ³×Æ®¿öÅ© ¾Ö´Ï¸ŞÀÌÅÍ Ãß°¡
+    private Collider movementCollider; // ë¯¸ë„ëŸ¬ìš´ êµ¬ì—­ì€ ìºë¦­í„° ë°œ ìœ„ì¹˜ì—ì„œë§Œ íŒì •í•©ë‹ˆë‹¤.
+    private ClientNetworkAnimator netAnim; // â˜… ë„¤íŠ¸ì›Œí¬ ì• ë‹ˆë©”ì´í„° ì¶”ê°€
     private bool isGrounded = true;
     private Quaternion targetRotation;
 
@@ -21,7 +22,8 @@ public class PlayerMovement : NetworkBehaviour
     {
         anim = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
-        netAnim = GetComponent<ClientNetworkAnimator>(); // ¡Ú ÄÄÆ÷³ÍÆ® °¡Á®¿À±â
+        movementCollider = GetComponent<Collider>();
+        netAnim = GetComponent<ClientNetworkAnimator>(); // â˜… ì»´í¬ë„ŒíŠ¸ ê°€ì ¸ì˜¤ê¸°
         targetRotation = transform.rotation;
     }
 
@@ -38,14 +40,14 @@ public class PlayerMovement : NetworkBehaviour
         if (movement.magnitude >= 0.1f)
         {
             targetRotation = Quaternion.LookRotation(movement);
-            anim.SetBool("isMoving", true); // BoolÀº ±âº» animÀ¸·Î ÇØµµ ÀÚµ¿ µ¿±âÈ­µÊ
+            anim.SetBool("isMoving", true); // Boolì€ ê¸°ë³¸ animìœ¼ë¡œ í•´ë„ ìë™ ë™ê¸°í™”ë¨
 
-            rb.velocity = new Vector3(movement.x * moveSpeed, rb.velocity.y, movement.z * moveSpeed);
+            ApplyHorizontalMovement(movement * moveSpeed);
         }
         else
         {
             anim.SetBool("isMoving", false);
-            rb.velocity = new Vector3(0f, rb.velocity.y, 0f);
+            ApplyHorizontalMovement(Vector3.zero);
         }
 
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
@@ -54,12 +56,30 @@ public class PlayerMovement : NetworkBehaviour
         {
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
 
-            // ¡Ú Trigger(Á¡ÇÁ)´Â ¹İµå½Ã ³×Æ®¿öÅ© ¾Ö´Ï¸ŞÀÌÅÍ¸¦ ÅëÇØ¼­ ½ÇÇàÇØ¾ß µ¿±âÈ­µË´Ï´Ù!
+            // â˜… Trigger(ì í”„)ëŠ” ë°˜ë“œì‹œ ë„¤íŠ¸ì›Œí¬ ì• ë‹ˆë©”ì´í„°ë¥¼ í†µí•´ì„œ ì‹¤í–‰í•´ì•¼ ë™ê¸°í™”ë©ë‹ˆë‹¤!
             if (netAnim != null) netAnim.SetTrigger("doJump");
             else anim.SetTrigger("doJump");
 
             isGrounded = false;
         }
+    }
+
+    // ì¼ë°˜ ë°”ë‹¥ì€ ê¸°ì¡´ ì¦‰ì‹œ ì´ë™ì„ ìœ ì§€í•˜ê³  êµ¬ì—­ ì•ˆì—ì„œë§Œ ìˆ˜í‰ ì†ë„ë¥¼ ì²œì²œíˆ ë³€ê²½í•©ë‹ˆë‹¤.
+    // ìˆ˜ì§ ì†ë„ì™€ ì í”„Â·ë„‰ë°± ë¶„ê¸°ëŠ” ê¸°ì¡´ ì½”ë“œê°€ ê³„ì† ë‹´ë‹¹í•©ë‹ˆë‹¤.
+    private void ApplyHorizontalMovement(Vector3 desired)
+    {
+        Vector3 feet = rb.position;
+        if (movementCollider != null)
+        {
+            Bounds bounds = movementCollider.bounds;
+            feet = new Vector3(bounds.center.x, bounds.min.y + 0.05f, bounds.center.z);
+        }
+        if (CrosswalkRun.SlipperyZone.TryGetAcceleration(feet, out float acceleration))
+        {
+            Vector3 current = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+            desired = Vector3.MoveTowards(current, desired, acceleration * Time.deltaTime);
+        }
+        rb.velocity = new Vector3(desired.x, rb.velocity.y, desired.z);
     }
 
     void OnCollisionEnter(Collision collision)
