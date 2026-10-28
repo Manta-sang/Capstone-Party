@@ -1,4 +1,5 @@
 using System;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -47,7 +48,21 @@ namespace CrosswalkRun
         public void Kill(string reason = "")
         {
             if (isDead) return;
+            // 온라인에서는 호스트 화면에서 발생한 판정만 확정하고 참가자에게 전달합니다.
+            var network = NetworkManager.Singleton;
+            if (network != null && network.IsListening)
+            {
+                if (network.IsServer && CrosswalkNetworkEntry.Instance != null)
+                    CrosswalkNetworkEntry.Instance.ConfirmElimination(this, reason);
+                return;
+            }
+            ApplyConfirmedElimination(reason);
+        }
 
+        // 호스트가 확정한 결과 또는 기존 오프라인 판정만 실제 탈락 상태에 반영합니다.
+        internal void ApplyConfirmedElimination(string reason)
+        {
+            if (isDead) return;
             isDead = true;
             Debug.Log($"<color=orange>[CrosswalkPlayer]</color> {playerName} ({gameObject.name}) 탈락! 사유: {reason}");
 
@@ -56,7 +71,7 @@ namespace CrosswalkRun
 
             // 2. 물리적 튕김 연출 (Rigidbody가 있는 경우)
             Rigidbody rb = GetComponent<Rigidbody>();
-            if (rb != null)
+            if (rb != null && !rb.isKinematic)
             {
                 rb.freezeRotation = false;
                 rb.AddTorque(UnityEngine.Random.insideUnitSphere * 15f, ForceMode.Impulse);
@@ -74,6 +89,11 @@ namespace CrosswalkRun
 
         private void DisablePlayerControls()
         {
+            // 기존 자동 탐색에 포함되지 않는 밀치기도 탈락 즉시 중단합니다.
+            var interaction = GetComponent<PlayerInteraction>();
+            if (interaction != null) interaction.enabled = false;
+            var movement = GetComponent<PlayerMovement>();
+            if (movement != null) movement.enabled = false;
             // 인스펙터에 지정된 컴포넌트가 있다면 그것들을 끔
             if (componentsToDisableOnDeath != null && componentsToDisableOnDeath.Length > 0)
             {

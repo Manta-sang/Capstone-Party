@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode; // [Crosswalk 연동] 기존 네트워크 연결 여부만 확인합니다.
 
 namespace CrosswalkRun
 {
@@ -33,6 +34,7 @@ namespace CrosswalkRun
         public event Action<GameObject> OnGameOver;
 
         public bool IsGameActive => isGameActive;
+        public GameObject WinnerPlayer => winnerPlayer;
         public int AlivePlayerCount => alivePlayers.Count;
         public IReadOnlyList<GameObject> AlivePlayers => alivePlayers;
 
@@ -54,6 +56,14 @@ namespace CrosswalkRun
         private void Start()
         {
             // 씬에 이미 배치된 플레이어가 있다면 자동 탐색 (Tag = "Player" 또는 IKillable)
+            // [Crosswalk 연동] 네트워크 참가자는 씬 로딩과 스폰 확인이 끝난 뒤
+            // CrosswalkNetworkEntry가 등록하고 StartGame을 호출합니다.
+            // 연결하지 않은 기존 단독 실행은 아래 원래 흐름을 그대로 사용합니다.
+            if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+            {
+                gameResultText = "참가자 로딩 및 캐릭터 생성 확인 중...";
+                return;
+            }
             FindInitialPlayers();
             StartGame();
         }
@@ -79,6 +89,14 @@ namespace CrosswalkRun
             {
                 alivePlayers.Add(player);
             }
+        }
+
+        /// <summary>
+        /// [Crosswalk 연동] 준비 실패/대기 사유를 기존 HUD에 표시합니다. 게임 판정은 변경하지 않습니다.
+        /// </summary>
+        public void SetNetworkWaitingStatus(string status)
+        {
+            if (!isGameActive) gameResultText = status;
         }
 
         public void StartGame()
@@ -113,6 +131,9 @@ namespace CrosswalkRun
 
         private void CheckGameOverCondition()
         {
+            // 온라인 승자와 종료 여부는 호스트만 계산하고 참가자는 확정 결과를 받습니다.
+            if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening &&
+                !NetworkManager.Singleton.IsServer) return;
             // 멀티플레이어 환경 (최소 2인 이상 시작 시)
             if (allPlayers.Count >= 2)
             {
@@ -152,6 +173,14 @@ namespace CrosswalkRun
             OnGameOver?.Invoke(winnerPlayer);
         }
 
+        // 참가자는 호스트가 지정한 승자만 적용하며 자체 생존자 수로 종료를 판단하지 않습니다.
+        internal void ApplyNetworkRoundEnd(GameObject winner)
+        {
+            if (!isGameActive) return;
+            winnerPlayer = winner;
+            EndGame(winner != null ? $"승리! 최후의 생존자: {winner.name}" : "모두 탈락했습니다! (게임 오버)");
+        }
+
         private void OnGUI()
         {
             if (!showDebugHUD) return;
@@ -162,7 +191,9 @@ namespace CrosswalkRun
             GUILayout.Label($"생존 플레이어: {alivePlayers.Count}명");
             GUILayout.Label($"상태: {gameResultText}");
 
-            if (!isGameActive && GUILayout.Button("씬 재시작 (Restart)"))
+            // 온라인 재시작은 Character 복귀 후 호스트가 수행하므로 로컬 씬 재시작을 막습니다.
+            bool online = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
+            if (!online && !isGameActive && GUILayout.Button("씬 재시작 (Restart)"))
             {
                 UnityEngine.SceneManagement.SceneManager.LoadScene(
                     UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex

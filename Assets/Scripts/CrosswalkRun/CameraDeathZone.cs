@@ -30,8 +30,11 @@ namespace CrosswalkRun
         private void EliminateTarget(GameObject target)
         {
             IKillable killable = target.GetComponent<IKillable>() ?? target.GetComponentInParent<IKillable>();
-            if (killable != null && !killable.IsDead)
+            if (killable != null)
             {
+                // 이미 탈락한 캐릭터는 재접촉해도 비활성화하지 않고 기존 탈락 연출을 유지합니다.
+                // IKillable이 있는 대상은 아래 Player 태그용 대체 처리로 내려가지 않습니다.
+                if (killable.IsDead) return;
                 killable.Kill("Camera Screen Boundary");
                 return;
             }
