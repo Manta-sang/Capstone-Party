@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|c:\\users\\kjs\\desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\capstone-party\\assets\\scripts\\qte\\qterunner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\qte\\qterunner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|c:\\users\\kjs\\desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\capstone-party\\assets\\scripts\\playerinteraction.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\playerinteraction.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -34,11 +38,24 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
+              "Title": "QteRunner.cs",
+              "DocumentMoniker": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\Assets\\Scripts\\Qte\\QteRunner.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Qte\\QteRunner.cs",
+              "ToolTip": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\Assets\\Scripts\\Qte\\QteRunner.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Qte\\QteRunner.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-29T05:32:48.707Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "ClientNetworkAnimator.cs",
               "DocumentMoniker": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\Assets\\Scripts\\ClientNetworkAnimator.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\ClientNetworkAnimator.cs",
@@ -50,7 +67,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "SceneLoader.cs",
               "DocumentMoniker": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\Assets\\Scripts\\SceneLoader.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\SceneLoader.cs",
@@ -62,7 +79,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "CustomSpawner.cs",
               "DocumentMoniker": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\Assets\\Scripts\\CustomSpawner.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\CustomSpawner.cs",
@@ -74,7 +91,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "NetController.cs",
               "DocumentMoniker": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\Assets\\Scripts\\NetController.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\NetController.cs",
@@ -86,7 +103,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "PlayerMovement.cs",
               "DocumentMoniker": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\Assets\\Scripts\\PlayerMovement.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\PlayerMovement.cs",
@@ -98,7 +115,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "PlayerInteraction.cs",
               "DocumentMoniker": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\Assets\\Scripts\\PlayerInteraction.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\PlayerInteraction.cs",
