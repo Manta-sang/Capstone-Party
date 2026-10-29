@@ -6,24 +6,18 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scripts/Scenes/SampleScene.unity
-    guid: 9fc0d4010bbf28b4594072e72b8655ab
-  - enabled: 1
-    path: Assets/Scripts/Scenes/Character.unity
-    guid: a54a3c99a04805246bea0293d36e73e9
-<<<<<<< HEAD
-  - enabled: 1
-    path: Assets/Scenes/CrosswalkRun.unity
-    guid: 3bfabba4ada758947b5f021ab4c735cb
-  - enabled: 1
     path: Assets/Scenes/Lobby.unity
-    guid: c0e6489547649544998c6df5d5b8c5a7
+    guid: 83ce90e83e9206448bc982ed9eddfc94
+  - enabled: 1
+    path: Assets/Scenes/Qte.unity
+    guid: 9a171246a3709e14db0a6746d24deb10
   - enabled: 1
     path: Assets/Scenes/Ranking.unity
     guid: 2ed57067002f27a429a7465a3350017f
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
-    guid: 83ce90e83e9206448bc982ed9eddfc94
-=======
->>>>>>> parent of b1d07b5 (Rankingsystem)
+    path: Assets/Scenes/Character.unity
+    guid: 590c867addb8b1241a9315bd208a4f43
+  - enabled: 1
+    path: Assets/Scenes/CrosswalkRun.unity
+    guid: 3bfabba4ada758947b5f021ab4c735cb
   m_configObjects: {}

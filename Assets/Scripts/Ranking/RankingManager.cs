@@ -27,13 +27,13 @@ namespace CrosswalkRun
 
         public NetworkList<PlayerScoreData> ScoreList;
 
-        // ¡Ú ÇöÀç ¸î ¹øÂ° ¶ó¿îµåÀÎÁö ±â¾ï (±âº»°ª 1)
+        // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Â° ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ (ï¿½âº»ï¿½ï¿½ 1)
         public NetworkVariable<int> CurrentRound = new NetworkVariable<int>(1);
 
-        [Header("¹Ì´Ï°ÔÀÓ ¾À Èå¸§ ¼³Á¤")]
-        [Tooltip("¼ø¼­´ë·Î 1~4¶ó¿îµå ¹Ì´Ï°ÔÀÓ ¾À ÀÌ¸§À» Àû¾îÁÖ¼¼¿ä.")]
+        [Header("ï¿½Ì´Ï°ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½å¸§ ï¿½ï¿½ï¿½ï¿½")]
+        [Tooltip("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1~4ï¿½ï¿½ï¿½ï¿½ ï¿½Ì´Ï°ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö¼ï¿½ï¿½ï¿½.")]
         public string[] MiniGameScenes = new string[4] { "CrosswalkRun", "Game2", "Game3", "Game4" };
-        public string TitleSceneName = "TitleScene";
+        public string TitleSceneName = "Lobby";
 
         private void Awake()
         {

@@ -85,6 +85,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f9f65d468731bcf4fba794d064637f84, type: 3}
       insertIndex: -1
       addedObject: {fileID: -1374476820716184373}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f9f65d468731bcf4fba794d064637f84, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 734561001}
   m_SourcePrefab: {fileID: 100100000, guid: f9f65d468731bcf4fba794d064637f84, type: 3}
 --- !u!1 &1787574108986877123 stripped
 GameObject:
@@ -249,3 +252,20 @@ Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: f9f65d468731bcf4fba794d064637f84, type: 3}
   m_PrefabInstance: {fileID: 1445608200242207122}
   m_PrefabAsset: {fileID: 0}
+
+--- !u!114 &734561001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1787574108986877123}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b587c70d04a4caf43b1f80494807ac1f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stepDistance: 0.65
+  stepMoveDuration: 0.3
+  groggyDuration: 1
+  sequenceLength: 4

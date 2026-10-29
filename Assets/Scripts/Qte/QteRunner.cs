@@ -1,108 +1,180 @@
-using UnityEngine;
+using System.Text;
 using TMPro;
 using Unity.Netcode;
+using UnityEngine;
 
 public class QteRunner : NetworkBehaviour
 {
-    [Header("UI References")]
-    public TextMeshProUGUI qteText; // QteBox 자식의 QteText 연결
+    [Header("QTE Settings")]
+    [SerializeField] private float stepDistance = 0.65f;
+    [SerializeField] private float stepMoveDuration = 0.3f;
+    [SerializeField] private float groggyDuration = 1f;
+    [SerializeField] private int sequenceLength = 4;
 
-    [Header("Movement & QTE Settings")]
-    public float baseMoveSpeed = 3f;     // 기본 상시 전진 속도
-    public float qteBoostDistance = 1.5f; // QTE 한 세트 성공 시 앞으로 튀어나가는 거리
-    public int sequenceLength = 4;        // 한 번에 풀어야 할 QTE 키 개수 (W, A, S, D 중 4개)
-
-    private string currentSequence = "";  // 생성된 랜덤 QTE 조합
-    private int currentIndex = 0;         // 현재 맞춰야 할 글자 인덱스
-
-    // 사용할 수 있는 QTE 키 풀(Pool)
-    private readonly char[] availableKeys = { 'W', 'A', 'S', 'D' };
+    private static readonly char[] AvailableKeys = { 'W', 'A', 'S', 'D' };
+    private TextMeshProUGUI qteText;
+    private PlayerMovement playerMovement;
+    private Animator animator;
+    private string currentSequence;
+    private int currentIndex;
+    private bool raceFinished;
+    private bool isQteScene;
+    private bool isStepMoving;
+    private int pendingSteps;
+    private float groggyUntil;
+    private float stepElapsed;
+    private Vector3 stepStart;
+    private Vector3 stepTarget;
 
     public override void OnNetworkSpawn()
     {
-        // 내 캐릭터(Local Client) 화면에만 QTE UI가 작동하도록 설정
-        if (!IsOwner)
+        playerMovement = GetComponent<PlayerMovement>();
+        animator = GetComponentInChildren<Animator>(true);
+        RefreshSceneMode(true);
+    }
+
+    private void RefreshSceneMode(bool force = false)
+    {
+        bool inQteScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "Qte";
+        if (!force && inQteScene == isQteScene) return;
+
+        isQteScene = inQteScene;
+        if (playerMovement != null) playerMovement.enabled = !isQteScene;
+        isStepMoving = false;
+        pendingSteps = 0;
+        groggyUntil = 0f;
+        if (!isQteScene) QteCameraFollow.ClearTarget(transform);
+
+        if (isQteScene && IsOwner)
         {
-            if (qteText != null) qteText.transform.root.gameObject.SetActive(false);
-            enabled = false;
-            return;
+            qteText = FindQteText();
+            if (qteText != null) qteText.gameObject.SetActive(true);
+            GenerateNewQte();
+            raceFinished = false;
+            QteCameraFollow.Attach(transform);
         }
-
-        // 게임 시작 시 첫 번째 랜덤 QTE 생성
-        GenerateNewQte();
+        else if (animator != null)
+        {
+            animator.SetBool("isMoving", false);
+        }
     }
 
-    void Update()
+    public override void OnNetworkDespawn()
     {
-        if (!IsOwner) return;
-
-        // 1. 플레이어 키보드 입력 및 판정 체크
-        CheckQteInput();
-
-        // 2. 상시 기본 전진 (원하시면 0으로 두고 오직 QTE 성공으로만 전진하게 바꿀 수 있습니다)
-        transform.Translate(Vector3.forward * baseMoveSpeed * Time.deltaTime);
+        if (playerMovement != null) playerMovement.enabled = true;
+        if (animator != null) animator.SetBool("isMoving", false);
+        QteCameraFollow.ClearTarget(transform);
     }
 
-    // [핵심 1] 랜덤 키 조합 생성 알고리즘
-    void GenerateNewQte()
+    private void Update()
     {
-        currentSequence = "";
+        RefreshSceneMode();
+        if (!isQteScene || !IsOwner || raceFinished) return;
+
+        QteRaceCoordinator coordinator = QteRaceCoordinator.Instance;
+        if (coordinator == null || !coordinator.RaceStarted) return;
+
+        if (isStepMoving) UpdateStepMovement();
+        else if (pendingSteps > 0) StartNextStepMovement();
+
+        float groggyRemaining = groggyUntil - Time.time;
+        coordinator.SetGroggyStatus(groggyRemaining > 0f, Mathf.Max(0f, groggyRemaining));
+        if (groggyRemaining <= 0f) CheckQteInput();
+        CheckFinish(coordinator);
+    }
+
+    private TextMeshProUGUI FindQteText()
+    {
+        foreach (TextMeshProUGUI text in FindObjectsOfType<TextMeshProUGUI>(true))
+            if (text.gameObject.name == "QteText") return text;
+        return null;
+    }
+
+    private void GenerateNewQte()
+    {
+        currentSequence = string.Empty;
         currentIndex = 0;
-
-        // 지정된 길이(예: 4)만큼 W, A, S, D 중 랜덤으로 조합 생성
         for (int i = 0; i < sequenceLength; i++)
-        {
-            int randomIndex = Random.Range(0, availableKeys.Length);
-            currentSequence += availableKeys[randomIndex];
-        }
-
-        // UI 텍스트에 반영 (보기 좋게 글자 사이에 공백을 줄 수도 있습니다)
-        if (qteText != null)
-        {
-            // 예: "WASD" -> "W A S D" 형태로 보기 좋게 출력
-            qteText.text = string.Join(" ", currentSequence.ToCharArray());
-        }
+            currentSequence += AvailableKeys[Random.Range(0, AvailableKeys.Length)];
+        RefreshQteText();
     }
 
-    // [핵심 2] 키 입력 판정 및 순서 검증 알고리즘
-    void CheckQteInput()
+    private void RefreshQteText()
+    {
+        if (qteText == null || string.IsNullOrEmpty(currentSequence)) return;
+
+        StringBuilder display = new StringBuilder();
+        for (int i = 0; i < currentSequence.Length; i++)
+        {
+            if (i > 0) display.Append(' ');
+            if (i == currentIndex) display.Append("<color=#FFD54F><u>");
+            display.Append(currentSequence[i]);
+            if (i == currentIndex) display.Append("</u></color>");
+        }
+        qteText.text = display.ToString();
+    }
+    private void CheckQteInput()
     {
         if (string.IsNullOrEmpty(currentSequence)) return;
 
-        // 현재 맞춰야 할 타겟 문자
-        char targetChar = currentSequence[currentIndex];
-        bool inputMatched = false;
+        char pressedKey = GetPressedQteKey();
+        if (pressedKey == '\0') return;
 
-        // 입력 감지
-        if (targetChar == 'W' && Input.GetKeyDown(KeyCode.W)) inputMatched = true;
-        else if (targetChar == 'A' && Input.GetKeyDown(KeyCode.A)) inputMatched = true;
-        else if (targetChar == 'S' && Input.GetKeyDown(KeyCode.S)) inputMatched = true;
-        else if (targetChar == 'D' && Input.GetKeyDown(KeyCode.D)) inputMatched = true;
-
-        // 잘못된 키를 눌렀을 때의 페널티 (원하신다면 여기에 스턴이나 속도 감소 추가 가능)
-        // 여기서는 오직 정답을 순서대로 누르는 것에 집중합니다.
-
-        if (inputMatched)
+        if (pressedKey != currentSequence[currentIndex])
         {
-            currentIndex++; // 다음 글자로 진행
-
-            // [핵심 3] 한 세트(예: 4글자)를 모두 맞췄을 때!
-            if (currentIndex >= currentSequence.Length)
-            {
-                // 서버에 전진 성공 신호 전송
-                SubmitQteSuccessServerRpc();
-
-                // 즉시 새로운 랜덤 QTE 생성
-                GenerateNewQte();
-            }
+            groggyUntil = Time.time + groggyDuration;
+            return;
         }
+
+        pendingSteps++;
+        if (!isStepMoving) StartNextStepMovement();
+        currentIndex++;
+        if (currentIndex >= currentSequence.Length) GenerateNewQte();
+        else RefreshQteText();
     }
 
-    // [핵심 4] 서버와 동기화하여 앞으로 전진시키는 ServerRpc
-    [ServerRpc]
-    void SubmitQteSuccessServerRpc()
+    private char GetPressedQteKey()
     {
-        // 서버 권한으로 캐릭터를 앞으로 툭 튀어나오게 전진시킴
-        transform.position += Vector3.forward * qteBoostDistance;
+        if (Input.GetKeyDown(KeyCode.W)) return 'W';
+        if (Input.GetKeyDown(KeyCode.A)) return 'A';
+        if (Input.GetKeyDown(KeyCode.S)) return 'S';
+        if (Input.GetKeyDown(KeyCode.D)) return 'D';
+        return '\0';
+    }
+
+    private void StartNextStepMovement()
+    {
+        if (pendingSteps <= 0 || raceFinished) return;
+        pendingSteps--;
+        isStepMoving = true;
+        stepElapsed = 0f;
+        stepStart = transform.position;
+        stepTarget = stepStart + Vector3.forward * stepDistance;
+        if (animator != null) animator.SetBool("isMoving", true);
+    }
+
+    private void UpdateStepMovement()
+    {
+        stepElapsed += Time.deltaTime;
+        float progress = stepMoveDuration <= 0f ? 1f : Mathf.Clamp01(stepElapsed / stepMoveDuration);
+        transform.position = Vector3.Lerp(stepStart, stepTarget, Mathf.SmoothStep(0f, 1f, progress));
+
+        if (progress < 1f) return;
+        transform.position = stepTarget;
+        isStepMoving = false;
+        if (pendingSteps > 0) StartNextStepMovement();
+        else if (animator != null) animator.SetBool("isMoving", false);
+    }
+
+    private void CheckFinish(QteRaceCoordinator coordinator)
+    {
+        if (coordinator.FinishLineZ <= 0f || transform.position.z < coordinator.FinishLineZ) return;
+        raceFinished = true;
+        pendingSteps = 0;
+        isStepMoving = false;
+        if (animator != null) animator.SetBool("isMoving", false);
+        if (qteText != null) qteText.text = "FINISH!";
+        coordinator.SetGroggyStatus(false, 0f);
+        coordinator.ReportFinishServerRpc(OwnerClientId);
     }
 }
