@@ -64,15 +64,19 @@
     <Compile Include="Assets\Scripts\CustomCylinderCollider.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\PrefabRoadManager.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\AutoScrollCamera.cs" />
+    <Compile Include="Assets\Scripts\TileFlip\TF_TilePaintTracker.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_Blade.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_GameManager.cs" />
     <Compile Include="Assets\Scripts\ClientNetworkTransform.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_PlayerDeath.cs" />
+    <Compile Include="Assets\Scripts\TileFlip\TF_GameManager.cs" />
     <Compile Include="Assets\Scripts\CustomSpawner.cs" />
+    <Compile Include="Assets\Scripts\TileFlip\TF_Tile.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CrosswalkPlayer.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CrosswalkTestPlayer.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_SpectatorCamera.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\RoadChunk.cs" />
+    <Compile Include="Assets\Scripts\TileFlip\TF_TileGridManager.cs" />
     <Compile Include="Assets\Scripts\UgsBootstrap.cs" />
     <Compile Include="Assets\Scripts\PlayerMovement.cs" />
     <Compile Include="Assets\Scripts\LobbyRelayManager.cs" />
@@ -84,6 +88,7 @@
     <Compile Include="Assets\Scripts\PlayerInteraction.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\IKillable.cs" />
     <Compile Include="Assets\Scripts\ClientNetworkAnimator.cs" />
+    <Compile Include="Assets\Scripts\TileFlip\TF_CameraFollow.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_BladeSpawner.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_CameraFollow.cs" />
     <Compile Include="Assets\Scripts\SceneLoader.cs" />
