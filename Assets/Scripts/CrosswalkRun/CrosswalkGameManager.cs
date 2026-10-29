@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Unity.Netcode; // ★ 에러 해결: 네트워크 패키지 추가!
 
 namespace CrosswalkRun
 {
+    /// <summary>
+    /// CrosswalkRun 미니게임의 생존자 추적 및 게임 오버/승리 조건을 판정하는 게임 매니저입니다.
+    /// 플레이어가 1명 남았을 때 최후의 생존자 승리 판정을 내립니다.
+    /// </summary>
     public class CrosswalkGameManager : MonoBehaviour
     {
         public static CrosswalkGameManager Instance { get; private set; }
@@ -17,6 +20,7 @@ namespace CrosswalkRun
         [SerializeField] private int minPlayersToStart = 1;
         [SerializeField] private bool showDebugHUD = true;
 
+        // 등록된 전체 플레이어 및 현재 생존 플레이어 목록
         private readonly List<GameObject> allPlayers = new List<GameObject>();
         private readonly List<GameObject> alivePlayers = new List<GameObject>();
 
@@ -24,6 +28,7 @@ namespace CrosswalkRun
         private GameObject winnerPlayer = null;
         private string gameResultText = "";
 
+        // 이벤트 (외부 UI나 네트워크 동기화에 구독 가능)
         public event Action<GameObject, string> OnPlayerEliminated;
         public event Action<GameObject> OnGameOver;
 
@@ -48,6 +53,7 @@ namespace CrosswalkRun
 
         private void Start()
         {
+            // 씬에 이미 배치된 플레이어가 있다면 자동 탐색 (Tag = "Player" 또는 IKillable)
             FindInitialPlayers();
             StartGame();
         }
@@ -61,6 +67,9 @@ namespace CrosswalkRun
             }
         }
 
+        /// <summary>
+        /// 플레이어를 게임에 등록합니다. (동적 스폰 시 호출 가능)
+        /// </summary>
         public void RegisterPlayer(GameObject player)
         {
             if (player == null || allPlayers.Contains(player)) return;
@@ -84,7 +93,9 @@ namespace CrosswalkRun
             }
         }
 
-        // ★ 탈락 시 점수 산정 로직
+        /// <summary>
+        /// 플레이어가 사망했을 때 호출됩니다.
+        /// </summary>
         public void PlayerDied(GameObject player, string reason)
         {
             if (!isGameActive) return;
@@ -92,55 +103,37 @@ namespace CrosswalkRun
             if (alivePlayers.Contains(player))
             {
                 alivePlayers.Remove(player);
-
-                int rank = alivePlayers.Count + 1;
-                int points = Mathf.Max(0, 4 - rank); // 1등=3점, 2등=2점, 3등=1점, 4등=0점
-
-                NetworkObject netObj = player.GetComponent<NetworkObject>();
-                if (netObj != null && NetworkManager.Singleton.IsServer)
-                {
-                    string pName = player.GetComponent<CrosswalkPlayer>()?.PlayerName ?? $"Player {netObj.OwnerClientId}";
-                    RankingManager.Instance.AddScore(netObj.OwnerClientId, pName, points);
-                }
-
-                Debug.Log($"[CrosswalkGameManager] {player.name} 탈락! ({rank}등, {points}점 획득)");
+                Debug.Log($"[CrosswalkGameManager] 플레이어 탈락: {player.name} (사유: {reason}) / 남은 생존자: {alivePlayers.Count}");
 
                 OnPlayerEliminated?.Invoke(player, reason);
+
                 CheckGameOverCondition();
             }
         }
 
-        // ★ 최후의 1인 판정 및 랭킹 씬 이동 로직
         private void CheckGameOverCondition()
         {
+            // 멀티플레이어 환경 (최소 2인 이상 시작 시)
             if (allPlayers.Count >= 2)
             {
                 if (alivePlayers.Count == 1)
                 {
+                    // 최후의 1인 생존
                     winnerPlayer = alivePlayers[0];
-
-                    NetworkObject netObj = winnerPlayer.GetComponent<NetworkObject>();
-                    if (netObj != null && NetworkManager.Singleton.IsServer)
-                    {
-                        string pName = winnerPlayer.GetComponent<CrosswalkPlayer>()?.PlayerName ?? $"Player {netObj.OwnerClientId}";
-                        RankingManager.Instance.AddScore(netObj.OwnerClientId, pName, 3);
-                    }
-
                     EndGame($"승리! 최후의 생존자: {winnerPlayer.name}");
-                    Invoke("MoveToRankingScene", 3f);
                 }
                 else if (alivePlayers.Count == 0)
                 {
+                    // 동시 탈락 무승부
                     EndGame("모두 탈락했습니다! (무승부)");
-                    Invoke("MoveToRankingScene", 3f);
                 }
             }
+            // 1인 솔로 테스트 모드
             else if (allPlayers.Count == 1)
             {
                 if (alivePlayers.Count == 0)
                 {
                     EndGame("탈락했습니다! (게임 오버)");
-                    Invoke("MoveToRankingScene", 3f);
                 }
             }
         }
@@ -157,16 +150,6 @@ namespace CrosswalkRun
             }
 
             OnGameOver?.Invoke(winnerPlayer);
-        }
-
-        // ★ 서버에서 랭킹 씬으로 모두 이동시킴
-        private void MoveToRankingScene()
-        {
-            if (NetworkManager.Singleton.IsServer)
-            {
-                // 따옴표 안의 "Ranking"이 실제 씬 이름과 정확히 같은지 확인해 주세요.
-                NetworkManager.Singleton.SceneManager.LoadScene("Ranking", UnityEngine.SceneManagement.LoadSceneMode.Single);
-            }
         }
 
         private void OnGUI()
