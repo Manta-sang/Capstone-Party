@@ -874,7 +874,7 @@ MonoBehaviour:
   minSpeed: 16
   maxSpeed: 24
   moveDirection: {x: -1, y: 0, z: 0}
-  carLifeTime: 10
+  carLifeTime: 5
   scaleWithCameraDifficulty: 1
 --- !u!1 &3214993805907979095
 GameObject:
@@ -4866,7 +4866,7 @@ MonoBehaviour:
   minSpeed: 15
   maxSpeed: 21
   moveDirection: {x: -1, y: 0, z: 0}
-  carLifeTime: 10
+  carLifeTime: 5
   scaleWithCameraDifficulty: 1
 --- !u!1 &7946320393921537272
 GameObject:
@@ -5006,7 +5006,7 @@ MonoBehaviour:
   minSpeed: 15
   maxSpeed: 22
   moveDirection: {x: 1, y: 0, z: 0}
-  carLifeTime: 10
+  carLifeTime: 5
   scaleWithCameraDifficulty: 1
 --- !u!1 &7983017486356875939
 GameObject:
@@ -5312,7 +5312,7 @@ MonoBehaviour:
   minSpeed: 14
   maxSpeed: 20
   moveDirection: {x: 1, y: 0, z: 0}
-  carLifeTime: 10
+  carLifeTime: 5
   scaleWithCameraDifficulty: 1
 --- !u!1 &8799953049407102616
 GameObject:

@@ -29,7 +29,7 @@ namespace CrosswalkRun
         [SerializeField] private Vector3 moveDirection = Vector3.right;
 
         [Header("차량 유지 시간")]
-        [SerializeField] private float carLifeTime = 10f;
+        [SerializeField] private float carLifeTime = 5f;
 
         [Header("난이도 연동")]
         [SerializeField] private bool scaleWithCameraDifficulty = true;
