@@ -1,23 +1,25 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace CrosswalkRun
 {
-    // 기존 CustomSpawner를 유지하면서 Character 씬에 호스트용 재시작 버튼만 제공합니다.
+    // 기존 CustomSpawner를 유지하면서 Character 씬에 호스트용 미니게임 선택 버튼을 제공합니다.
     public sealed class CharacterRoundRestart : MonoBehaviour
     {
         private NetworkManager network;
         [Header("Character 씬에 배치된 UI 참조")]
         [SerializeField] private UnityEngine.UI.Button startButton;
         [SerializeField] private TMPro.TMP_Text caption;
+        [SerializeField] private UnityEngine.UI.Button sawBladeButton;
+        [SerializeField] private TMPro.TMP_Text statusText;
         [Header("실행 중 상태 안내 문구")]
         [SerializeField] private string disconnectedText = "Connect to a room first";
-        [SerializeField] private string loadingText = "Loading Crosswalk...";
+        [SerializeField] private string loadingText = "Loading minigame...";
         [SerializeField] private string waitingHostText = "Waiting for host";
         [SerializeField] private string waitingPlayersText = "Waiting for players...";
-        private string readyText;
+
         private bool loadCompleted;
         private bool loading;
 
@@ -32,16 +34,17 @@ namespace CrosswalkRun
         // 씬에 저장된 UI를 연결합니다. 위치·크기·색상·폰트는 에디터 설정을 그대로 사용합니다.
         private void Start()
         {
-            if (startButton == null || caption == null)
+            if (startButton == null || caption == null || sawBladeButton == null || statusText == null)
             {
-                Debug.LogError("[Character 재시작] Inspector에서 Start Button과 Caption을 연결해 주세요.");
+                Debug.LogError("[Character 재시작] Inspector에서 두 미니게임 버튼과 Caption, Status Text를 연결해 주세요.");
                 if (startButton != null) startButton.interactable = false;
+                if (sawBladeButton != null) sawBladeButton.interactable = false;
                 enabled = false;
                 return;
             }
-            // 에디터의 Label 문구를 보관하여 준비 완료 시 사용자 지정 문구를 복원합니다.
-            readyText = caption.text;
+            // 버튼 이름은 씬의 Label을 유지하고, 실행 상태는 별도 안내 문구에 표시합니다.
             startButton.onClick.AddListener(StartCrosswalk);
+            sawBladeButton.onClick.AddListener(StartSawBlade);
             Update();
         }
 
@@ -57,24 +60,38 @@ namespace CrosswalkRun
         // 입력 권한과 캐릭터 생성 상태를 확인하며 참가자에게는 호스트 대기를 표시합니다.
         private void Update()
         {
-            if (startButton == null) return;
+            if (startButton == null || sawBladeButton == null || statusText == null) return;
             bool online = network != null && network.IsListening;
             bool ready = online && network.IsServer && loadCompleted && !loading;
             if (ready)
                 foreach (ulong id in network.ConnectedClientsIds)
                     if (network.SpawnManager.GetPlayerNetworkObject(id) == null) ready = false;
             startButton.interactable = ready;
+            sawBladeButton.interactable = ready;
             // 기본 버튼 문구는 Label에서, 상태별 안내는 이 컴포넌트의 Inspector에서 수정합니다.
-            caption.text = !online ? disconnectedText : loading ? loadingText :
-                !network.IsServer ? waitingHostText : ready ? readyText : waitingPlayersText;
+            statusText.text = !online ? disconnectedText : loading ? loadingText :
+                !network.IsServer ? waitingHostText : ready ? "호스트가 미니게임을 선택해 주세요" : waitingPlayersText;
         }
 
         // 기존 방을 유지한 네트워크 씬 전환이며 클릭을 연속해도 한 번만 실행합니다.
         private void StartCrosswalk()
         {
+            StartMiniGame("CrosswalkRun");
+        }
+
+        // 톱날 게임도 같은 방의 참가자 전원이 함께 이동합니다.
+        private void StartSawBlade()
+        {
+            StartMiniGame("SawBladeDodge");
+        }
+
+        // 준비된 호스트만 선택할 수 있으며, 로딩 중에는 두 버튼 모두 잠급니다.
+        private void StartMiniGame(string sceneName)
+        {
             if (network == null || !network.IsServer || !startButton.interactable || loading) return;
             loading = true;
-            var status = network.SceneManager.LoadScene("CrosswalkRun", LoadSceneMode.Single);
+            Update();
+            var status = network.SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
             if (status != SceneEventProgressStatus.Started)
             {
                 loading = false;
@@ -88,6 +105,7 @@ namespace CrosswalkRun
             if (network != null && network.SceneManager != null)
                 network.SceneManager.OnLoadEventCompleted -= OnLoadCompleted;
             if (startButton != null) startButton.onClick.RemoveListener(StartCrosswalk);
+            if (sawBladeButton != null) sawBladeButton.onClick.RemoveListener(StartSawBlade);
         }
     }
 }
