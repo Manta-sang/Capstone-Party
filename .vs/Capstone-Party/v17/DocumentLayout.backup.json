@@ -1,30 +1,18 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\",
+  "WorkspaceRootPath": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|c:\\users\\kjs\\desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\capstone-party\\assets\\scripts\\playerinteraction.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\playerinteraction.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|c:\\users\\imsik\\desktop\\schproject\\capstone-party\\assets\\scripts\\tileflip\\tf_gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\tileflip\\tf_gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\assets\\scripts\\playermovement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\playermovement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\assets\\scripts\\tileflip\\tf_tilepainttracker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\tileflip\\tf_tilepainttracker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\assets\\scripts\\clientnetworkanimator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\clientnetworkanimator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\assets\\scripts\\customspawner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\customspawner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\assets\\scripts\\sceneloader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\sceneloader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\assets\\scripts\\netcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\netcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|c:\\users\\imsik\\desktop\\schproject\\capstone-party\\assets\\scripts\\tileflip\\tf_tilegridmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\tileflip\\tf_tilegridmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -34,79 +22,45 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "TF_GameManager.cs",
+              "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\TileFlip\\TF_GameManager.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\TileFlip\\TF_GameManager.cs",
+              "ToolTip": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\TileFlip\\TF_GameManager.cs",
+              "RelativeToolTip": "Assets\\Scripts\\TileFlip\\TF_GameManager.cs",
+              "ViewState": "AgIAAEQBAAAAAAAAAAAcwGIBAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-29T04:12:27.201Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "ClientNetworkAnimator.cs",
-              "DocumentMoniker": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\Assets\\Scripts\\ClientNetworkAnimator.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\ClientNetworkAnimator.cs",
-              "ToolTip": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\Assets\\Scripts\\ClientNetworkAnimator.cs",
-              "RelativeToolTip": "Assets\\Scripts\\ClientNetworkAnimator.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAABAAAAAAAAAA==",
+              "Title": "TF_TileGridManager.cs",
+              "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\TileFlip\\TF_TileGridManager.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\TileFlip\\TF_TileGridManager.cs",
+              "ToolTip": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\TileFlip\\TF_TileGridManager.cs",
+              "RelativeToolTip": "Assets\\Scripts\\TileFlip\\TF_TileGridManager.cs",
+              "ViewState": "AgIAAJ0AAAAAAAAAAAAcwLsAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-08T04:27:34.468Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "SceneLoader.cs",
-              "DocumentMoniker": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\Assets\\Scripts\\SceneLoader.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\SceneLoader.cs",
-              "ToolTip": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\Assets\\Scripts\\SceneLoader.cs",
-              "RelativeToolTip": "Assets\\Scripts\\SceneLoader.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAbAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-01T05:36:19.774Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "CustomSpawner.cs",
-              "DocumentMoniker": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\Assets\\Scripts\\CustomSpawner.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\CustomSpawner.cs",
-              "ToolTip": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\Assets\\Scripts\\CustomSpawner.cs",
-              "RelativeToolTip": "Assets\\Scripts\\CustomSpawner.cs",
-              "ViewState": "AgIAACwAAAAAAAAAAABIwDwAAAAIAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-01T05:22:16.297Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "NetController.cs",
-              "DocumentMoniker": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\Assets\\Scripts\\NetController.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\NetController.cs",
-              "ToolTip": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\Assets\\Scripts\\NetController.cs",
-              "RelativeToolTip": "Assets\\Scripts\\NetController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACAAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-01T05:05:54.927Z"
+              "WhenOpened": "2026-10-29T03:34:16.17Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "PlayerMovement.cs",
-              "DocumentMoniker": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\Assets\\Scripts\\PlayerMovement.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\PlayerMovement.cs",
-              "ToolTip": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\Assets\\Scripts\\PlayerMovement.cs",
-              "RelativeToolTip": "Assets\\Scripts\\PlayerMovement.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEwAAAABAAAAAAAAAA==",
+              "Title": "TF_TilePaintTracker.cs",
+              "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\TileFlip\\TF_TilePaintTracker.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\TileFlip\\TF_TilePaintTracker.cs",
+              "ToolTip": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\TileFlip\\TF_TilePaintTracker.cs",
+              "RelativeToolTip": "Assets\\Scripts\\TileFlip\\TF_TilePaintTracker.cs",
+              "ViewState": "AgIAAHwAAAAAAAAAAAAcwJoAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-01T04:32:04.687Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "PlayerInteraction.cs",
-              "DocumentMoniker": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\Assets\\Scripts\\PlayerInteraction.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\PlayerInteraction.cs",
-              "ToolTip": "C:\\Users\\kjs\\Desktop\\\uB3DB\uB2E8\uBC30_\uCEA1\uC2A4\uD1A4\\Capstone-Party\\Assets\\Scripts\\PlayerInteraction.cs",
-              "RelativeToolTip": "Assets\\Scripts\\PlayerInteraction.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAGIAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-01T04:22:33.558Z",
+              "WhenOpened": "2026-10-29T03:33:58.491Z",
               "EditorCaption": ""
             }
           ]

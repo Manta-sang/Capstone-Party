@@ -305,6 +305,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1568375947}
     m_Modifications:
+    - target: {fileID: 1014966514742412931, guid: 06fdaf37dd2a1c143813fd114270aa3b, type: 3}
+      propertyPath: m_TagString
+      value: Ground
+      objectReference: {fileID: 0}
     - target: {fileID: 3313889694631271178, guid: 06fdaf37dd2a1c143813fd114270aa3b, type: 3}
       propertyPath: m_Name
       value: Chunk_Standard_3Lanes
@@ -503,6 +507,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1568375947}
     m_Modifications:
+    - target: {fileID: 4319333910221261889, guid: ed2dea76b89e5b54a87ab306f58ea020, type: 3}
+      propertyPath: m_TagString
+      value: Ground
+      objectReference: {fileID: 0}
     - target: {fileID: 5383866609830883614, guid: ed2dea76b89e5b54a87ab306f58ea020, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -601,7 +609,7 @@ MonoBehaviour:
   slipperyWidth: {x: 3, y: 20}
   slipperyDepth: {x: 5, y: 5}
   minimumBypassWidth: 3
-  slipperyAcceleration: 4.5
+  slipperyAcceleration: 6
 --- !u!4 &1568375947
 Transform:
   m_ObjectHideFlags: 0

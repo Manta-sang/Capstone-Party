@@ -219,7 +219,7 @@ GameObject:
   - component: {fileID: 1597154830018271242}
   m_Layer: 0
   m_Name: Road_Surface
-  m_TagString: Untagged
+  m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -526,7 +526,7 @@ MonoBehaviour:
   minSpeed: 9
   maxSpeed: 15
   moveDirection: {x: 1, y: 0, z: 0}
-  carLifeTime: 10
+  carLifeTime: 5
   scaleWithCameraDifficulty: 1
 --- !u!1 &8644095808312029908
 GameObject:

@@ -12,6 +12,10 @@ namespace CrosswalkRun
         [Header("차량 프리팹 (비어있으면 기본 큐브 차량 생성)")]
         [SerializeField] private GameObject carPrefab;
 
+        [Header("랜덤 차량 프리팹 목록")]
+        [Tooltip("등록된 프리팹 중 하나를 같은 확률로 생성합니다. 빈 항목은 무시하며, 모두 비어 있으면 기존 Car Prefab을 사용합니다.")]
+        [SerializeField] private GameObject[] carPrefabs = new GameObject[0];
+
         [Header("기본 스폰 주기 (초)")]
         [SerializeField] private float minSpawnInterval = 1.6f;
         [SerializeField] private float maxSpawnInterval = 3.2f;
@@ -25,7 +29,7 @@ namespace CrosswalkRun
         [SerializeField] private Vector3 moveDirection = Vector3.right;
 
         [Header("차량 유지 시간")]
-        [SerializeField] private float carLifeTime = 10f;
+        [SerializeField] private float carLifeTime = 5f;
 
         [Header("난이도 연동")]
         [SerializeField] private bool scaleWithCameraDifficulty = true;
@@ -90,9 +94,11 @@ namespace CrosswalkRun
         {
             GameObject car;
 
-            if (carPrefab != null)
+            // 차량 종류만 선택하고, 아래의 속도·방향·수명 설정은 기존 동작을 유지합니다.
+            GameObject selectedPrefab = SelectCarPrefab();
+            if (selectedPrefab != null)
             {
-                car = Instantiate(carPrefab, transform.position, Quaternion.identity);
+                car = Instantiate(selectedPrefab, transform.position, Quaternion.identity);
             }
             else
             {
@@ -115,6 +121,35 @@ namespace CrosswalkRun
             obstacle.Initialize(randomSpeed, moveDirection, carLifeTime);
 
             return car;
+        }
+
+        /// <summary>
+        /// 비어 있지 않은 목록 항목 중 하나를 동일한 확률로 선택합니다.
+        /// 목록을 설정하지 않은 기존 차선은 단일 차량 프리팹을 그대로 사용합니다.
+        /// </summary>
+        private GameObject SelectCarPrefab()
+        {
+            int validCount = 0;
+            if (carPrefabs != null)
+            {
+                foreach (GameObject prefab in carPrefabs)
+                {
+                    if (prefab != null) validCount++;
+                }
+            }
+
+            // 기존 프리팹도 없으면 SpawnCar의 기본 큐브 생성 처리가 실행됩니다.
+            if (validCount == 0) return carPrefab;
+
+            int selectedIndex = Random.Range(0, validCount);
+            foreach (GameObject prefab in carPrefabs)
+            {
+                if (prefab == null) continue;
+                if (selectedIndex == 0) return prefab;
+                selectedIndex--;
+            }
+
+            return carPrefab;
         }
 
         private float GetCurrentDifficulty()
