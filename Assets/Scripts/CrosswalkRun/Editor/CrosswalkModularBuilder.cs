@@ -12,20 +12,6 @@ namespace CrosswalkRun.Editor
         private const string MatDir = "Assets/Materials/CrosswalkRun";
         private const string PrefabDir = "Assets/Prefabs/CrosswalkRun";
 
-       /* [InitializeOnLoadMethod]
-        private static void OnEditorLoad()
-        {
-            // 컴파일 후 1회 자동 실행
-            if (!SessionState.GetBool("CrosswalkVisibleSceneBuilt_v4", false))
-            {
-                SessionState.SetBool("CrosswalkVisibleSceneBuilt_v4", true);
-                EditorApplication.delayCall += () =>
-                {
-                    BuildAll();
-                };
-            }
-        }*/
-
         [MenuItem("Tools/CrosswalkRun/Build Visible Scene and Prefabs", false, 1)]
         [MenuItem("Tools/CrosswalkRun/Build Prefab Pool Scene and Assets", false, 2)]
         public static void BuildAll()

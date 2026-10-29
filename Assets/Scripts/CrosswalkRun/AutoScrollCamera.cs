@@ -28,13 +28,6 @@ namespace CrosswalkRun
         [Tooltip("화면 좌우 이탈 마진 (0.05 = 화면 좌우 바깥 5%)")]
         [SerializeField] private float horizontalMargin = 0.05f;
 
-        [Header("미사용: 기존 물리 데스존 설정 보관")]
-        [Tooltip("지면(Y=0)에 배치되는 후방 물리 데스존 오브젝트")]
-        [SerializeField] private GameObject deathZoneObject;
-        [Tooltip("카메라 Z 위치 대비 지면 데스존의 후방 거리 (미터)")]
-        [SerializeField] private float deathZoneBehindDistance = 16f;
-        [SerializeField] private Vector3 deathZoneSize = new Vector3(80f, 20f, 12f);
-
         private Camera cam;
         private float currentSpeed;
         private float elapsedTime = 0f;
@@ -55,8 +48,6 @@ namespace CrosswalkRun
         private void Start()
         {
             currentSpeed = initialSpeed;
-            // 화면 경계 검사만 사용하므로 물리 데스존 자동 생성을 중단합니다.
-            // SetupGroundDeathZone();
             // [Crosswalk 연동] 네트워크에서는 참가자 등록 완료 후 게임 매니저가 시작합니다.
             // 기존 단독 실행의 지연 시작 동작은 그대로 유지합니다.
             if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening)
@@ -167,54 +158,5 @@ namespace CrosswalkRun
             }
         }
 
-        /// <summary>
-        /// 카메라 회전에 영향을 받지 않도록 지면(Y=0)을 관통하는 수평 물리 데스존을 생성합니다.
-        /// </summary>
-        private void SetupGroundDeathZone()
-        {
-            if (deathZoneObject == null)
-            {
-                deathZoneObject = new GameObject("Ground_DeathZone");
-                // 카메라 자식으로 두지 않거나, 회전을 독립시킴 (월드 회전 Identity)
-                deathZoneObject.transform.rotation = Quaternion.identity;
-
-                BoxCollider box = deathZoneObject.AddComponent<BoxCollider>();
-                box.isTrigger = true;
-                box.size = deathZoneSize;
-
-                deathZoneObject.AddComponent<CameraDeathZone>();
-            }
-
-            UpdateDeathZonePosition();
-        }
-
-        private void UpdateDeathZonePosition()
-        {
-            if (deathZoneObject != null)
-            {
-                // 지면(Y=0) 중심, X=0, Z는 카메라 뒤쪽 거리로 항상 수평 배치
-                float targetZ = transform.position.z - deathZoneBehindDistance;
-                deathZoneObject.transform.position = new Vector3(0f, 0f, targetZ);
-                deathZoneObject.transform.rotation = Quaternion.identity;
-            }
-        }
-
-        private void OnDestroy()
-        {
-            if (deathZoneObject != null)
-            {
-                Destroy(deathZoneObject);
-            }
-        }
-
-        private void OnDrawGizmosSelected()
-        {
-            // 사용하지 않는 물리 데스존이 에디터에 표시되지 않도록 기존 표시 코드를 보관합니다.
-            /*
-            Gizmos.color = new Color(1f, 0f, 0f, 0.4f);
-            float targetZ = transform.position.z - deathZoneBehindDistance;
-            Gizmos.DrawCube(new Vector3(0f, 0f, targetZ), deathZoneSize);
-            */
-        }
     }
 }

@@ -297,9 +297,6 @@ MonoBehaviour:
   enableViewportBoundaryCheck: 1
   bottomThreshold: -2
   horizontalMargin: 0.05
-  deathZoneObject: {fileID: 0}
-  deathZoneBehindDistance: 16
-  deathZoneSize: {x: 60, y: 20, z: 10}
 --- !u!1001 &196010877
 PrefabInstance:
   m_ObjectHideFlags: 0
