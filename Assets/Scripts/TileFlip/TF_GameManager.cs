@@ -16,6 +16,7 @@ using Random = UnityEngine.Random;
 ///  - 생성한 플레이어는 TF_TilePaintTracker에 번호와 함께 등록한다.
 ///  - 플레이어 수는 시작 위치 개수(최대 4명)로 정해진다. (멀티에서는 접속한 사람 수)
 ///  - 카메라(TF_CameraFollow)는 내 플레이어를 따라가게 지정한다. 오프라인에서는 0번 플레이어.
+///  - 타일 색은 그 플레이어 캐릭터의 프리팹 번호와 같은 번호의 playerMaterials를 쓴다. (점수는 플레이어별로 따로 센다)
 /// 
 /// SD_GameManager와 같은 구조로 만들어서, 멀티 전환 시 아래 부분만 바꾸면 된다.
 ///  - 플레이어 생성은 Host만. 접속 ID 오름차순 순서가 플레이어 번호(slot)가 되고, 시작 위치는 지금처럼 섞어서 배정한 뒤
@@ -40,7 +41,7 @@ public class TF_GameManager : MonoBehaviour
     [SerializeField] private TF_CameraFollow cameraFollow;
 
     [Header("플레이어 생성")]
-    [Tooltip("캐릭터 프리팹. 플레이어 번호 % 개수로 번갈아 배정된다")]
+    [Tooltip("캐릭터 프리팹. 플레이어 번호 % 개수로 번갈아 배정된다. TF_TileGridManager의 playerMaterials와 같은 번호끼리 짝이다 (캐릭터 k번 = 타일 색 k번)")]
     [SerializeField] private GameObject[] characterPrefabs;
     [Tooltip("시작 위치들. 플레이어 수는 이 개수(최대 4명)로 정해지고, 서로 다른 곳이 랜덤으로 하나씩 배정된다. " +
              "4개보다 많으면 그중 랜덤한 4곳이 쓰인다. 회전 방향이 처음 바라보는 방향이 된다 (멀티에서는 접속한 사람 수로 정해진다)")]
@@ -158,6 +159,12 @@ public class TF_GameManager : MonoBehaviour
             return false;
         }
 
+        if (grid != null && grid.ColorCount < characterPrefabs.Length)
+        {
+            Debug.LogWarning($"[TF 입장] playerMaterials({grid.ColorCount}개)가 characterPrefabs({characterPrefabs.Length}개)보다 적습니다. " +
+                             "모자란 번호의 캐릭터는 타일 색이 흰색으로 보입니다.");
+        }
+
         // 시작 위치 번호를 섞어서 앞에서부터 한 명에 하나씩 배정한다 (같은 위치에 겹치지 않는다)
         List<int> order = new List<int>();
         for (int i = 0; i < spawnPoints.Length; i++) order.Add(i);
@@ -172,6 +179,9 @@ public class TF_GameManager : MonoBehaviour
             spawned.Add(instance);
 
             if (tracker != null) tracker.Register(instance.transform, player);
+
+            // 타일 색을 캐릭터 프리팹 번호와 맞춘다
+            if (grid != null) grid.SetPlayerColorIndex(player, character);
 
             Debug.Log($"[TF 입장] 플레이어 {player}: 캐릭터 {character}, 시작 위치 {order[player]} 생성 완료");
         }

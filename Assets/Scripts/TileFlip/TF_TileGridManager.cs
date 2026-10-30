@@ -24,12 +24,16 @@ public class TF_TileGridManager : MonoBehaviour
 
     [Header("머티리얼")]
     [SerializeField] private Material neutralMaterial;                              // 아무도 안 밟은 타일 (흰색)
-    [SerializeField] private Material[] playerMaterials = new Material[MaxPlayers]; // 플레이어 0~3 색
+    [Tooltip("플레이어 색. TF_GameManager의 characterPrefabs와 같은 번호끼리 짝이다 (캐릭터 k번 = 타일 색 k번)")]
+    [SerializeField] private Material[] playerMaterials = new Material[MaxPlayers];
 
     // 타일 인덱스 -> 소유자 번호 (-1이면 주인 없음)
     private int[] tileOwners;
     // 플레이어 번호 -> 점유한 타일 수
     private int[] scores;
+
+    // 플레이어 번호 -> playerMaterials에서 쓸 색 번호. 기본은 같은 번호이고, 캐릭터가 정해지면 캐릭터 번호로 바뀐다.
+    private int[] playerColorIndex;
 
     private TF_Tile[] tiles;
 
@@ -42,10 +46,16 @@ public class TF_TileGridManager : MonoBehaviour
     public int Rows => rows;
     public int TileCount => columns * rows;
 
+    /// <summary>playerMaterials에 들어 있는 색의 개수</summary>
+    public int ColorCount => playerMaterials == null ? 0 : playerMaterials.Length;
+
     // ───────────────────────── 생성 ─────────────────────────
 
     private void Awake()
     {
+        playerColorIndex = new int[MaxPlayers];
+        for (int i = 0; i < MaxPlayers; i++) playerColorIndex[i] = i;
+
         BuildTiles();
         ResetBoard();
     }
@@ -131,6 +141,24 @@ public class TF_TileGridManager : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// 플레이어의 타일 색을 정한다. colorIndex는 playerMaterials의 번호이고, 그 플레이어 캐릭터의 프리팹 번호와 같게 넣는다.
+    /// 점수는 플레이어(자리)별로 따로 세므로, 두 플레이어의 색이 같아도 점수는 섞이지 않는다.
+    /// 이미 칠해진 타일이 있으면 새 색으로 다시 입힌다.
+    /// </summary>
+    public void SetPlayerColorIndex(int playerIndex, int colorIndex)
+    {
+        if (playerIndex < 0 || playerIndex >= MaxPlayers) return;
+        if (playerColorIndex[playerIndex] == colorIndex) return;
+
+        playerColorIndex[playerIndex] = colorIndex;
+
+        for (int i = 0; i < tileOwners.Length; i++)
+        {
+            if (tileOwners[i] == playerIndex) ApplyTileVisual(i, playerIndex);
+        }
+    }
+
     // ───────────────────────── 조회 API ─────────────────────────
 
     /// <summary>월드 좌표가 속한 타일 인덱스를 구한다. 격자 밖이면 false.</summary>
@@ -172,8 +200,12 @@ public class TF_TileGridManager : MonoBehaviour
 
     private Material GetMaterial(int ownerIndex)
     {
-        if (ownerIndex >= 0 && ownerIndex < playerMaterials.Length && playerMaterials[ownerIndex] != null)
-            return playerMaterials[ownerIndex];
+        if (ownerIndex >= 0 && ownerIndex < MaxPlayers)
+        {
+            int colorIndex = playerColorIndex[ownerIndex];
+            if (colorIndex >= 0 && colorIndex < playerMaterials.Length && playerMaterials[colorIndex] != null)
+                return playerMaterials[colorIndex];
+        }
         return neutralMaterial;
     }
 
