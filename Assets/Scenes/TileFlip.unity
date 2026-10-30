@@ -426,6 +426,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1899639666}
+  - component: {fileID: 1899639670}
   - component: {fileID: 1899639667}
   - component: {fileID: 1899639668}
   - component: {fileID: 1899639669}
@@ -472,12 +473,10 @@ MonoBehaviour:
   rows: 15
   tileSize: 1
   tileGap: 0.05
-  neutralMaterial: {fileID: 0}
+  neutralMaterial: {fileID: 2100000, guid: 90fb5266ec5381a4f82ca95fc2746294, type: 2}
   playerMaterials:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 2100000, guid: 72c57e092fbc75f43a15e973aab38170, type: 2}
+  - {fileID: 2100000, guid: 8c0c934d1f5d86943a432e23717befc5, type: 2}
 --- !u!114 &1899639668
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -516,9 +515,31 @@ MonoBehaviour:
   - {fileID: 1316474807}
   startDelay: 3
   gameDuration: 60
-  autoStart: 1
+  readyTimeout: 30
+  beginWithoutSceneEvent: 0
   lockControlsBeforeStart: 1
   lockControlsAtEnd: 1
+--- !u!114 &1899639670
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1899639665}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 1044005307
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1 &2001634573
 GameObject:
   m_ObjectHideFlags: 0

@@ -17,4 +17,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Character.unity
     guid: a54a3c99a04805246bea0293d36e73e9
+  - enabled: 1
+    path: Assets/Scenes/TileFlip.unity
+    guid: 7fe2e6bce077ff542b6c92cec43cd551
   m_configObjects: {}

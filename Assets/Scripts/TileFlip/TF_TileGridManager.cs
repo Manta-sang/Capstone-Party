@@ -2,13 +2,18 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// 타일 격자를 생성하고, 타일 소유자/플레이어별 점수를 관리한다. (오프라인 버전)
+/// 타일 격자를 생성하고, 타일 소유자/플레이어별 점수/플레이어별 색 번호를 관리한다.
 /// 
-/// 나중에 멀티로 바꿀 때를 대비해 데이터 변경은 SetTileOwner / ResetBoard 두 함수로만 하고,
+/// 이 스크립트는 네트워크를 모르는 일반 MonoBehaviour이다. (SD_BladeSpawner, SD_PlayerDeath와 같은 위치)
+/// 멀티에서는 TF_GameManager(NetworkBehaviour)가 서버의 판정 결과를 모든 컴퓨터에 알려 주고,
+/// 모든 컴퓨터가 이 스크립트에 똑같은 호출(SetTileOwner 등)을 해서 같은 상태를 유지한다.
+/// (SD에서 죽음 판정을 SD_GameManager가 KillClientRpc로 전달해 모든 컴퓨터가 ApplyDeath를 부르는 방식과 같다)
+/// 
+/// 데이터 변경은 SetTileOwner / ResetBoard / SetPlayerColorIndex 세 함수로만 하고,
 /// 화면 갱신은 이벤트(OnTileOwnerChanged, OnScoreChanged)로만 알린다.
 /// 
-/// 사용법: 씬에 빈 오브젝트를 만들고 이 스크립트를 붙인다.
-///         (회전은 (0,0,0), 스케일은 (1,1,1)로 둘 것)
+/// 사용법: 씬에 빈 오브젝트(MinigameManager 등)를 만들고 이 스크립트를 붙인다.
+///         (회전은 (0,0,0), 스케일은 (1,1,1)로 둘 것. 타일 프리팹에는 NetworkObject를 붙이지 않는다)
 /// </summary>
 public class TF_TileGridManager : MonoBehaviour
 {
@@ -31,7 +36,6 @@ public class TF_TileGridManager : MonoBehaviour
     private int[] tileOwners;
     // 플레이어 번호 -> 점유한 타일 수
     private int[] scores;
-
     // 플레이어 번호 -> playerMaterials에서 쓸 색 번호. 기본은 같은 번호이고, 캐릭터가 정해지면 캐릭터 번호로 바뀐다.
     private int[] playerColorIndex;
 
@@ -95,9 +99,9 @@ public class TF_TileGridManager : MonoBehaviour
         }
     }
 
-    // ───────────────────────── 데이터 변경 (멀티 전환 시 서버 전용이 될 부분) ─────────────────────────
+    // ───────────────────────── 데이터 변경 ─────────────────────────
 
-    /// <summary>모든 타일을 주인 없음으로, 점수를 0으로 되돌린다.</summary>
+    /// <summary>모든 타일을 주인 없음으로, 점수를 0으로 되돌린다. (플레이어 색 번호는 그대로 둔다)</summary>
     public void ResetBoard()
     {
         tileOwners = new int[TileCount];
