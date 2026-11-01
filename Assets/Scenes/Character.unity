@@ -1797,7 +1797,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 타일 뒤집기 (오프라인)
+  m_text: 타일 뒤집기
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 536b6e16f85795d46a21f43033295334, type: 2}
   m_sharedMaterial: {fileID: -1969778135306735690, guid: 536b6e16f85795d46a21f43033295334, type: 2}
