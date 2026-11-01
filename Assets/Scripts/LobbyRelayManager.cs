@@ -11,48 +11,48 @@ using Unity.Services.Relay;
 using UnityEngine;
 
 /// <summary>
-/// Lobby Code¸¦ ÅëÇÑ ¹æ »ı¼º, Âü°¡, ÅğÀåÀ» ´ã´çÇÕ´Ï´Ù.
-/// ¹æÀåÀº NGO Host·Î ½ÇÇàµÇ°í, Âü°¡ÀÚ´Â Relay¸¦ ÅëÇØ Host¿¡ ¿¬°áµË´Ï´Ù.
+/// Lobby Codeë¥¼ í†µí•œ ë°© ìƒì„±, ì°¸ê°€, í‡´ì¥ì„ ë‹´ë‹¹í•©ë‹ˆë‹¤.
+/// ë°©ì¥ì€ NGO Hostë¡œ ì‹¤í–‰ë˜ê³ , ì°¸ê°€ìëŠ” Relayë¥¼ í†µí•´ Hostì— ì—°ê²°ë©ë‹ˆë‹¤.
 /// </summary>
 public class LobbyRelayManager : MonoBehaviour
 {
-    // ¹æÀå Æ÷ÇÔ ÀüÃ¼ ¹æ Á¤¿øÀÔ´Ï´Ù.
+    // ë°©ì¥ í¬í•¨ ì „ì²´ ë°© ì •ì›ì…ë‹ˆë‹¤.
     private const int MaxPlayers = 4;
 
-    // Lobby ¾È¿¡ Relay Join Code¸¦ ÀúÀåÇÒ ¶§ »ç¿ëÇÒ ÀÌ¸§ÀÔ´Ï´Ù.
+    // Lobby ì•ˆì— Relay Join Codeë¥¼ ì €ì¥í•  ë•Œ ì‚¬ìš©í•  ì´ë¦„ì…ë‹ˆë‹¤.
     private const string RelayJoinCodeKey = "relayJoinCode";
 
-    // PC È¯°æ¿¡¼­ »ç¿ëÇÒ Relay ¿¬°á ¹æ½ÄÀÔ´Ï´Ù.
+    // PC í™˜ê²½ì—ì„œ ì‚¬ìš©í•  Relay ì—°ê²° ë°©ì‹ì…ë‹ˆë‹¤.
     private const string ConnectionType = "dtls";
 
-    [Header("ÇÊ¼ö ÄÄÆ÷³ÍÆ®")]
+    [Header("í•„ìˆ˜ ì»´í¬ë„ŒíŠ¸")]
     [SerializeField] private NetworkManager networkManager;
     [SerializeField] private UnityTransport unityTransport;
 
-    // ÇöÀç ¸¸µé¾ú°Å³ª Âü°¡ÇÑ Lobby Á¤º¸ÀÔ´Ï´Ù.
+    // í˜„ì¬ ë§Œë“¤ì—ˆê±°ë‚˜ ì°¸ê°€í•œ Lobby ì •ë³´ì…ë‹ˆë‹¤.
     private Lobby currentLobby;
 
-    // ÇöÀç »ç¿ëÀÚ°¡ ¹æÀåÀÎÁö ÀúÀåÇÕ´Ï´Ù.
+    // í˜„ì¬ ì‚¬ìš©ìê°€ ë°©ì¥ì¸ì§€ ì €ì¥í•©ë‹ˆë‹¤.
     private bool isHost;
 
-    // ¹æÀåÀÌ Lobby¸¦ À¯ÁöÇÏ±â À§ÇØ º¸³»´Â heartbeat ÄÚ·çÆ¾ÀÔ´Ï´Ù.
+    // ë°©ì¥ì´ Lobbyë¥¼ ìœ ì§€í•˜ê¸° ìœ„í•´ ë³´ë‚´ëŠ” heartbeat ì½”ë£¨í‹´ì…ë‹ˆë‹¤.
     private Coroutine heartbeatCoroutine;
 
     /// <summary>
-    /// Âü°¡ÀÚ¿¡°Ô °øÀ¯ÇÒ ÇöÀç Lobby CodeÀÔ´Ï´Ù.
-    /// ¾ÆÁ÷ ¹æÀÌ ¾øÀ¸¸é ºó ¹®ÀÚ¿­À» ¹İÈ¯ÇÕ´Ï´Ù.
+    /// ì°¸ê°€ìì—ê²Œ ê³µìœ í•  í˜„ì¬ Lobby Codeì…ë‹ˆë‹¤.
+    /// ì•„ì§ ë°©ì´ ì—†ìœ¼ë©´ ë¹ˆ ë¬¸ìì—´ì„ ë°˜í™˜í•©ë‹ˆë‹¤.
     /// </summary>
     public string CurrentLobbyCode =>
         currentLobby == null ? string.Empty : currentLobby.LobbyCode;
 
     /// <summary>
-    /// UI°¡ »óÅÂ ¸Ş½ÃÁö¸¦ ¹ŞÀ» ¼ö ÀÖµµ·Ï ¾Ë¸³´Ï´Ù.
+    /// UIê°€ ìƒíƒœ ë©”ì‹œì§€ë¥¼ ë°›ì„ ìˆ˜ ìˆë„ë¡ ì•Œë¦½ë‹ˆë‹¤.
     /// </summary>
     public event Action<string> StatusChanged;
 
     private void Awake()
     {
-        // Inspector¿¡ ÂüÁ¶¸¦ ³ÖÁö ¾Ê¾Ò¾îµµ °°Àº ¿ÀºêÁ§Æ®¿¡¼­ ÀÚµ¿ Å½»öÇÕ´Ï´Ù.
+        // Inspectorì— ì°¸ì¡°ë¥¼ ë„£ì§€ ì•Šì•˜ì–´ë„ ê°™ì€ ì˜¤ë¸Œì íŠ¸ì—ì„œ ìë™ íƒìƒ‰í•©ë‹ˆë‹¤.
         if (networkManager == null)
         {
             networkManager = GetComponent<NetworkManager>();
@@ -65,7 +65,7 @@ public class LobbyRelayManager : MonoBehaviour
     }
 
     /// <summary>
-    /// ¹æÀåÀ» Host·Î ½ÃÀÛÇÏ°í »õ·Î¿î Lobby¸¦ »ı¼ºÇÕ´Ï´Ù.
+    /// ë°©ì¥ì„ Hostë¡œ ì‹œì‘í•˜ê³  ìƒˆë¡œìš´ Lobbyë¥¼ ìƒì„±í•©ë‹ˆë‹¤.
     /// </summary>
     public async void CreateRoom()
     {
@@ -76,22 +76,22 @@ public class LobbyRelayManager : MonoBehaviour
 
         try
         {
-            SetStatus("Relay¿Í ¹æÀ» »ı¼ºÇÏ´Â ÁßÀÔ´Ï´Ù...");
+            SetStatus("Relayì™€ ë°©ì„ ìƒì„±í•˜ëŠ” ì¤‘ì…ë‹ˆë‹¤...");
 
-            // ¹æÀåÀ» Á¦¿ÜÇÑ Âü°¡ÀÚ ÃÖ´ë 3¸íÀ» À§ÇÑ Relay °ø°£À» »ı¼ºÇÕ´Ï´Ù.
+            // ë°©ì¥ì„ ì œì™¸í•œ ì°¸ê°€ì ìµœëŒ€ 3ëª…ì„ ìœ„í•œ Relay ê³µê°„ì„ ìƒì„±í•©ë‹ˆë‹¤.
             var allocation = await RelayService.Instance.CreateAllocationAsync(MaxPlayers - 1);
 
-            // NGO Åë½ÅÀÌ Relay¸¦ Åë°úÇÏµµ·Ï ¼³Á¤ÇÕ´Ï´Ù.
+            // NGO í†µì‹ ì´ Relayë¥¼ í†µê³¼í•˜ë„ë¡ ì„¤ì •í•©ë‹ˆë‹¤.
             unityTransport.SetRelayServerData(
                 new RelayServerData(allocation, ConnectionType)
             );
 
-            // Âü°¡ÀÚ°¡ Relay¿¡ ¿¬°áÇÒ ¶§ ÇÊ¿äÇÑ ÄÚµå¸¦ ¹ß±Ş¹Ş½À´Ï´Ù.
+            // ì°¸ê°€ìê°€ Relayì— ì—°ê²°í•  ë•Œ í•„ìš”í•œ ì½”ë“œë¥¼ ë°œê¸‰ë°›ìŠµë‹ˆë‹¤.
             string relayJoinCode = await RelayService.Instance.GetJoinCodeAsync(
                 allocation.AllocationId
             );
 
-            // Lobby ¾È¿¡ Relay Join Code¸¦ ¸â¹ö Àü¿ë µ¥ÀÌÅÍ·Î ÀúÀåÇÕ´Ï´Ù.
+            // Lobby ì•ˆì— Relay Join Codeë¥¼ ë©¤ë²„ ì „ìš© ë°ì´í„°ë¡œ ì €ì¥í•©ë‹ˆë‹¤.
             var lobbyOptions = new CreateLobbyOptions
             {
                 IsPrivate = false,
@@ -107,9 +107,9 @@ public class LobbyRelayManager : MonoBehaviour
                 }
             };
 
-            // Âü°¡ÀÚ°¡ °øÀ¯¹ŞÀ» Lobby Code¸¦ »ı¼ºÇÕ´Ï´Ù.
+            // ì°¸ê°€ìê°€ ê³µìœ ë°›ì„ Lobby Codeë¥¼ ìƒì„±í•©ë‹ˆë‹¤.
             currentLobby = await LobbyService.Instance.CreateLobbyAsync(
-                "Å×½ºÆ® ¹æ",
+                "í…ŒìŠ¤íŠ¸ ë°©",
                 MaxPlayers,
                 lobbyOptions
             );
@@ -117,22 +117,22 @@ public class LobbyRelayManager : MonoBehaviour
             isHost = true;
             StartHeartbeat();
 
-            // ¹æÀåÀº ¼­¹ö¿Í Å¬¶óÀÌ¾ğÆ®¸¦ ÇÔ²² ½ÇÇàÇÕ´Ï´Ù.
+            // ë°©ì¥ì€ ì„œë²„ì™€ í´ë¼ì´ì–¸íŠ¸ë¥¼ í•¨ê»˜ ì‹¤í–‰í•©ë‹ˆë‹¤.
             if (!networkManager.StartHost())
             {
-                throw new Exception("NGO Host¸¦ ½ÃÀÛÇÏÁö ¸øÇß½À´Ï´Ù.");
+                throw new Exception("NGO Hostë¥¼ ì‹œì‘í•˜ì§€ ëª»í–ˆìŠµë‹ˆë‹¤.");
             }
 
-            SetStatus($"¹æ »ı¼º ¿Ï·á! ¹æ ÄÚµå¸¦ Âü°¡ÀÚ¿¡°Ô °øÀ¯ÇÏ¼¼¿ä.");
+            SetStatus($"ë°© ìƒì„± ì™„ë£Œ! ë°© ì½”ë“œë¥¼ ì°¸ê°€ìì—ê²Œ ê³µìœ í•˜ì„¸ìš”.");
         }
         catch (Exception exception)
         {
-            SetStatus($"¹æ »ı¼º ½ÇÆĞ: {exception.Message}", true);
+            SetStatus($"ë°© ìƒì„± ì‹¤íŒ¨: {exception.Message}", true);
         }
     }
 
     /// <summary>
-    /// Âü°¡ÀÚ°¡ Lobby Code¸¦ ÀÔ·ÂÇØ HostÀÇ ¹æ¿¡ Á¢¼ÓÇÕ´Ï´Ù.
+    /// ì°¸ê°€ìê°€ Lobby Codeë¥¼ ì…ë ¥í•´ Hostì˜ ë°©ì— ì ‘ì†í•©ë‹ˆë‹¤.
     /// </summary>
     public async void JoinRoom(string lobbyCode)
     {
@@ -143,50 +143,50 @@ public class LobbyRelayManager : MonoBehaviour
 
         if (string.IsNullOrWhiteSpace(lobbyCode))
         {
-            SetStatus("¹æ ÄÚµå¸¦ ÀÔ·ÂÇÏ¼¼¿ä.", true);
+            SetStatus("ë°© ì½”ë“œë¥¼ ì…ë ¥í•˜ì„¸ìš”.", true);
             return;
         }
 
         try
         {
-            SetStatus("¹æ¿¡ Âü°¡ÇÏ´Â ÁßÀÔ´Ï´Ù...");
+            SetStatus("ë°©ì— ì°¸ê°€í•˜ëŠ” ì¤‘ì…ë‹ˆë‹¤...");
 
-            // »ç¿ëÀÚ°¡ ÀÔ·ÂÇÑ Lobby Code·Î ¹æ¿¡ Âü°¡ÇÕ´Ï´Ù.
+            // ì‚¬ìš©ìê°€ ì…ë ¥í•œ Lobby Codeë¡œ ë°©ì— ì°¸ê°€í•©ë‹ˆë‹¤.
             currentLobby = await LobbyService.Instance.JoinLobbyByCodeAsync(
                 lobbyCode.Trim().ToUpperInvariant()
             );
 
             isHost = false;
 
-            // ¹æ¿¡ µé¾î¿Â ¸â¹ö¸¸ Relay Join Code¸¦ ÀĞÀ» ¼ö ÀÖ½À´Ï´Ù.
+            // ë°©ì— ë“¤ì–´ì˜¨ ë©¤ë²„ë§Œ Relay Join Codeë¥¼ ì½ì„ ìˆ˜ ìˆìŠµë‹ˆë‹¤.
             if (!currentLobby.Data.TryGetValue(RelayJoinCodeKey, out DataObject relayData))
             {
-                throw new Exception("Relay ¿¬°á Á¤º¸¸¦ Ã£Áö ¸øÇß½À´Ï´Ù.");
+                throw new Exception("Relay ì—°ê²° ì •ë³´ë¥¼ ì°¾ì§€ ëª»í–ˆìŠµë‹ˆë‹¤.");
             }
 
-            // Relay¿¡ Âü°¡ÇÏ°í NGO Client¿ë ¿¬°á Á¤º¸¸¦ ¼³Á¤ÇÕ´Ï´Ù.
+            // Relayì— ì°¸ê°€í•˜ê³  NGO Clientìš© ì—°ê²° ì •ë³´ë¥¼ ì„¤ì •í•©ë‹ˆë‹¤.
             var allocation = await RelayService.Instance.JoinAllocationAsync(relayData.Value);
 
             unityTransport.SetRelayServerData(
                 new RelayServerData(allocation, ConnectionType)
             );
 
-            // Âü°¡ÀÚ´Â Client·Î ½ÇÇàÇÕ´Ï´Ù.
+            // ì°¸ê°€ìëŠ” Clientë¡œ ì‹¤í–‰í•©ë‹ˆë‹¤.
             if (!networkManager.StartClient())
             {
-                throw new Exception("NGO Client¸¦ ½ÃÀÛÇÏÁö ¸øÇß½À´Ï´Ù.");
+                throw new Exception("NGO Clientë¥¼ ì‹œì‘í•˜ì§€ ëª»í–ˆìŠµë‹ˆë‹¤.");
             }
 
-            SetStatus("¹æ Âü°¡ ¿Ï·á / Host ¿¬°áÀ» ±â´Ù¸®´Â ÁßÀÔ´Ï´Ù.");
+            SetStatus("ë°© ì°¸ê°€ ì™„ë£Œ / Host ì—°ê²°ì„ ê¸°ë‹¤ë¦¬ëŠ” ì¤‘ì…ë‹ˆë‹¤.");
         }
         catch (Exception exception)
         {
-            SetStatus($"¹æ Âü°¡ ½ÇÆĞ: {exception.Message}", true);
+            SetStatus($"ë°© ì°¸ê°€ ì‹¤íŒ¨: {exception.Message}", true);
         }
     }
 
     /// <summary>
-    /// ÇöÀç ¹æ¿¡¼­ ³ª°¡°í NGO ¿¬°áÀ» Á¾·áÇÕ´Ï´Ù.
+    /// í˜„ì¬ ë°©ì—ì„œ ë‚˜ê°€ê³  NGO ì—°ê²°ì„ ì¢…ë£Œí•©ë‹ˆë‹¤.
     /// </summary>
     public async void LeaveRoom()
     {
@@ -199,7 +199,7 @@ public class LobbyRelayManager : MonoBehaviour
 
             if (currentLobby != null)
             {
-                // ¹æÀåÀº Lobby ÀÚÃ¼¸¦ »èÁ¦ÇÏ°í, Âü°¡ÀÚ´Â ÀÚ±â Á¤º¸¸¸ Á¦°ÅÇÕ´Ï´Ù.
+                // ë°©ì¥ì€ Lobby ìì²´ë¥¼ ì‚­ì œí•˜ê³ , ì°¸ê°€ìëŠ” ìê¸° ì •ë³´ë§Œ ì œê±°í•©ë‹ˆë‹¤.
                 if (isHost)
                 {
                     await LobbyService.Instance.DeleteLobbyAsync(currentLobby.Id);
@@ -217,28 +217,28 @@ public class LobbyRelayManager : MonoBehaviour
             isHost = false;
             StopHeartbeat();
 
-            SetStatus("¹æ¿¡¼­ ³ª¿Ô½À´Ï´Ù.");
+            SetStatus("ë°©ì—ì„œ ë‚˜ì™”ìŠµë‹ˆë‹¤.");
         }
         catch (Exception exception)
         {
-            SetStatus($"¹æ ³ª°¡±â ½ÇÆĞ: {exception.Message}", true);
+            SetStatus($"ë°© ë‚˜ê°€ê¸° ì‹¤íŒ¨: {exception.Message}", true);
         }
     }
 
     /// <summary>
-    /// Host/Client ½ÃÀÛ Àü¿¡ ·Î±×ÀÎ ¹× Áßº¹ ½ÇÇà ¿©ºÎ¸¦ È®ÀÎÇÕ´Ï´Ù.
+    /// Host/Client ì‹œì‘ ì „ì— ë¡œê·¸ì¸ ë° ì¤‘ë³µ ì‹¤í–‰ ì—¬ë¶€ë¥¼ í™•ì¸í•©ë‹ˆë‹¤.
     /// </summary>
     private bool CanStartNetwork()
     {
         if (!AuthenticationService.Instance.IsSignedIn)
         {
-            SetStatus("UGS ·Î±×ÀÎÀÌ ¾ÆÁ÷ ¿Ï·áµÇÁö ¾Ê¾Ò½À´Ï´Ù.", true);
+            SetStatus("UGS ë¡œê·¸ì¸ì´ ì•„ì§ ì™„ë£Œë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤.", true);
             return false;
         }
 
         if (networkManager.IsListening)
         {
-            SetStatus("ÀÌ¹Ì ¹æ¿¡ Á¢¼ÓÇØ ÀÖ½À´Ï´Ù.", true);
+            SetStatus("ì´ë¯¸ ë°©ì— ì ‘ì†í•´ ìˆìŠµë‹ˆë‹¤.", true);
             return false;
         }
 
@@ -246,7 +246,7 @@ public class LobbyRelayManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Lobby°¡ ÀÚµ¿À¸·Î »èÁ¦µÇÁö ¾Êµµ·Ï ¹æÀåÀÌ ÁÖ±âÀûÀ¸·Î heartbeat¸¦ º¸³À´Ï´Ù.
+    /// Lobbyê°€ ìë™ìœ¼ë¡œ ì‚­ì œë˜ì§€ ì•Šë„ë¡ ë°©ì¥ì´ ì£¼ê¸°ì ìœ¼ë¡œ heartbeatë¥¼ ë³´ëƒ…ë‹ˆë‹¤.
     /// </summary>
     private void StartHeartbeat()
     {
@@ -267,7 +267,7 @@ public class LobbyRelayManager : MonoBehaviour
     {
         while (isHost && currentLobby != null)
         {
-            // Lobby´Â ÀÏÁ¤ ½Ã°£ È°µ¿ÀÌ ¾øÀ¸¸é »ç¶óÁú ¼ö ÀÖÀ¸¹Ç·Î 15ÃÊ¸¶´Ù À¯Áö ½ÅÈ£¸¦ º¸³À´Ï´Ù.
+            // LobbyëŠ” ì¼ì • ì‹œê°„ í™œë™ì´ ì—†ìœ¼ë©´ ì‚¬ë¼ì§ˆ ìˆ˜ ìˆìœ¼ë¯€ë¡œ 15ì´ˆë§ˆë‹¤ ìœ ì§€ ì‹ í˜¸ë¥¼ ë³´ëƒ…ë‹ˆë‹¤.
             yield return new WaitForSeconds(15f);
             SendHeartbeat();
         }
@@ -281,12 +281,12 @@ public class LobbyRelayManager : MonoBehaviour
         }
         catch (Exception exception)
         {
-            SetStatus($"Lobby À¯Áö ½ÅÈ£ ½ÇÆĞ: {exception.Message}", true);
+            SetStatus($"Lobby ìœ ì§€ ì‹ í˜¸ ì‹¤íŒ¨: {exception.Message}", true);
         }
     }
 
     /// <summary>
-    /// Console°ú UI¿¡ µ¿ÀÏÇÑ »óÅÂ ¸Ş½ÃÁö¸¦ Àü´ŞÇÕ´Ï´Ù.
+    /// Consoleê³¼ UIì— ë™ì¼í•œ ìƒíƒœ ë©”ì‹œì§€ë¥¼ ì „ë‹¬í•©ë‹ˆë‹¤.
     /// </summary>
     private void SetStatus(string message, bool isError = false)
     {

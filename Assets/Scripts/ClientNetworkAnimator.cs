@@ -4,7 +4,7 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class ClientNetworkAnimator : NetworkAnimator
 {
-    // Å¬¶óÀÌ¾ğÆ®°¡ Á÷Á¢ ¾Ö´Ï¸ŞÀÌ¼ÇÀ» µ¿±âÈ­ÇÏµµ·Ï ±ÇÇÑÀ» Áİ´Ï´Ù.
+    // í´ë¼ì´ì–¸íŠ¸ê°€ ì§ì ‘ ì• ë‹ˆë©”ì´ì…˜ì„ ë™ê¸°í™”í•˜ë„ë¡ ê¶Œí•œì„ ì¤ë‹ˆë‹¤.
     protected override bool OnIsServerAuthoritative()
     {
         return false;

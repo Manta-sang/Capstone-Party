@@ -3,21 +3,21 @@ using Unity.Netcode;
 
 public class CustomSpawner : MonoBehaviour
 {
-    [Header("½ºÆùÇÒ Ä³¸¯ÅÍ ÇÁ¸®ÆÕ ¸®½ºÆ® (¿øÇÏ´Â ¸¸Å­ ³ÖÀ¸¼¼¿ä)")]
+    [Header("ìŠ¤í°í•  ìºë¦­í„° í”„ë¦¬íŒ¹ ë¦¬ìŠ¤íŠ¸ (ì›í•˜ëŠ” ë§Œí¼ ë„£ìœ¼ì„¸ìš”)")]
     [SerializeField] private GameObject[] characterPrefabs;
 
     void Start()
     {
-        // ³×Æ®¿öÅ©°¡ ÄÑÁ® ÀÖ°í, ³»°¡ ¹æÀå(¼­¹ö)ÀÏ ¶§¸¸ ÀÛµ¿
+        // ë„¤íŠ¸ì›Œí¬ê°€ ì¼œì ¸ ìˆê³ , ë‚´ê°€ ë°©ì¥(ì„œë²„)ì¼ ë•Œë§Œ ì‘ë™
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return;
 
-        // ¾ÀÀÌ ¿­¸®ÀÚ¸¶ÀÚ ÀÌ¹Ì ¹æ¿¡ µé¾î¿Í ÀÖ´Â »ç¶÷µé ÀüºÎ ½ºÆù
+        // ì”¬ì´ ì—´ë¦¬ìë§ˆì ì´ë¯¸ ë°©ì— ë“¤ì–´ì™€ ìˆëŠ” ì‚¬ëŒë“¤ ì „ë¶€ ìŠ¤í°
         foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
         {
             SpawnPlayerIfNoCharacter(clientId);
         }
 
-        // °ÔÀÓ Áß¿¡ µÚ´Ê°Ô µé¾î¿À´Â »ç¶÷µéÀ» À§ÇØ ÀÌº¥Æ® ¿¬°á
+        // ê²Œì„ ì¤‘ì— ë’¤ëŠ¦ê²Œ ë“¤ì–´ì˜¤ëŠ” ì‚¬ëŒë“¤ì„ ìœ„í•´ ì´ë²¤íŠ¸ ì—°ê²°
         NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
     }
 
@@ -28,23 +28,23 @@ public class CustomSpawner : MonoBehaviour
 
     void SpawnPlayerIfNoCharacter(ulong clientId)
     {
-        // ÀÌ¹Ì ¾À¿¡ ³» Ä³¸¯ÅÍ°¡ ÀÖ´Ù¸é Áßº¹ ½ºÆù ¹æÁö
+        // ì´ë¯¸ ì”¬ì— ë‚´ ìºë¦­í„°ê°€ ìˆë‹¤ë©´ ì¤‘ë³µ ìŠ¤í° ë°©ì§€
         if (NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(clientId) != null) return;
 
-        // ÀÎ½ºÆåÅÍ¿¡ µî·ÏµÈ ÇÁ¸®ÆÕÀÌ ÇÏ³ªµµ ¾øÀ¸¸é °æ°í
+        // ì¸ìŠ¤í™í„°ì— ë“±ë¡ëœ í”„ë¦¬íŒ¹ì´ í•˜ë‚˜ë„ ì—†ìœ¼ë©´ ê²½ê³ 
         if (characterPrefabs == null || characterPrefabs.Length == 0)
         {
-            Debug.LogError("CustomSpawner¿¡ µî·ÏµÈ Ä³¸¯ÅÍ ÇÁ¸®ÆÕÀÌ ¾ø½À´Ï´Ù!");
+            Debug.LogError("CustomSpawnerì— ë“±ë¡ëœ ìºë¦­í„° í”„ë¦¬íŒ¹ì´ ì—†ìŠµë‹ˆë‹¤!");
             return;
         }
 
-        // ¡Ú ÇÙ½É: µî·ÏµÈ ÇÁ¸®ÆÕ °³¼ö¿¡ ¸ÂÃç¼­ ¾Ë¾Æ¼­ ¹ø°¥¾Æ°¡¸ç ½ºÆù (2°³¸é 0, 1, 0, 1...)
+        // â˜… í•µì‹¬: ë“±ë¡ëœ í”„ë¦¬íŒ¹ ê°œìˆ˜ì— ë§ì¶°ì„œ ì•Œì•„ì„œ ë²ˆê°ˆì•„ê°€ë©° ìŠ¤í° (2ê°œë©´ 0, 1, 0, 1...)
         int selection = (int)(clientId % (ulong)characterPrefabs.Length);
         GameObject prefabToSpawn = characterPrefabs[selection];
 
         if (prefabToSpawn == null) return;
 
-        // ¾È °ãÄ¡°Ô ¿·À¸·Î »ìÂ¦ ¶ç¿ö¼­ ½ºÆù
+        // ì•ˆ ê²¹ì¹˜ê²Œ ì˜†ìœ¼ë¡œ ì‚´ì§ ë„ì›Œì„œ ìŠ¤í°
         Vector3 spawnPosition = new Vector3(clientId * 2f, 1f, 0f);
         GameObject spawnedInstance = Instantiate(prefabToSpawn, spawnPosition, Quaternion.identity);
 
@@ -52,10 +52,10 @@ public class CustomSpawner : MonoBehaviour
         if (netObj != null)
         {
             netObj.SpawnAsPlayerObject(clientId, true);
-            Debug.Log($"ÇÃ·¹ÀÌ¾î {clientId}¹ø ½ºÆù ¿Ï·á! (¼±ÅÃµÈ Ä³¸¯ÅÍ ÀÎµ¦½º: {selection})");
+            Debug.Log($"í”Œë ˆì´ì–´ {clientId}ë²ˆ ìŠ¤í° ì™„ë£Œ! (ì„ íƒëœ ìºë¦­í„° ì¸ë±ìŠ¤: {selection})");
         }
     }
-    //º¯°æ
+    //ë³€ê²½
     void OnDestroy()
     {
         if (NetworkManager.Singleton != null)

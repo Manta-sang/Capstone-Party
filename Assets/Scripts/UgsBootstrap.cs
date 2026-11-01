@@ -4,32 +4,32 @@ using Unity.Services.Core;
 using UnityEngine;
 
 /// <summary>
-/// °ÔÀÓ ½ÃÀÛ ½Ã Unity Gaming Services¸¦ ÃÊ±âÈ­ÇÏ°í ÀÍ¸í ·Î±×ÀÎÇÕ´Ï´Ù.
+/// ê²Œì„ ì‹œì‘ ì‹œ Unity Gaming Servicesë¥¼ ì´ˆê¸°í™”í•˜ê³  ìµëª… ë¡œê·¸ì¸í•©ë‹ˆë‹¤.
 /// </summary>
 public class UgsBootstrap : MonoBehaviour
 {
     /// <summary>
-    /// Unity Services ÃÊ±âÈ­¿Í ÀÍ¸í ·Î±×ÀÎÀ» ÇÑ ¹ø ½ÇÇàÇÕ´Ï´Ù.
+    /// Unity Services ì´ˆê¸°í™”ì™€ ìµëª… ë¡œê·¸ì¸ì„ í•œ ë²ˆ ì‹¤í–‰í•©ë‹ˆë‹¤.
     /// </summary>
     private async void Start()
     {
         try
         {
-            // Unity Dashboard¿¡ ¿¬°áµÈ ÇÁ·ÎÁ§Æ®ÀÇ ¼­ºñ½º¸¦ ÃÊ±âÈ­ÇÕ´Ï´Ù.
+            // Unity Dashboardì— ì—°ê²°ëœ í”„ë¡œì íŠ¸ì˜ ì„œë¹„ìŠ¤ë¥¼ ì´ˆê¸°í™”í•©ë‹ˆë‹¤.
             await UnityServices.InitializeAsync();
 
-            // ¾ÆÁ÷ ·Î±×ÀÎÇÏÁö ¾Ê¾Ò´Ù¸é ÀÍ¸í °èÁ¤À¸·Î ·Î±×ÀÎÇÕ´Ï´Ù.
+            // ì•„ì§ ë¡œê·¸ì¸í•˜ì§€ ì•Šì•˜ë‹¤ë©´ ìµëª… ê³„ì •ìœ¼ë¡œ ë¡œê·¸ì¸í•©ë‹ˆë‹¤.
             if (!AuthenticationService.Instance.IsSignedIn)
             {
                 await AuthenticationService.Instance.SignInAnonymouslyAsync();
             }
 
-            Debug.Log($"[UGS] ·Î±×ÀÎ ¿Ï·á / Player ID: {AuthenticationService.Instance.PlayerId}");
+            Debug.Log($"[UGS] ë¡œê·¸ì¸ ì™„ë£Œ / Player ID: {AuthenticationService.Instance.PlayerId}");
         }
         catch (Exception exception)
         {
-            // ¿À·ù´Â Console¿¡¸¸ ±â·ÏÇÏ°í Editor¸¦ Áß´Ü½ÃÅ°Áö ¾Ê½À´Ï´Ù.
-            Debug.LogError($"[UGS] ÃÊ±âÈ­ ¶Ç´Â ·Î±×ÀÎ ½ÇÆĞ: {exception.Message}");
+            // ì˜¤ë¥˜ëŠ” Consoleì—ë§Œ ê¸°ë¡í•˜ê³  Editorë¥¼ ì¤‘ë‹¨ì‹œí‚¤ì§€ ì•ŠìŠµë‹ˆë‹¤.
+            Debug.LogError($"[UGS] ì´ˆê¸°í™” ë˜ëŠ” ë¡œê·¸ì¸ ì‹¤íŒ¨: {exception.Message}");
         }
     }
 }

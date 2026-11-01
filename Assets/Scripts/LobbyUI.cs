@@ -3,14 +3,14 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// ¹æ »ı¼º, ¹æ Âü°¡, ¹æ ³ª°¡±â UI¸¦ °ü¸®ÇÕ´Ï´Ù.
+/// ë°© ìƒì„±, ë°© ì°¸ê°€, ë°© ë‚˜ê°€ê¸° UIë¥¼ ê´€ë¦¬í•©ë‹ˆë‹¤.
 /// </summary>
 public class LobbyUI : MonoBehaviour
 {
-    [Header("¿¬°áÇÒ ½ºÅ©¸³Æ®")]
+    [Header("ì—°ê²°í•  ìŠ¤í¬ë¦½íŠ¸")]
     [SerializeField] private LobbyRelayManager lobbyRelayManager;
 
-    [Header("UI ÄÄÆ÷³ÍÆ®")]
+    [Header("UI ì»´í¬ë„ŒíŠ¸")]
     [SerializeField] private Button createRoomButton;
     [SerializeField] private Button joinRoomButton;
     [SerializeField] private Button leaveRoomButton;
@@ -20,24 +20,24 @@ public class LobbyUI : MonoBehaviour
 
     private void Start()
     {
-        // °¢ ¹öÆ°¿¡ ±â´ÉÀ» ¿¬°áÇÕ´Ï´Ù.
+        // ê° ë²„íŠ¼ì— ê¸°ëŠ¥ì„ ì—°ê²°í•©ë‹ˆë‹¤.
         createRoomButton.onClick.AddListener(CreateRoom);
         joinRoomButton.onClick.AddListener(JoinRoom);
         leaveRoomButton.onClick.AddListener(LeaveRoom);
 
-        // LobbyRelayManagerÀÇ »óÅÂ ¸Ş½ÃÁö¸¦ È­¸é¿¡µµ Ãâ·ÂÇÕ´Ï´Ù.
+        // LobbyRelayManagerì˜ ìƒíƒœ ë©”ì‹œì§€ë¥¼ í™”ë©´ì—ë„ ì¶œë ¥í•©ë‹ˆë‹¤.
         lobbyRelayManager.StatusChanged += UpdateStatus;
 
-        statusText.text = "¹æÀ» ¸¸µé°Å³ª ¹æ ÄÚµå¸¦ ÀÔ·ÂÇÏ¼¼¿ä.";
-        roomCodeText.text = "¹æ ÄÚµå: -";
+        statusText.text = "ë°©ì„ ë§Œë“¤ê±°ë‚˜ ë°© ì½”ë“œë¥¼ ì…ë ¥í•˜ì„¸ìš”.";
+        roomCodeText.text = "ë°© ì½”ë“œ: -";
     }
 
     private void Update()
     {
-        // ¹æÀåÀÌ ¹æÀ» ¸¸µé¸é »ı¼ºµÈ Lobby Code¸¦ È­¸é¿¡ Ç¥½ÃÇÕ´Ï´Ù.
+        // ë°©ì¥ì´ ë°©ì„ ë§Œë“¤ë©´ ìƒì„±ëœ Lobby Codeë¥¼ í™”ë©´ì— í‘œì‹œí•©ë‹ˆë‹¤.
         if (!string.IsNullOrEmpty(lobbyRelayManager.CurrentLobbyCode))
         {
-            roomCodeText.text = $"¹æ ÄÚµå: {lobbyRelayManager.CurrentLobbyCode}";
+            roomCodeText.text = $"ë°© ì½”ë“œ: {lobbyRelayManager.CurrentLobbyCode}";
         }
     }
 
@@ -48,14 +48,14 @@ public class LobbyUI : MonoBehaviour
 
     private void JoinRoom()
     {
-        // Input Field¿¡ ÀÔ·ÂµÈ ¹æ ÄÚµå¸¦ LobbyRelayManager·Î Àü´ŞÇÕ´Ï´Ù.
+        // Input Fieldì— ì…ë ¥ëœ ë°© ì½”ë“œë¥¼ LobbyRelayManagerë¡œ ì „ë‹¬í•©ë‹ˆë‹¤.
         lobbyRelayManager.JoinRoom(roomCodeInput.text);
     }
 
     private void LeaveRoom()
     {
         lobbyRelayManager.LeaveRoom();
-        roomCodeText.text = "¹æ ÄÚµå: -";
+        roomCodeText.text = "ë°© ì½”ë“œ: -";
     }
 
     private void UpdateStatus(string message)
@@ -65,7 +65,7 @@ public class LobbyUI : MonoBehaviour
 
     private void OnDestroy()
     {
-        // ¿ÀºêÁ§Æ®°¡ »èÁ¦µÉ ¶§ ÀÌº¥Æ® ¿¬°áÀ» ÇØÁ¦ÇÕ´Ï´Ù.
+        // ì˜¤ë¸Œì íŠ¸ê°€ ì‚­ì œë  ë•Œ ì´ë²¤íŠ¸ ì—°ê²°ì„ í•´ì œí•©ë‹ˆë‹¤.
         if (lobbyRelayManager != null)
         {
             lobbyRelayManager.StatusChanged -= UpdateStatus;

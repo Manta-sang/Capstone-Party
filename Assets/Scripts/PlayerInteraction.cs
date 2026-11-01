@@ -3,11 +3,11 @@ using Unity.Netcode;
 
 public class PlayerInteraction : NetworkBehaviour
 {
-    [Header("¹ĞÄ¡±â ¼³Á¤")]
+    [Header("ë°€ì¹˜ê¸° ì„¤ì •")]
     public float pushPower = 20f;
     public float pushRadius = 2f;
     public float pushCooldown = 3f;
-    public float stunDuration = 0.8f; // ¡Ú ±âÀı(³Ë¹é ¹× Á¶ÀÛ ºÒ°¡) ½Ã°£ Ãß°¡
+    public float stunDuration = 0.8f; // â˜… ê¸°ì ˆ(ë„‰ë°± ë° ì¡°ì‘ ë¶ˆê°€) ì‹œê°„ ì¶”ê°€
 
     private float lastPushTime = -100f;
 
@@ -21,12 +21,12 @@ public class PlayerInteraction : NetworkBehaviour
             {
                 PushOthers();
                 lastPushTime = Time.time;
-                Debug.Log("¹ĞÄ¡±â ¾å! (ÄğÅ¸ÀÓ µµ´Â Áß...)");
+                Debug.Log("ë°€ì¹˜ê¸° ì–! (ì¿¨íƒ€ì„ ë„ëŠ” ì¤‘...)");
             }
             else
             {
                 float remainTime = (lastPushTime + pushCooldown) - Time.time;
-                Debug.Log($"¾ÆÁ÷ ¹ĞÄ¥ ¼ö ¾ø½À´Ï´Ù! ³²Àº ÄğÅ¸ÀÓ: {remainTime:F1}ÃÊ");
+                Debug.Log($"ì•„ì§ ë°€ì¹  ìˆ˜ ì—†ìŠµë‹ˆë‹¤! ë‚¨ì€ ì¿¨íƒ€ì„: {remainTime:F1}ì´ˆ");
             }
         }
     }
@@ -77,7 +77,7 @@ public class PlayerInteraction : NetworkBehaviour
         if (myMovement != null)
         {
             myMovement.isKnockedBack = true;
-            // ¡Ú ±âÁ¸ 0.5f¿¡¼­ ÀÎ½ºÆåÅÍ¿¡ ¼³Á¤ÇÑ stunDuration(0.8ÃÊ)·Î º¯°æ
+            // â˜… ê¸°ì¡´ 0.5fì—ì„œ ì¸ìŠ¤í™í„°ì— ì„¤ì •í•œ stunDuration(0.8ì´ˆ)ë¡œ ë³€ê²½
             myMovement.Invoke("ResetKnockback", stunDuration);
         }
 

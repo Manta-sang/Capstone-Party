@@ -1,14 +1,14 @@
 using Unity.Netcode.Components;
 using UnityEngine;
 
-// ±âÁ¸ NetworkTransformÀ» »ó¼Ó¹Ş¾Æ¼­ ±ÇÇÑ(Authority) ¼³Á¤¸¸ ¹Ù²ß´Ï´Ù.
+// ê¸°ì¡´ NetworkTransformì„ ìƒì†ë°›ì•„ì„œ ê¶Œí•œ(Authority) ì„¤ì •ë§Œ ë°”ê¿‰ë‹ˆë‹¤.
 [DisallowMultipleComponent]
 public class ClientNetworkTransform : NetworkTransform
 {
-    // "¼­¹ö¸¸ ±ÇÇÑÀ» °¡Áú °ÍÀÎ°¡¿ä?" ¹¯´Â ÇÔ¼ö
+    // "ì„œë²„ë§Œ ê¶Œí•œì„ ê°€ì§ˆ ê²ƒì¸ê°€ìš”?" ë¬»ëŠ” í•¨ìˆ˜
     protected override bool OnIsServerAuthoritative()
     {
-        // "¾Æ´Ï¿ä(false)! °¢ÀÚ ÀÚ±â Ä³¸¯ÅÍ(Å¬¶óÀÌ¾ğÆ®)°¡ Á÷Á¢ À§Ä¡¸¦ Àü¼ÛÇÏ°Ô ÇØÁÖ¼¼¿ä!"
+        // "ì•„ë‹ˆìš”(false)! ê°ì ìê¸° ìºë¦­í„°(í´ë¼ì´ì–¸íŠ¸)ê°€ ì§ì ‘ ìœ„ì¹˜ë¥¼ ì „ì†¡í•˜ê²Œ í•´ì£¼ì„¸ìš”!"
         return false;
     }
 }

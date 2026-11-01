@@ -5,27 +5,27 @@ public class NetController : MonoBehaviour
 {
     void OnGUI()
     {
-        // È­¸é ÁÂÃø »ó´Ü¿¡ ¹Ú½º ¿µ¿ªÀ» ±×¸²
+        // í™”ë©´ ì¢Œì¸¡ ìƒë‹¨ì— ë°•ìŠ¤ ì˜ì—­ì„ ê·¸ë¦¼
         GUILayout.BeginArea(new Rect(20, 20, 250, 150));
 
         if (!NetworkManager.Singleton.IsClient && !NetworkManager.Singleton.IsServer)
         {
-            if (GUILayout.Button("Start Host (¹æ ¸¸µé±â)", GUILayout.Height(40)))
+            if (GUILayout.Button("Start Host (ë°© ë§Œë“¤ê¸°)", GUILayout.Height(40)))
             {
-                Debug.Log("È£½ºÆ® ¹öÆ° Å¬¸¯µÊ!"); // ÄÜ¼ÖÃ¢¿¡ ÂïÈ÷´ÂÁö È®ÀÎ
+                Debug.Log("í˜¸ìŠ¤íŠ¸ ë²„íŠ¼ í´ë¦­ë¨!"); // ì½˜ì†”ì°½ì— ì°íˆëŠ”ì§€ í™•ì¸
                 NetworkManager.Singleton.StartHost();
             }
 
-            if (GUILayout.Button("Start Client (Âü°¡ÇÏ±â)", GUILayout.Height(40)))
+            if (GUILayout.Button("Start Client (ì°¸ê°€í•˜ê¸°)", GUILayout.Height(40)))
             {
-                Debug.Log("Å¬¶óÀÌ¾ğÆ® ¹öÆ° Å¬¸¯µÊ!"); // ÄÜ¼ÖÃ¢¿¡ ÂïÈ÷´ÂÁö È®ÀÎ
+                Debug.Log("í´ë¼ì´ì–¸íŠ¸ ë²„íŠ¼ í´ë¦­ë¨!"); // ì½˜ì†”ì°½ì— ì°íˆëŠ”ì§€ í™•ì¸
                 NetworkManager.Singleton.StartClient();
             }
         }
         else
         {
-            string mode = NetworkManager.Singleton.IsHost ? "Host (È£½ºÆ® Áß)" : "Client (Å¬¶óÀÌ¾ğÆ® Áß)";
-            GUILayout.Label("ÇöÀç »óÅÂ: " + mode);
+            string mode = NetworkManager.Singleton.IsHost ? "Host (í˜¸ìŠ¤íŠ¸ ì¤‘)" : "Client (í´ë¼ì´ì–¸íŠ¸ ì¤‘)";
+            GUILayout.Label("í˜„ì¬ ìƒíƒœ: " + mode);
         }
 
         GUILayout.EndArea();

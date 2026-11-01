@@ -1,24 +1,24 @@
 using UnityEngine;
-using Unity.Netcode; // ³×Æ®¿öÅ© ±â´É Ãß°¡
+using Unity.Netcode; // ë„¤íŠ¸ì›Œí¬ ê¸°ëŠ¥ ì¶”ê°€
 using UnityEngine.SceneManagement;
 
 public class SceneLoader : MonoBehaviour
 {
     public void LoadSceneByName(string sceneName)
     {
-        // 1. ¸ÖÆ¼ÇÃ·¹ÀÌ°¡ ÄÑÁ® ÀÖ°í, ³»°¡ ¹æÀå(¼­¹ö)ÀÏ °æ¿ì
+        // 1. ë©€í‹°í”Œë ˆì´ê°€ ì¼œì ¸ ìˆê³ , ë‚´ê°€ ë°©ì¥(ì„œë²„)ì¼ ê²½ìš°
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
         {
-            // ¹æÀåÀÌ ¾ÀÀ» ³Ñ±â¸é Å¬¶óÀÌ¾ğÆ®µéµµ ÀÚµ¿À¸·Î µû¶ó°©´Ï´Ù.
+            // ë°©ì¥ì´ ì”¬ì„ ë„˜ê¸°ë©´ í´ë¼ì´ì–¸íŠ¸ë“¤ë„ ìë™ìœ¼ë¡œ ë”°ë¼ê°‘ë‹ˆë‹¤.
             NetworkManager.Singleton.SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
-            Debug.Log("³×Æ®¿öÅ© ¾À ÀÌµ¿: " + sceneName);
+            Debug.Log("ë„¤íŠ¸ì›Œí¬ ì”¬ ì´ë™: " + sceneName);
         }
-        // 2. ³»°¡ Å¬¶óÀÌ¾ğÆ®ÀÏ °æ¿ì (¹öÆ° ÀÛµ¿ ¸·±â)
+        // 2. ë‚´ê°€ í´ë¼ì´ì–¸íŠ¸ì¼ ê²½ìš° (ë²„íŠ¼ ì‘ë™ ë§‰ê¸°)
         else if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsClient)
         {
-            Debug.LogWarning("Å¬¶óÀÌ¾ğÆ®´Â ¹æÀåÀÌ ¾ÀÀ» ³Ñ±æ ¶§±îÁö ±â´Ù·Á¾ß ÇÕ´Ï´Ù.");
+            Debug.LogWarning("í´ë¼ì´ì–¸íŠ¸ëŠ” ë°©ì¥ì´ ì”¬ì„ ë„˜ê¸¸ ë•Œê¹Œì§€ ê¸°ë‹¤ë ¤ì•¼ í•©ë‹ˆë‹¤.");
         }
-        // 3. ³×Æ®¿öÅ© ¾øÀÌ ±×³É Å×½ºÆ® ÁßÀÏ °æ¿ì
+        // 3. ë„¤íŠ¸ì›Œí¬ ì—†ì´ ê·¸ëƒ¥ í…ŒìŠ¤íŠ¸ ì¤‘ì¼ ê²½ìš°
         else
         {
             UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
