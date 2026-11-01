@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode; // [Crosswalk 연동] 기존 네트워크 연결 여부만 확인합니다.
@@ -121,12 +121,32 @@ namespace CrosswalkRun
             if (alivePlayers.Contains(player))
             {
                 alivePlayers.Remove(player);
+                // kjs2의 순위별 점수를 유지하며 실제 누적은 서버에서만 수행합니다.
+                int rank = alivePlayers.Count + 1;
+                AwardRankingScore(player, Mathf.Max(0, 4 - rank));
                 Debug.Log($"[CrosswalkGameManager] 플레이어 탈락: {player.name} (사유: {reason}) / 남은 생존자: {alivePlayers.Count}");
 
                 OnPlayerEliminated?.Invoke(player, reason);
 
                 CheckGameOverCondition();
             }
+        }
+
+        // 참가자 화면의 결과 적용은 점수를 다시 더하지 않습니다. 누락된 매니저도 종료 동기화를 막지 않습니다.
+        private void AwardRankingScore(GameObject player, int points)
+        {
+            var network = NetworkManager.Singleton;
+            if (network == null || !network.IsListening || !network.IsServer || player == null) return;
+            var netObject = player.GetComponent<NetworkObject>();
+            if (netObject == null) return;
+            var ranking = RankingManager.Instance;
+            if (ranking == null || !ranking.IsSpawned)
+            {
+                Debug.LogError("[Crosswalk 점수] RankingManager가 네트워크에 생성되지 않아 점수를 기록하지 못했습니다.");
+                return;
+            }
+            string playerName = player.GetComponent<CrosswalkPlayer>()?.PlayerName ?? $"Player {netObject.OwnerClientId}";
+            ranking.AddScore(netObject.OwnerClientId, playerName, points);
         }
 
         private void CheckGameOverCondition()
@@ -141,6 +161,8 @@ namespace CrosswalkRun
                 {
                     // 최후의 1인 생존
                     winnerPlayer = alivePlayers[0];
+                    // 최후 생존자 점수는 종료 판정을 수행하는 호스트만 한 번 지급합니다.
+                    AwardRankingScore(winnerPlayer, 3);
                     EndGame($"승리! 최후의 생존자: {winnerPlayer.name}");
                 }
                 else if (alivePlayers.Count == 0)
@@ -191,7 +213,7 @@ namespace CrosswalkRun
             GUILayout.Label($"생존 플레이어: {alivePlayers.Count}명");
             GUILayout.Label($"상태: {gameResultText}");
 
-            // 온라인 재시작은 Character 복귀 후 호스트가 수행하므로 로컬 씬 재시작을 막습니다.
+            // 온라인에서는 호스트의 네트워크 씬 전환을 사용하므로 로컬 씬 재시작을 막습니다.
             bool online = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
             if (!online && !isGameActive && GUILayout.Button("씬 재시작 (Restart)"))
             {

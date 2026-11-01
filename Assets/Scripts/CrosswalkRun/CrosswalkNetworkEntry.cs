@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +11,7 @@ namespace CrosswalkRun
 {
     /// <summary>
     /// 기존 방 연결을 그대로 사용하여 Crosswalk 입장, 캐릭터 생성, 참가 등록과 시작 시점만 연결합니다.
-    /// 호스트의 탈락·승리 결과를 전달하고 게임 종료 후 같은 방을 유지한 채 Character로 복귀합니다.
+    /// 호스트의 탈락·승리 결과를 전달하고 게임 종료 후 같은 방을 유지한 채 Ranking으로 이동합니다.
     /// </summary>
     [DefaultExecutionOrder(-100)]
     public sealed class CrosswalkNetworkEntry : MonoBehaviour
@@ -342,7 +342,7 @@ namespace CrosswalkRun
             BeginReturn();
         }
 
-        // 종료 후 모든 캐릭터의 조작을 멈추고 호스트만 복귀 타이머를 실행합니다.
+        // 종료 후 모든 캐릭터의 조작을 멈추고 호스트만 랭킹 이동 타이머를 실행합니다.
         private void BeginReturn()
         {
             if (returning) return;
@@ -357,18 +357,18 @@ namespace CrosswalkRun
                     if (movement != null) movement.enabled = false;
                     if (interaction != null) interaction.enabled = false;
                 }
-            if (network.IsServer) StartCoroutine(ReturnToCharacter());
+            if (network.IsServer) StartCoroutine(MoveToRanking());
         }
 
-        // 방 연결은 유지하고 네트워크 씬 전환으로 3초 뒤 전원을 함께 복귀시킵니다.
-        private IEnumerator ReturnToCharacter()
+        // 방 연결은 유지하고 네트워크 씬 전환으로 결과 동기화 후 3초 뒤 전원을 Ranking으로 이동시킵니다. 다른 곳에서 중복 이동을 예약하지 않습니다.
+        private IEnumerator MoveToRanking()
         {
             yield return new WaitForSecondsRealtime(3f);
             if (network == null || !network.IsListening || !network.IsServer) yield break;
-            var status = sceneManager.LoadScene("Character", LoadSceneMode.Single);
+            var status = sceneManager.LoadScene("Ranking", LoadSceneMode.Single);
             if (status != SceneEventProgressStatus.Started)
             {
-                gameManager.SetNetworkWaitingStatus("Character 복귀 실패: " + status);
+                gameManager.SetNetworkWaitingStatus("Ranking 이동 실패: " + status);
                 Debug.LogError("[Crosswalk 복귀] 씬 이동 실패: " + status);
             }
         }
