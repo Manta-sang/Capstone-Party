@@ -23,6 +23,10 @@ namespace CrosswalkRun
         [SerializeField] private CrosswalkGameManager gameManager;
         [SerializeField] private AutoScrollCamera scrollCamera;
 
+        [Header("게임 종료 후 이동")]
+        [SerializeField] private string resultSceneName = "Ranking";
+        [SerializeField, Min(0f)] private float resultDelay = 3f;
+
         public static CrosswalkNetworkEntry Instance { get; private set; }
         private const string ResultMessage = "Crosswalk.Round.Result";
         private int resultVersion;
@@ -360,15 +364,21 @@ namespace CrosswalkRun
             if (network.IsServer) StartCoroutine(MoveToRanking());
         }
 
-        // 방 연결은 유지하고 네트워크 씬 전환으로 결과 동기화 후 3초 뒤 전원을 Ranking으로 이동시킵니다. 다른 곳에서 중복 이동을 예약하지 않습니다.
+        // 방 연결은 유지하고 네트워크 씬 전환으로 결과 동기화 후 Inspector에 지정한 대기 시간과 결과 씬을 사용하여 전원을 이동시킵니다. 다른 곳에서 중복 이동을 예약하지 않습니다.
         private IEnumerator MoveToRanking()
         {
-            yield return new WaitForSecondsRealtime(3f);
+            yield return new WaitForSecondsRealtime(resultDelay);
             if (network == null || !network.IsListening || !network.IsServer) yield break;
-            var status = sceneManager.LoadScene("Ranking", LoadSceneMode.Single);
+            if (string.IsNullOrWhiteSpace(resultSceneName) || !Application.CanStreamedLevelBeLoaded(resultSceneName))
+            {
+                gameManager.SetNetworkWaitingStatus("Build Settings에서 결과 씬을 확인해 주세요: " + resultSceneName);
+                Debug.LogError("[Crosswalk 이동] 결과 씬 설정이 올바르지 않습니다: " + resultSceneName);
+                yield break;
+            }
+            var status = sceneManager.LoadScene(resultSceneName, LoadSceneMode.Single);
             if (status != SceneEventProgressStatus.Started)
             {
-                gameManager.SetNetworkWaitingStatus("Ranking 이동 실패: " + status);
+                gameManager.SetNetworkWaitingStatus(resultSceneName + " 이동 실패: " + status);
                 Debug.LogError("[Crosswalk 복귀] 씬 이동 실패: " + status);
             }
         }

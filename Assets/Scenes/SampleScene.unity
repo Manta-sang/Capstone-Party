@@ -1952,7 +1952,7 @@ MonoBehaviour:
     m_InternalValue: 1
   MiniGameScenes:
   - CrosswalkRun
-  - Game2
+  - TileFlip
   - Game3
   - Game4
   TitleSceneName: TitleScene

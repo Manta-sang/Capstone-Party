@@ -2,13 +2,22 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// 타일 격자를 생성하고, 타일 소유자/플레이어별 점수를 관리한다. (오프라인 버전)
+/// 타일 격자를 생성하고, 타일 소유자/플레이어별 점수/플레이어별 색 번호를 관리한다.
 /// 
-/// 나중에 멀티로 바꿀 때를 대비해 데이터 변경은 SetTileOwner / ResetBoard 두 함수로만 하고,
+/// 이 스크립트는 네트워크를 모르는 일반 MonoBehaviour이다. (SD_BladeSpawner, SD_PlayerDeath와 같은 위치)
+/// 멀티에서는 TF_GameManager(NetworkBehaviour)가 서버의 판정 결과를 모든 컴퓨터에 알려 주고,
+/// 모든 컴퓨터가 이 스크립트에 똑같은 호출(SetTileOwner 등)을 해서 같은 상태를 유지한다.
+/// (SD에서 죽음 판정을 SD_GameManager가 KillClientRpc로 전달해 모든 컴퓨터가 ApplyDeath를 부르는 방식과 같다)
+/// 
+/// 데이터 변경은 SetTileOwner / ResetBoard / SetPlayerColorIndex 세 함수로만 하고,
 /// 화면 갱신은 이벤트(OnTileOwnerChanged, OnScoreChanged)로만 알린다.
 /// 
-/// 사용법: 씬에 빈 오브젝트를 만들고 이 스크립트를 붙인다.
-///         (회전은 (0,0,0), 스케일은 (1,1,1)로 둘 것)
+/// 타일 한 칸의 크기는 타일 프리팹(스케일과 메시)이 정한다. 이 스크립트는 줄/열 수와 타일 사이 간격만 정하고,
+/// 칸 간격 = 타일의 실제 크기 + 간격 으로 계산한다. (타일의 스케일을 덮어쓰지 않는다)
+/// 
+/// 사용법: 씬에 빈 오브젝트(MinigameManager 등)를 만들고 이 스크립트를 붙인다.
+///         (회전은 (0,0,0), 스케일은 (1,1,1)로 둘 것. 타일 프리팹에는 NetworkObject를 붙이지 않는다)
+///         이 오브젝트의 위치가 격자의 중심이다.
 /// </summary>
 public class TF_TileGridManager : MonoBehaviour
 {
@@ -19,19 +28,25 @@ public class TF_TileGridManager : MonoBehaviour
     [SerializeField] private TF_Tile tilePrefab;
     [SerializeField, Min(1)] private int columns = 10;
     [SerializeField, Min(1)] private int rows = 10;
-    [SerializeField, Min(0.1f)] private float tileSize = 2f;
+    [Tooltip("타일과 타일 사이 간격. 타일 자체의 크기는 타일 프리팹의 스케일로 정한다")]
     [SerializeField, Min(0f)] private float tileGap = 0.05f;
 
     [Header("머티리얼")]
     [SerializeField] private Material neutralMaterial;                              // 아무도 안 밟은 타일 (흰색)
-    [SerializeField] private Material[] playerMaterials = new Material[MaxPlayers]; // 플레이어 0~3 색
+    [Tooltip("플레이어 색. TF_GameManager의 characterPrefabs와 같은 번호끼리 짝이다 (캐릭터 k번 = 타일 색 k번)")]
+    [SerializeField] private Material[] playerMaterials = new Material[MaxPlayers];
 
     // 타일 인덱스 -> 소유자 번호 (-1이면 주인 없음)
     private int[] tileOwners;
     // 플레이어 번호 -> 점유한 타일 수
     private int[] scores;
+    // 플레이어 번호 -> playerMaterials에서 쓸 색 번호. 기본은 같은 번호이고, 캐릭터가 정해지면 캐릭터 번호로 바뀐다.
+    private int[] playerColorIndex;
 
     private TF_Tile[] tiles;
+
+    // 칸 한 개의 가로/세로 간격 (타일의 실제 크기 + 간격). 타일을 만들 때 실제 크기를 재서 정해진다
+    private Vector2 measuredCellSize;
 
     /// <summary>타일 소유자가 바뀌었을 때 (타일 인덱스, 새 소유자)</summary>
     public event Action<int, int> OnTileOwnerChanged;
@@ -42,10 +57,32 @@ public class TF_TileGridManager : MonoBehaviour
     public int Rows => rows;
     public int TileCount => columns * rows;
 
+    /// <summary>칸 한 개의 가로(x), 세로(z) 간격. 실행 중에는 실제로 잰 값이고, 에디터에서는 프리팹 스케일로 추정한 값이다</summary>
+    public Vector2 CellSize
+    {
+        get
+        {
+            if (measuredCellSize.x > 0f && measuredCellSize.y > 0f) return measuredCellSize;
+
+            if (tilePrefab != null)
+            {
+                Vector3 scale = tilePrefab.transform.localScale;
+                return new Vector2(Mathf.Abs(scale.x) + tileGap, Mathf.Abs(scale.z) + tileGap);
+            }
+            return Vector2.zero;
+        }
+    }
+
+    /// <summary>playerMaterials에 들어 있는 색의 개수</summary>
+    public int ColorCount => playerMaterials == null ? 0 : playerMaterials.Length;
+
     // ───────────────────────── 생성 ─────────────────────────
 
     private void Awake()
     {
+        playerColorIndex = new int[MaxPlayers];
+        for (int i = 0; i < MaxPlayers; i++) playerColorIndex[i] = i;
+
         BuildTiles();
         ResetBoard();
     }
@@ -53,7 +90,8 @@ public class TF_TileGridManager : MonoBehaviour
     private Vector3 GetGridCorner()
     {
         // 매니저 위치를 격자의 중심으로 보고, 좌하단 모서리를 구한다.
-        return transform.position - new Vector3(columns * tileSize * 0.5f, 0f, rows * tileSize * 0.5f);
+        Vector2 cell = CellSize;
+        return transform.position - new Vector3(columns * cell.x * 0.5f, 0f, rows * cell.y * 0.5f);
     }
 
     private void BuildTiles()
@@ -65,19 +103,32 @@ public class TF_TileGridManager : MonoBehaviour
         }
 
         tiles = new TF_Tile[TileCount];
+
+        // 첫 타일을 먼저 만들어 실제 크기를 잰다. 크기는 프리팹이 정하고, 여기서는 간격만 더한다.
+        TF_Tile first = Instantiate(tilePrefab, transform.position, tilePrefab.transform.rotation, transform);
+        Vector3 size = first.WorldSize;
+
+        if (size.x <= 0.0001f || size.z <= 0.0001f)
+        {
+            Debug.LogError("[TF_TileGridManager] 타일의 크기를 알 수 없습니다. 타일 프리팹에 렌더러(메시)가 있는지, 스케일이 0이 아닌지 확인해 주세요.");
+            Destroy(first.gameObject);
+            tiles = null;
+            return;
+        }
+
+        measuredCellSize = new Vector2(size.x + tileGap, size.z + tileGap);
         Vector3 corner = GetGridCorner();
-        Vector3 prefabScale = tilePrefab.transform.localScale;
 
         for (int r = 0; r < rows; r++)
         {
             for (int c = 0; c < columns; c++)
             {
                 int index = r * columns + c;
-                Vector3 pos = corner + new Vector3((c + 0.5f) * tileSize, 0f, (r + 0.5f) * tileSize);
+                Vector3 pos = corner + new Vector3((c + 0.5f) * measuredCellSize.x, 0f, (r + 0.5f) * measuredCellSize.y);
 
-                TF_Tile tile = Instantiate(tilePrefab, pos, Quaternion.identity, transform);
+                TF_Tile tile = index == 0 ? first : Instantiate(tilePrefab, pos, tilePrefab.transform.rotation, transform);
+                tile.transform.position = pos;
                 tile.name = $"TF_Tile_{index}";
-                tile.transform.localScale = new Vector3(tileSize - tileGap, prefabScale.y, tileSize - tileGap);
                 tile.Init(index);
 
                 tiles[index] = tile;
@@ -85,9 +136,9 @@ public class TF_TileGridManager : MonoBehaviour
         }
     }
 
-    // ───────────────────────── 데이터 변경 (멀티 전환 시 서버 전용이 될 부분) ─────────────────────────
+    // ───────────────────────── 데이터 변경 ─────────────────────────
 
-    /// <summary>모든 타일을 주인 없음으로, 점수를 0으로 되돌린다.</summary>
+    /// <summary>모든 타일을 주인 없음으로, 점수를 0으로 되돌린다. (플레이어 색 번호는 그대로 둔다)</summary>
     public void ResetBoard()
     {
         tileOwners = new int[TileCount];
@@ -131,14 +182,33 @@ public class TF_TileGridManager : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// 플레이어의 타일 색을 정한다. colorIndex는 playerMaterials의 번호이고, 그 플레이어 캐릭터의 프리팹 번호와 같게 넣는다.
+    /// 점수는 플레이어(자리)별로 따로 세므로, 두 플레이어의 색이 같아도 점수는 섞이지 않는다.
+    /// 이미 칠해진 타일이 있으면 새 색으로 다시 입힌다.
+    /// </summary>
+    public void SetPlayerColorIndex(int playerIndex, int colorIndex)
+    {
+        if (playerIndex < 0 || playerIndex >= MaxPlayers) return;
+        if (playerColorIndex[playerIndex] == colorIndex) return;
+
+        playerColorIndex[playerIndex] = colorIndex;
+
+        for (int i = 0; i < tileOwners.Length; i++)
+        {
+            if (tileOwners[i] == playerIndex) ApplyTileVisual(i, playerIndex);
+        }
+    }
+
     // ───────────────────────── 조회 API ─────────────────────────
 
     /// <summary>월드 좌표가 속한 타일 인덱스를 구한다. 격자 밖이면 false.</summary>
     public bool TryGetTileIndex(Vector3 worldPosition, out int tileIndex)
     {
+        Vector2 cell = CellSize;
         Vector3 local = worldPosition - GetGridCorner();
-        int c = Mathf.FloorToInt(local.x / tileSize);
-        int r = Mathf.FloorToInt(local.z / tileSize);
+        int c = cell.x > 0f ? Mathf.FloorToInt(local.x / cell.x) : -1;
+        int r = cell.y > 0f ? Mathf.FloorToInt(local.z / cell.y) : -1;
 
         if (c < 0 || c >= columns || r < 0 || r >= rows)
         {
@@ -172,8 +242,12 @@ public class TF_TileGridManager : MonoBehaviour
 
     private Material GetMaterial(int ownerIndex)
     {
-        if (ownerIndex >= 0 && ownerIndex < playerMaterials.Length && playerMaterials[ownerIndex] != null)
-            return playerMaterials[ownerIndex];
+        if (ownerIndex >= 0 && ownerIndex < MaxPlayers)
+        {
+            int colorIndex = playerColorIndex[ownerIndex];
+            if (colorIndex >= 0 && colorIndex < playerMaterials.Length && playerMaterials[colorIndex] != null)
+                return playerMaterials[colorIndex];
+        }
         return neutralMaterial;
     }
 
@@ -182,7 +256,9 @@ public class TF_TileGridManager : MonoBehaviour
     private void OnDrawGizmos()
     {
         // 씬 뷰에서 격자 범위(초록)를 항상 확인할 수 있다.
+        // (에디터에서는 프리팹 스케일로 추정한 크기이고, 실행하면 실제로 잰 크기로 맞춰진다)
+        Vector2 cell = CellSize;
         Gizmos.color = Color.green;
-        Gizmos.DrawWireCube(transform.position, new Vector3(columns * tileSize, 0.01f, rows * tileSize));
+        Gizmos.DrawWireCube(transform.position, new Vector3(columns * cell.x, 0.01f, rows * cell.y));
     }
 }
