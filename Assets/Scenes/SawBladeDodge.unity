@@ -514,6 +514,8 @@ MonoBehaviour:
   arcHeight: 4
   flightDuration: 1.2
   removeDelay: 3
+  resultSceneName: Ranking
+  resultDelay: 3
 --- !u!1 &696597666
 GameObject:
   m_ObjectHideFlags: 0

@@ -13,7 +13,7 @@ using UnityEngine.SceneManagement;
 ///  2) 모두 씬 로딩을 마치면 Host가 캐릭터를 생성한다 (공유 캐릭터 프리팹, 접속 ID로 번갈아 배정)
 ///  3) 각자 모든 캐릭터가 도착한 걸 확인하면 준비 응답을 보낸다
 ///  4) 모두 준비되면 서버 시간 기준 공통 시각에 같이 시작한다
-/// 죽음 판정은 Host만 하고, 결과는 모든 참가자에게 전달된다. 종료 3초 후 같은 방을 유지한 채 Character 로비로 함께 복귀한다.
+/// 죽음 판정은 Host만 하고, 결과는 모든 참가자에게 전달된다. 종료 후 같은 방을 유지한 채 Inspector에 지정한 결과 씬으로 함께 이동한다.
 ///
 /// 씬에 이 오브젝트를 하나 두고 NetworkObject를 같이 붙인다 (씬에 배치된 NetworkObject).
 /// NetworkManager의 Player Prefab은 비워둔다 (캐릭터는 이 매니저가 생성한다).
@@ -69,6 +69,11 @@ public class SD_GameManager : NetworkBehaviour
     private bool roundStarted;
     private int playersAtStart;
     private bool gameOverRaised;
+    [Header("게임 종료 후 이동")]
+    [SerializeField] private string resultSceneName = "Ranking";
+    [SerializeField, Min(0f)] private float resultDelay = 3f;
+    // 한 참가자의 탈락과 승리 점수가 중복 기록되지 않도록 라운드 동안 기억합니다.
+    private readonly System.Collections.Generic.HashSet<ulong> scoredPlayers = new System.Collections.Generic.HashSet<ulong>();
     private bool returningToLobby;
     private string returnError;
 
@@ -313,6 +318,9 @@ public class SD_GameManager : NetworkBehaviour
         if (!IsSpawned || !IsServer) return;
         if (!runningNet.Value || player == null || player.IsDead) return;
 
+        // 탈락 직전 생존자 수가 이번 순위입니다. 횡단보도와 같은 3/2/1/0점 규칙을 사용합니다.
+        int rank = SD_PlayerDeath.All.Count(candidate => candidate != null && !candidate.IsDead);
+        AwardRankingScore(player, Mathf.Max(0, 4 - rank));
         player.ApplyDeath();
         KillClientRpc(player.OwnerId);
     }
@@ -330,10 +338,25 @@ public class SD_GameManager : NetworkBehaviour
 
     // ---------------------------------------------------------------- 승패, 다시 시작
 
+    // 점수는 서버에서만 기록하며, 매니저가 없더라도 기존 종료·이동 처리는 유지합니다.
+    private void AwardRankingScore(SD_PlayerDeath player, int points)
+    {
+        if (!IsServer || player == null || scoredPlayers.Contains(player.OwnerId)) return;
+        var ranking = CrosswalkRun.RankingManager.Instance;
+        if (ranking == null || !ranking.IsSpawned)
+        {
+            Debug.LogError("[SD 점수] RankingManager가 네트워크에 생성되지 않아 점수를 기록하지 못했습니다.");
+            return;
+        }
+        scoredPlayers.Add(player.OwnerId);
+        ranking.AddScore(player.OwnerId, $"Player {player.OwnerId}", points);
+    }
+
     private void EndGame(SD_PlayerDeath winner)
     {
         // 서버에서 한 번만 확정하여 복귀 코루틴이 중복 실행되지 않게 합니다.
         if (!IsServer || IsGameOver) return;
+        if (winner != null) AwardRankingScore(winner, 3);
         runningNet.Value = false;
         winnerIdNet.Value = winner != null ? winner.OwnerId : NoWinner;
         endedNet.Value = true;
@@ -371,8 +394,8 @@ public class SD_GameManager : NetworkBehaviour
 
     private IEnumerator ReturnToLobby()
     {
-        // 타임스케일과 무관하게 탈락 연출을 3초 보여 준 뒤 방 연결을 유지하며 이동합니다.
-        yield return new WaitForSecondsRealtime(3f);
+        // 타임스케일과 무관하게 Inspector에 지정한 시간만큼 탈락 연출을 보여 준 뒤 방 연결을 유지하며 이동합니다.
+        yield return new WaitForSecondsRealtime(resultDelay);
         if (!IsSpawned || NetworkManager == null || !NetworkManager.IsListening || !IsServer)
         {
             returningToLobby = false;
@@ -383,11 +406,15 @@ public class SD_GameManager : NetworkBehaviour
         {
             returnError = "네트워크 씬 관리자가 없습니다.";
         }
+        else if (string.IsNullOrWhiteSpace(resultSceneName) || !Application.CanStreamedLevelBeLoaded(resultSceneName))
+        {
+            returnError = "Build Settings에서 결과 씬을 확인해 주세요: " + resultSceneName;
+        }
         else
         {
-            var status = sceneManager.LoadScene("Character", LoadSceneMode.Single);
+            var status = sceneManager.LoadScene(resultSceneName, LoadSceneMode.Single);
             if (status == SceneEventProgressStatus.Started) yield break;
-            returnError = "Character 복귀 실패: " + status;
+            returnError = resultSceneName + " 이동 실패: " + status;
         }
         returningToLobby = false;
         Debug.LogError("[SD 복귀] " + returnError);
@@ -414,12 +441,12 @@ public class SD_GameManager : NetworkBehaviour
         else if (IsGameOver)
         {
             GUILayout.Label(winnerIdNet.Value == NoWinner ? "게임 종료: 생존자 없음" : $"승리: 플레이어 {winnerIdNet.Value}");
-            GUILayout.Label("Character 로비로 돌아갑니다...");
+            GUILayout.Label(resultSceneName + " 씬으로 이동합니다...");
             // 이동 요청 실패 시 자동 반복 대신 호스트가 명시적으로 다시 시도합니다.
             if (IsServer && !returningToLobby && !string.IsNullOrEmpty(returnError))
             {
                 GUILayout.Label(returnError);
-                if (GUILayout.Button("로비 복귀 재시도")) BeginLobbyReturn();
+                if (GUILayout.Button("결과 화면 이동 재시도")) BeginLobbyReturn();
             }
         }
         else if (runningNet.Value)

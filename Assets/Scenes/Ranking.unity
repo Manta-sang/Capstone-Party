@@ -797,6 +797,8 @@ MonoBehaviour:
   - {fileID: 364305257}
   actionButton: {fileID: 809469486}
   actionButtonText: {fileID: 1641063781}
+  returnSceneName: Character
+  returnButtonLabel: 캐릭터 로비로 돌아가기
 --- !u!4 &1046520242
 Transform:
   m_ObjectHideFlags: 0
@@ -1317,7 +1319,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uB85C\uBE44\uB85C \uB3CC\uC544\uAC00\uAE30\n"
+  m_text: 캐릭터 로비로 돌아가기
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 536b6e16f85795d46a21f43033295334, type: 2}
   m_sharedMaterial: {fileID: -1969778135306735690, guid: 536b6e16f85795d46a21f43033295334, type: 2}

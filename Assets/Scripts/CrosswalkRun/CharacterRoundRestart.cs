@@ -14,6 +14,13 @@ namespace CrosswalkRun
         [SerializeField] private TMPro.TMP_Text caption;
         [SerializeField] private UnityEngine.UI.Button sawBladeButton;
         [SerializeField] private TMPro.TMP_Text statusText;
+        [SerializeField] private UnityEngine.UI.Button qteButton;
+        [SerializeField] private UnityEngine.UI.Button tileFlipButton;
+        [Header("버튼별 이동할 씬 이름 (Build Settings 등록 필요)")]
+        [SerializeField] private string crosswalkScene = "CrosswalkRun";
+        [SerializeField] private string sawBladeScene = "SawBladeDodge";
+        [SerializeField] private string qteScene = "Qte";
+        [SerializeField] private string tileFlipScene = "TileFlip";
         [Header("실행 중 상태 안내 문구")]
         [SerializeField] private string disconnectedText = "Connect to a room first";
         [SerializeField] private string loadingText = "Loading minigame...";
@@ -43,8 +50,7 @@ namespace CrosswalkRun
                 return;
             }
             // 버튼 이름은 씬의 Label을 유지하고, 실행 상태는 별도 안내 문구에 표시합니다.
-            startButton.onClick.AddListener(StartCrosswalk);
-            sawBladeButton.onClick.AddListener(StartSawBlade);
+            // On Click은 씬에 저장되어 Inspector에서도 연결 함수를 확인할 수 있습니다.
             Update();
         }
 
@@ -68,27 +74,38 @@ namespace CrosswalkRun
                     if (network.SpawnManager.GetPlayerNetworkObject(id) == null) ready = false;
             startButton.interactable = ready;
             sawBladeButton.interactable = ready;
+            if (qteButton != null) qteButton.interactable = ready;
+            if (tileFlipButton != null) tileFlipButton.interactable = ready;
             // 기본 버튼 문구는 Label에서, 상태별 안내는 이 컴포넌트의 Inspector에서 수정합니다.
             statusText.text = !online ? disconnectedText : loading ? loadingText :
                 !network.IsServer ? waitingHostText : ready ? "호스트가 미니게임을 선택해 주세요" : waitingPlayersText;
         }
 
         // 기존 방을 유지한 네트워크 씬 전환이며 클릭을 연속해도 한 번만 실행합니다.
-        private void StartCrosswalk()
+        public void StartCrosswalk()
         {
-            StartMiniGame("CrosswalkRun");
+            StartMiniGame(crosswalkScene);
         }
 
         // 톱날 게임도 같은 방의 참가자 전원이 함께 이동합니다.
-        private void StartSawBlade()
+        public void StartSawBlade()
         {
-            StartMiniGame("SawBladeDodge");
+            StartMiniGame(sawBladeScene);
         }
 
-        // 준비된 호스트만 선택할 수 있으며, 로딩 중에는 두 버튼 모두 잠급니다.
+        // 알파용 씬 진입 버튼입니다. QTE와 TileFlip의 게임 로직 자체는 이번 작업에서 변경하지 않습니다.
+        public void StartQte() => StartMiniGame(qteScene);
+        public void StartTileFlip() => StartMiniGame(tileFlipScene);
+
+        // 준비된 호스트만 선택할 수 있으며, 로딩 중에는 모든 버튼을 잠급니다.
         private void StartMiniGame(string sceneName)
         {
             if (network == null || !network.IsServer || !startButton.interactable || loading) return;
+            if (string.IsNullOrWhiteSpace(sceneName) || !Application.CanStreamedLevelBeLoaded(sceneName))
+            {
+                Debug.LogError("[Character 이동] Build Settings에서 이동할 씬을 확인해 주세요: " + sceneName);
+                return;
+            }
             loading = true;
             Update();
             var status = network.SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
@@ -104,8 +121,6 @@ namespace CrosswalkRun
         {
             if (network != null && network.SceneManager != null)
                 network.SceneManager.OnLoadEventCompleted -= OnLoadCompleted;
-            if (startButton != null) startButton.onClick.RemoveListener(StartCrosswalk);
-            if (sawBladeButton != null) sawBladeButton.onClick.RemoveListener(StartSawBlade);
         }
     }
 }
