@@ -437,6 +437,8 @@ MonoBehaviour:
   - {fileID: 1700000017}
   gameManager: {fileID: 762865072}
   scrollCamera: {fileID: 131888692}
+  resultSceneName: Ranking
+  resultDelay: 3
 --- !u!1001 &1154179511
 PrefabInstance:
   m_ObjectHideFlags: 0
