@@ -8,6 +8,9 @@ public class TF_Tile : MonoBehaviour
 {
     [SerializeField] private Renderer tileRenderer;
 
+    /// <summary>타일의 실제 크기(월드 좌표). 렌더러가 없으면 스케일을 크기로 본다. TF_TileGridManager가 칸 간격을 계산할 때 쓴다</summary>
+    public Vector3 WorldSize => tileRenderer != null ? tileRenderer.bounds.size : transform.lossyScale;
+
     public int Index { get; private set; }
     public int OwnerIndex { get; private set; } = -1;
 
