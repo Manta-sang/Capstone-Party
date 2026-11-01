@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
@@ -14,7 +15,10 @@ using Random = UnityEngine.Random;
 ///  2) 모두 씬 로딩을 마치면 Host가 캐릭터를 생성한다 (공유 캐릭터 프리팹, 접속 ID로 배정, 시작 위치는 섞어서 한 곳씩)
 ///  3) 각자 모든 캐릭터가 도착한 걸 확인하면 준비 응답을 보낸다
 ///  4) 모두 준비되면 서버 시간 기준 공통 시각에 같이 시작하고, 종료 시각도 같이 정해진다
-/// 칠하기 판정은 Host만 하고(TF_TilePaintTracker가 보고), 결과는 ClientRpc로 모든 참가자에게 전달된다.
+/// 칠하기: 각 컴퓨터의 TF_TilePaintTracker가 "내 플레이어"가 새 타일에 들어간 것을 직접 확인해서 보고한다.
+///  - 보고한 컴퓨터는 자기 화면의 타일 색을 바로 바꾼다 (예측 표시. 내 경로가 지연 없이 보이게 한다)
+///  - 서버가 보고를 받아 확정하고, 바뀌었으면 ClientRpc로 모든 참가자에게 알린다 (서버 결과가 최종이다)
+///  - 점수와 승패는 서버 기준이다
 /// 다시 시작은 씬을 네트워크로 다시 불러온다.
 /// 
 /// 플레이어 번호(자리, 0~3)는 접속 ID 오름차순 순서이고, 타일 색은 그 캐릭터 프리팹 번호와 같은 번호의 색을 쓴다.
@@ -57,8 +61,12 @@ public class TF_GameManager : NetworkBehaviour
     [SerializeField] private bool beginWithoutSceneEvent = false;
     [Tooltip("시작 전(카운트다운) 동안 플레이어 조작(이동/밀치기)을 잠근다")]
     [SerializeField] private bool lockControlsBeforeStart = true;
-    [Tooltip("게임이 끝나면 플레이어 조작을 잠근다")]
+    [Tooltip("게임이 끝나면 플레이어 조작을 잠그고, 내 캐릭터를 멈춘다 (이동/달리기 애니메이션도 멈춘다)")]
     [SerializeField] private bool lockControlsAtEnd = true;
+    [Tooltip("게임이 끝나면 내 캐릭터가 카메라 쪽(화면 정면)을 바라보게 한다. Y축으로만 회전한다. 조작 잠금이 켜져 있을 때만 동작한다")]
+    [SerializeField] private bool faceCameraAtEnd = true;
+    [Tooltip("카메라 쪽으로 돌아서는 데 걸리는 시간(초)")]
+    [SerializeField] private float faceCameraDuration = 0.4f;
 
     // 모든 참가자에게 공유되는 상태 (값을 바꾸는 건 Host만)
     private readonly NetworkVariable<int> expectedPlayersNet = new NetworkVariable<int>(0);
@@ -75,6 +83,16 @@ public class TF_GameManager : NetworkBehaviour
     private bool localReady;
     private bool roundStarted;
     private bool gameOverRaised;
+
+    // 칠하기 보고를 한 참가자가 몇 번 자리인지 서버가 직접 알아내기 위한 표 (Host에서만 사용)
+    private readonly Dictionary<ulong, int> slotOfClient = new Dictionary<ulong, int>();
+    private int localSlot = -1; // 이 컴퓨터의 내 플레이어 자리 번호
+    private NetworkObject localPlayerObject; // 이 컴퓨터의 내 플레이어
+
+    // 서버가 칠하기 보고를 받아 주는 시간 여유(초). 컴퓨터마다 시작 시각을 느끼는 시점이 조금씩 달라서 둔다
+    private const float PaintGrace = 0.3f;
+
+    private static readonly int IsMovingHash = Animator.StringToHash("isMoving");
 
     // 이 컴퓨터에 도착한 플레이어들 (접속 ID 오름차순 = 자리 순서)
     private readonly List<NetworkObject> players = new List<NetworkObject>();
@@ -229,8 +247,7 @@ public class TF_GameManager : NetworkBehaviour
             GameObject instance = Instantiate(characterPrefabs[character], point.position, point.rotation);
             instance.GetComponent<NetworkObject>().SpawnAsPlayerObject(id, true);
 
-            // 칠하기 판정은 Host의 트래커가 한다. 자리 번호로 등록한다
-            if (tracker != null) tracker.Register(instance.transform, slot);
+            slotOfClient[id] = slot; // 칠하기 보고를 받으면 보낸 사람의 자리를 이 표로 알아낸다
 
             Debug.Log($"[TF 입장] 참가자 {id}, 자리 {slot}, 캐릭터 {character}, 시작 위치 {order[slot]} 생성 완료");
         }
@@ -316,10 +333,17 @@ public class TF_GameManager : NetworkBehaviour
         {
             StartRoundLocal();
         }
+
+        // 종료 시각이 지나면 내 화면의 칠하기도 멈춘다 (승자가 정해졌다는 알림보다 먼저 멈추기 위해)
+        if (roundStarted && tracker != null && tracker.IsPainting && endTimeNet.Value >= 0 &&
+            NetworkManager.ServerTime.Time >= endTimeNet.Value)
+        {
+            tracker.StopPainting();
+        }
     }
 
-    // 도착한 플레이어들의 자리 순서대로 타일 색을 정하고, 카메라를 내 플레이어에 연결한다
-    // (모든 컴퓨터가 같은 순서로 계산하므로 같은 결과가 나온다)
+    // 도착한 플레이어들의 자리 순서대로 타일 색을 정하고, 내 자리를 확인해서 내 플레이어만 트래커에 등록하고,
+    // 카메라를 내 플레이어에 연결한다 (모든 컴퓨터가 같은 순서로 계산하므로 같은 결과가 나온다)
     private void SetupRoster(NetworkObject localPlayer)
     {
         if (grid != null)
@@ -330,6 +354,14 @@ public class TF_GameManager : NetworkBehaviour
                 grid.SetPlayerColorIndex(slot, character);
             }
         }
+
+        // 칠하기는 각 컴퓨터가 "내 플레이어"만 확인해서 보고한다 (다른 사람 것은 그 사람의 컴퓨터가 보고한다)
+        localPlayerObject = localPlayer;
+        localSlot = players.IndexOf(localPlayer);
+        if (localSlot < 0 || localSlot >= MaxPlayers)
+            Debug.LogError("[TF] 내 플레이어의 자리를 찾지 못했습니다.");
+        else if (tracker != null)
+            tracker.Register(localPlayer.transform, localSlot);
 
         if (cameraFollow != null) cameraFollow.SetTarget(localPlayer.transform);
     }
@@ -347,13 +379,15 @@ public class TF_GameManager : NetworkBehaviour
         SetPlayersControl(true);
         GameStarted?.Invoke();
 
+        // 내 플레이어 확인은 모든 컴퓨터에서 한다
+        if (tracker != null)
+        {
+            tracker.ResetTracking();
+            tracker.StartPainting();
+        }
+
         if (IsServer)
         {
-            if (tracker != null)
-            {
-                tracker.ResetTracking();
-                tracker.StartPainting();
-            }
             runningNet.Value = true;
             Debug.Log($"[TF] 게임 시작 ({players.Count}명)");
         }
@@ -387,19 +421,48 @@ public class TF_GameManager : NetworkBehaviour
     // ---------------------------------------------------------------- 칠하기
 
     /// <summary>
-    /// 트래커가 "플레이어가 새 타일에 들어왔다"고 보고한다. (Host에서만 의미가 있다)
-    /// Host에서 적용하고, 실제로 바뀌었으면 모든 참가자에게 알린다.
-    /// (SD_GameManager.ReportHit이 ApplyDeath + KillClientRpc를 하는 것과 같다)
+    /// 트래커가 "내 플레이어가 새 타일에 들어왔다"고 보고한다. (모든 컴퓨터에서 호출된다. playerIndex는 내 자리 번호)
+    ///  - Host: 바로 확정하고 다른 참가자에게 알린다
+    ///  - 그 밖의 참가자: 내 화면의 색을 먼저 바꾸고(예측 표시), 서버에 보고한다. 서버가 확정한 결과가 최종이다
     /// </summary>
     public void ReportPaint(int tileIndex, int playerIndex)
     {
-        if (!IsSpawned || !IsServer) return;
-        if (!runningNet.Value || IsGameOver || grid == null) return;
+        if (!IsSpawned || !roundStarted || IsGameOver || grid == null) return;
 
-        if (grid.SetTileOwner(tileIndex, playerIndex))
-            PaintClientRpc(tileIndex, playerIndex);
+        if (IsServer)
+        {
+            ServerApplyPaint(tileIndex, playerIndex);
+        }
+        else
+        {
+            grid.SetTileOwner(tileIndex, playerIndex); // 예측 표시: 내 화면에서는 바로 칠해진다
+            PaintServerRpc(tileIndex);                  // 이미 내 색으로 보이는 타일이어도 서버의 상태는 다를 수 있어서 항상 보고한다
+        }
     }
 
+    // 서버가 칠하기 보고를 받는다. 보낸 사람의 자리는 요청 값이 아니라 서버가 아는 표로 알아낸다
+    [ServerRpc(RequireOwnership = false)]
+    private void PaintServerRpc(int tileIndex, ServerRpcParams rpcParams = default)
+    {
+        if (!slotOfClient.TryGetValue(rpcParams.Receive.SenderClientId, out int slot)) return;
+
+        ServerApplyPaint(tileIndex, slot);
+    }
+
+    // Host 전용: 서버가 칠하기를 확정한다. 실제로 바뀌었으면 모든 참가자에게 알린다.
+    // 보고가 도착한 순서대로 처리하므로 같은 타일은 나중에 보고된 쪽이 최종 주인이다.
+    // (SD_GameManager.ReportHit이 ApplyDeath + KillClientRpc를 하는 것과 같다)
+    private void ServerApplyPaint(int tileIndex, int slot)
+    {
+        if (!IsServer || grid == null) return;
+        if (!entryBegun || startTimeNet.Value < 0 || IsGameOver) return;
+        if (NetworkManager.ServerTime.Time < startTimeNet.Value - PaintGrace) return; // 시작 전 보고는 무시
+
+        if (grid.SetTileOwner(tileIndex, slot))
+            PaintClientRpc(tileIndex, slot);
+    }
+
+    // 서버가 확정한 결과를 받는다. 예측 표시와 다르면 서버 결과로 바로잡힌다
     [ClientRpc]
     private void PaintClientRpc(int tileIndex, int playerIndex)
     {
@@ -450,7 +513,13 @@ public class TF_GameManager : NetworkBehaviour
             if ((current & (1 << p)) != 0) winners.Add(p);
         }
 
-        if (lockControlsAtEnd) SetPlayersControl(false);
+        if (tracker != null) tracker.StopPainting();
+
+        if (lockControlsAtEnd)
+        {
+            SetPlayersControl(false);
+            StartCoroutine(EndPoseRoutine());
+        }
 
         GameOver?.Invoke(winners);
     }
@@ -461,6 +530,71 @@ public class TF_GameManager : NetworkBehaviour
     {
         if (!IsSpawned || !IsServer) return;
         NetworkManager.SceneManager.LoadScene(gameObject.scene.name, LoadSceneMode.Single);
+    }
+
+    // ---------------------------------------------------------------- 종료 연출
+
+    // 게임이 끝나면 내 캐릭터를 멈추고, 카메라 쪽(화면 정면)을 바라보게 한다. (Y축 회전만)
+    // 캐릭터의 위치와 회전은 그 캐릭터의 주인 컴퓨터만 정하고, 다른 컴퓨터에는 위치 동기화로 보인다.
+    // (SD_PlayerDeath가 날아가는 연출을 주인 컴퓨터에서만 움직이는 것과 같은 방식. 그래서 내 플레이어만 처리한다)
+    private IEnumerator EndPoseRoutine()
+    {
+        NetworkObject player = localPlayerObject;
+        if (player == null) yield break;
+
+        Rigidbody rb = player.GetComponent<Rigidbody>();
+
+        // 달리기 애니메이션 정지 (PlayerMovement가 쓰는 isMoving)
+        Animator anim = player.GetComponentInChildren<Animator>();
+        if (anim != null) anim.SetBool(IsMovingHash, false);
+
+        Quaternion startRotation = player.transform.rotation;
+        Quaternion targetRotation = startRotation;
+        bool canFace = faceCameraAtEnd && TryGetFacingRotation(out targetRotation);
+
+        float duration = Mathf.Max(0.01f, faceCameraDuration);
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            if (player == null) yield break;
+
+            elapsed += Time.deltaTime;
+
+            // 돌아서는 동안 남은 이동 속도(관성, 늦게 도착한 밀치기)를 계속 지워서 미끄러지지 않게 한다
+            if (rb != null)
+            {
+                rb.velocity = new Vector3(0f, rb.velocity.y, 0f);
+                rb.angularVelocity = Vector3.zero;
+            }
+
+            if (canFace)
+                player.transform.rotation = Quaternion.Slerp(startRotation, targetRotation, Mathf.Clamp01(elapsed / duration));
+
+            yield return null;
+        }
+    }
+
+    // 카메라 쪽을 바라보는 회전값 (Y축으로만 회전). 카메라가 바라보는 방향의 반대(화면 정면)를 향한다
+    private bool TryGetFacingRotation(out Quaternion rotation)
+    {
+        Transform cam = cameraFollow != null ? cameraFollow.transform : (Camera.main != null ? Camera.main.transform : null);
+        rotation = Quaternion.identity;
+        if (cam == null) return false;
+
+        Vector3 facing = -cam.forward;
+        facing.y = 0f;
+
+        // 카메라가 거의 수직으로 내려다보면 화면 아래쪽을 정면으로 본다
+        if (facing.sqrMagnitude < 0.0001f)
+        {
+            facing = -cam.up;
+            facing.y = 0f;
+        }
+        if (facing.sqrMagnitude < 0.0001f) return false;
+
+        rotation = Quaternion.LookRotation(facing.normalized, Vector3.up);
+        return true;
     }
 
     // ---------------------------------------------------------------- 조작 잠금
