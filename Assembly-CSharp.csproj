@@ -66,12 +66,14 @@
     <Compile Include="Assets\Scripts\CrosswalkRun\AutoScrollCamera.cs" />
     <Compile Include="Assets\Scripts\TileFlip\TF_TilePaintTracker.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_Blade.cs" />
+    <Compile Include="Assets\Scripts\Ranking\RankingUI.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CharacterRoundRestart.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_GameManager.cs" />
     <Compile Include="Assets\Scripts\ClientNetworkTransform.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_PlayerDeath.cs" />
     <Compile Include="Assets\Scripts\TileFlip\TF_GameManager.cs" />
     <Compile Include="Assets\Scripts\CustomSpawner.cs" />
+    <Compile Include="Assets\Scripts\Qte\QteRunner.cs" />
     <Compile Include="Assets\Scripts\TileFlip\TF_Tile.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CrosswalkPlayer.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CrosswalkTestPlayer.cs" />
@@ -86,6 +88,7 @@
     <Compile Include="Assets\Scripts\CrosswalkRun\CrosswalkNetworkEntry.cs" />
     <Compile Include="Assets\Scripts\NetController.cs" />
     <Compile Include="Assets\Scripts\LobbyUI.cs" />
+    <Compile Include="Assets\Scripts\Ranking\RankingManager.cs" />
     <Compile Include="Assets\Scripts\PlayerInteraction.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\IKillable.cs" />
     <Compile Include="Assets\Scripts\ClientNetworkAnimator.cs" />
