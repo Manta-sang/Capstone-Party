@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +19,7 @@ using Random = UnityEngine.Random;
 ///  - 보고한 컴퓨터는 자기 화면의 타일 색을 바로 바꾼다 (예측 표시. 내 경로가 지연 없이 보이게 한다)
 ///  - 서버가 보고를 받아 확정하고, 바뀌었으면 ClientRpc로 모든 참가자에게 알린다 (서버 결과가 최종이다)
 ///  - 점수와 승패는 서버 기준이다
-/// 종료 점수를 누적한 뒤 설정된 결과 씬으로 이동한다. 랭킹의 버튼으로 로비에 돌아가 다음 게임을 선택한다.
+/// 다시 시작은 씬을 네트워크로 다시 불러온다.
 /// 
 /// 플레이어 번호(자리, 0~3)는 접속 ID 오름차순 순서이고, 타일 색은 그 캐릭터 프리팹 번호와 같은 번호의 색을 쓴다.
 /// (캐릭터 프리팹은 접속 ID % 개수로 배정된다. 점수는 자리별로 따로 센다)
@@ -67,14 +67,6 @@ public class TF_GameManager : NetworkBehaviour
     [SerializeField] private bool faceCameraAtEnd = true;
     [Tooltip("카메라 쪽으로 돌아서는 데 걸리는 시간(초)")]
     [SerializeField] private float faceCameraDuration = 0.4f;
-
-    [Header("게임 종료 후 이동")]
-    [Tooltip("Build Settings에 등록된 결과 씬 이름")]
-    [SerializeField] private string resultSceneName = "Ranking";
-    [Tooltip("종료 연출을 보여 준 뒤 결과 씬으로 이동하기까지의 시간(초)")]
-    [SerializeField, Min(0f)] private float resultDelay = 3f;
-    private bool resultRecorded;
-    private bool movingToResults;
 
     // 모든 참가자에게 공유되는 상태 (값을 바꾸는 건 Host만)
     private readonly NetworkVariable<int> expectedPlayersNet = new NetworkVariable<int>(0);
@@ -130,7 +122,6 @@ public class TF_GameManager : NetworkBehaviour
         }
     }
 
-    public bool IsRunning => State == MatchState.Running;
     public bool IsGameOver => IsSpawned && winnersMaskNet.Value != NoResult;
 
     /// <summary>카운트다운이 끝나기까지 남은 시간(초)</summary>
@@ -388,11 +379,7 @@ public class TF_GameManager : NetworkBehaviour
         GameStarted?.Invoke();
 
         // 내 플레이어 확인은 모든 컴퓨터에서 한다
-        if (tracker != null)
-        {
-            tracker.ResetTracking();
-            tracker.StartPainting();
-        }
+        if (tracker != null) tracker.StartPainting();
 
         if (IsServer)
         {
@@ -484,8 +471,6 @@ public class TF_GameManager : NetworkBehaviour
     // Host 전용: 가장 많은 타일을 차지한 자리가 승자. 동점이면 모두 승자(공동 승리). 아무도 못 칠했으면 승자 없음
     private void EndGame()
     {
-        // 종료·점수 기록·이동 예약은 이번 라운드의 서버에서 한 번만 수행합니다.
-        if (!IsSpawned || !IsServer || IsGameOver || movingToResults) return;
         runningNet.Value = false;
         if (tracker != null) tracker.StopPainting();
 
@@ -508,52 +493,7 @@ public class TF_GameManager : NetworkBehaviour
 
         Debug.Log($"[TF] 게임 종료. 점수: {scoreText}/ 승자 마스크: {mask}");
 
-        RecordRankingScores();
         winnersMaskNet.Value = mask;
-        movingToResults = true;
-        StartCoroutine(MoveToRanking());
-    }
-
-    // 타일 수 자체는 라운드 점수이고, 통합 랭킹에는 순위에 따라 3/2/1/0점을 누적합니다.
-    // 동점은 같은 순위(예: 1,1,3,4)입니다. 전원이 0타일이면 기존 승자 없음 판정에 맞춰 모두 0점입니다.
-    private void RecordRankingScores()
-    {
-        if (!IsServer || resultRecorded) return;
-        resultRecorded = true;
-        var ranking = CrosswalkRun.RankingManager.Instance;
-        if (ranking == null || !ranking.IsSpawned)
-        {
-            Debug.LogError("[TF 점수] RankingManager가 네트워크에 생성되지 않아 점수를 기록하지 못했습니다.");
-            return;
-        }
-        // 생성 시 확정된 접속 ID/자리 표를 사용하여 캐릭터가 사라져도 점수 소유자가 바뀌지 않습니다.
-        bool anyPainted = slotOfClient.Values.Any(slot => grid.GetScore(slot) > 0);
-        foreach (var participant in slotOfClient)
-        {
-            int tileCount = grid.GetScore(participant.Value);
-            int rank = 1 + slotOfClient.Values.Count(slot => grid.GetScore(slot) > tileCount);
-            int points = anyPainted ? Mathf.Max(0, 4 - rank) : 0;
-            string playerName = $"Player {participant.Key}";
-            // 이전 미니게임에서 표시하던 이름이 있으면 누적 시 그대로 유지합니다.
-            foreach (var previous in ranking.ScoreList)
-                if (previous.ClientId == participant.Key) { playerName = previous.PlayerName.ToString(); break; }
-            ranking.AddScore(participant.Key, playerName, points);
-        }
-    }
-
-    // 종료 결과는 기존 NetworkVariable로 전달하고 호스트만 같은 방 전원을 결과 씬으로 이동시킵니다.
-    private IEnumerator MoveToRanking()
-    {
-        yield return new WaitForSecondsRealtime(resultDelay);
-        if (!IsSpawned || !IsServer || NetworkManager == null || !NetworkManager.IsListening) yield break;
-        if (string.IsNullOrWhiteSpace(resultSceneName) || !Application.CanStreamedLevelBeLoaded(resultSceneName))
-        {
-            Debug.LogError("[TF 이동] Build Settings에서 결과 씬을 확인해 주세요: " + resultSceneName);
-            yield break;
-        }
-        var status = NetworkManager.SceneManager.LoadScene(resultSceneName, LoadSceneMode.Single);
-        if (status != SceneEventProgressStatus.Started)
-            Debug.LogError("[TF 이동] 결과 씬 이동 실패: " + status);
     }
 
     // 모든 컴퓨터에서 호출된다
@@ -583,7 +523,7 @@ public class TF_GameManager : NetworkBehaviour
     [ContextMenu("Restart Game")]
     public void RestartGame()
     {
-        if (!IsSpawned || !IsServer || IsGameOver || movingToResults) return;
+        if (!IsSpawned || !IsServer) return;
         NetworkManager.SceneManager.LoadScene(gameObject.scene.name, LoadSceneMode.Single);
     }
 

@@ -88,6 +88,8 @@
     <Compile Include="Assets\Scripts\CrosswalkRun\CrosswalkNetworkEntry.cs" />
     <Compile Include="Assets\Scripts\NetController.cs" />
     <Compile Include="Assets\Scripts\LobbyUI.cs" />
+    <Compile Include="Assets\Scripts\BlockFall\BlockFallLobby.cs" />
+    <Compile Include="Assets\Scripts\BlockFall\BlockFallGame.cs" />
     <Compile Include="Assets\Scripts\Ranking\RankingManager.cs" />
     <Compile Include="Assets\Scripts\PlayerInteraction.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\IKillable.cs" />

@@ -9,7 +9,7 @@ using UnityEngine;
 /// 모든 컴퓨터가 이 스크립트에 똑같은 호출(SetTileOwner 등)을 해서 같은 상태를 유지한다.
 /// (SD에서 죽음 판정을 SD_GameManager가 KillClientRpc로 전달해 모든 컴퓨터가 ApplyDeath를 부르는 방식과 같다)
 /// 
-/// 데이터 변경은 SetTileOwner / ResetBoard / SetPlayerColorIndex 세 함수로만 하고,
+/// 데이터 변경은 SetTileOwner / SetPlayerColorIndex 두 함수로만 하고(시작 상태 초기화는 Awake에서 한다),
 /// 화면 갱신은 이벤트(OnTileOwnerChanged, OnScoreChanged)로만 알린다.
 /// 
 /// 타일 한 칸의 크기는 타일 프리팹(스케일과 메시)이 정한다. 이 스크립트는 줄/열 수와 타일 사이 간격만 정하고,
@@ -53,9 +53,7 @@ public class TF_TileGridManager : MonoBehaviour
     /// <summary>플레이어 점수가 바뀌었을 때 (플레이어 번호, 새 점수)</summary>
     public event Action<int, int> OnScoreChanged;
 
-    public int Columns => columns;
-    public int Rows => rows;
-    public int TileCount => columns * rows;
+    private int TileCount => columns * rows;
 
     /// <summary>칸 한 개의 가로(x), 세로(z) 간격. 실행 중에는 실제로 잰 값이고, 에디터에서는 프리팹 스케일로 추정한 값이다</summary>
     public Vector2 CellSize
@@ -129,7 +127,6 @@ public class TF_TileGridManager : MonoBehaviour
                 TF_Tile tile = index == 0 ? first : Instantiate(tilePrefab, pos, tilePrefab.transform.rotation, transform);
                 tile.transform.position = pos;
                 tile.name = $"TF_Tile_{index}";
-                tile.Init(index);
 
                 tiles[index] = tile;
             }
@@ -139,7 +136,7 @@ public class TF_TileGridManager : MonoBehaviour
     // ───────────────────────── 데이터 변경 ─────────────────────────
 
     /// <summary>모든 타일을 주인 없음으로, 점수를 0으로 되돌린다. (플레이어 색 번호는 그대로 둔다)</summary>
-    public void ResetBoard()
+    private void ResetBoard()
     {
         tileOwners = new int[TileCount];
         scores = new int[MaxPlayers];
@@ -220,12 +217,6 @@ public class TF_TileGridManager : MonoBehaviour
         return true;
     }
 
-    public int GetTileOwner(int tileIndex)
-    {
-        if (tileIndex < 0 || tileIndex >= tileOwners.Length) return NoOwner;
-        return tileOwners[tileIndex];
-    }
-
     public int GetScore(int playerIndex)
     {
         if (playerIndex < 0 || playerIndex >= scores.Length) return 0;
@@ -237,7 +228,7 @@ public class TF_TileGridManager : MonoBehaviour
     private void ApplyTileVisual(int tileIndex, int ownerIndex)
     {
         if (tiles == null || tileIndex < 0 || tileIndex >= tiles.Length) return;
-        tiles[tileIndex].SetOwner(ownerIndex, GetMaterial(ownerIndex));
+        tiles[tileIndex].SetMaterial(GetMaterial(ownerIndex));
     }
 
     private Material GetMaterial(int ownerIndex)

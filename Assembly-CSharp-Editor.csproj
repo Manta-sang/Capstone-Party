@@ -61,6 +61,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\FREE\Pack_FREE_PartyCharacters\Editor\CharacterPromoWindow.cs" />
+    <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallValidation.cs" />
+    <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallBuilder.cs" />
+    <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallResize.cs" />
     <Compile Include="Assets\FREE\Pack_FREE_PartyCharacters\Editor\FreeCharacterCustomizerWindow.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\Editor\CrosswalkModularBuilder.cs" />
   </ItemGroup>
