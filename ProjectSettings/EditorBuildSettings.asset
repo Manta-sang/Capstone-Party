@@ -6,7 +6,10 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
+    path: Assets/Scenes/TitleScene.unity
+    guid: 34330d877c9159489336a57c80524f2c
+  - enabled: 1
+    path: Assets/Scenes/Lobby.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
   - enabled: 1
     path: Assets/Scenes/CrosswalkRun.unity
@@ -17,9 +20,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Character.unity
     guid: a54a3c99a04805246bea0293d36e73e9
-  - enabled: 1
-    path: Assets/Scenes/Lobby.unity
-    guid: c0e6489547649544998c6df5d5b8c5a7
   - enabled: 1
     path: Assets/Scenes/Qte.unity
     guid: 9a171246a3709e14db0a6746d24deb10
