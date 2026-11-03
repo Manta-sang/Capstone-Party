@@ -2520,6 +2520,8 @@ MonoBehaviour:
   playerMaterials:
   - {fileID: 2100000, guid: 72c57e092fbc75f43a15e973aab38170, type: 2}
   - {fileID: 2100000, guid: 8c0c934d1f5d86943a432e23717befc5, type: 2}
+  - {fileID: 2100000, guid: a371b63f19e63e744a23f5247b1e7954, type: 2}
+  - {fileID: 2100000, guid: b446e09095b255544b8c5633fa8bf822, type: 2}
 --- !u!1001 &574668582
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8695,6 +8697,8 @@ MonoBehaviour:
   characterPrefabs:
   - {fileID: 1787574108986877123, guid: b3f543bae91f9b94598a8372bfe747f8, type: 3}
   - {fileID: 8493455008323162100, guid: 0c76b793a5061c942beb17b723fa0688, type: 3}
+  - {fileID: 5599270506520145733, guid: 43f35dc74b8af374c8ba48ec4ee160e0, type: 3}
+  - {fileID: 7084518420159359948, guid: 07562273415467b4ca8e2b02136ecec3, type: 3}
   spawnPoints:
   - {fileID: 988596988}
   - {fileID: 1332572148}
