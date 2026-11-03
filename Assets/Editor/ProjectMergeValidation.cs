@@ -15,11 +15,15 @@ public static class ProjectMergeValidation {
  static void Run(){
   if(!System.IO.File.Exists(Request)||EditorApplication.isCompiling||EditorApplication.isUpdating)return;
   if(EditorApplication.isPlayingOrWillChangePlaymode){System.IO.File.WriteAllText(Result,"WAIT: exit Play Mode before saving/validating scene edits.");return;}
-  string mode=System.IO.File.ReadAllText(Request).Trim();System.IO.File.Delete(Request);
+  string mode;
+  try{mode=System.IO.File.ReadAllText(Request).Trim();if(mode.Length==0)return;System.IO.File.Delete(Request);}
+  catch(System.IO.IOException){return;} // A request writer may still hold the file briefly.
   try {
-   if(!EditorSceneManager.SaveOpenScenes())throw new Exception("Could not save open scene changes");
-   AssetDatabase.SaveAssets();
-   if(mode=="save"){System.IO.File.WriteAllText(Result,"SAVED: open scenes and assets saved before merge.");Debug.Log("PROJECT_MERGE_SAVE_PASS");return;}
+   if(mode=="save"){
+    if(!EditorSceneManager.SaveOpenScenes())throw new Exception("Could not save open scene changes");
+    AssetDatabase.SaveAssets();System.IO.File.WriteAllText(Result,"SAVED: open scenes and assets saved before merge.");Debug.Log("PROJECT_MERGE_SAVE_PASS");return;
+   }
+   // Read the merged scene files; never save stale in-memory scenes over Git's result.
    var setup=EditorSceneManager.GetSceneManagerSetup();
    foreach(string name in new[]{"Character","CrosswalkRun","SawBladeDodge","TileFlip","Qte","BlockFall"}){
     EditorSceneManager.OpenScene("Assets/Scenes/"+name+".unity");int lists=0;
