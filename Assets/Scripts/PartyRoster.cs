@@ -10,12 +10,14 @@ public class PartyRoster : NetworkBehaviour
     {
         public ulong Id;
         public FixedString32Bytes Name;
+        public bool Ready;
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
-        { serializer.SerializeValue(ref Id); serializer.SerializeValue(ref Name); }
-        public bool Equals(Member other) => Id == other.Id && Name.Equals(other.Name);
+        { serializer.SerializeValue(ref Id); serializer.SerializeValue(ref Name); serializer.SerializeValue(ref Ready); }
+        public bool Equals(Member other) => Id == other.Id && Name.Equals(other.Name) && Ready == other.Ready;
     }
     public static PartyRoster Current { get; private set; }
     public NetworkList<Member> Members;
+    public NetworkVariable<int> GamesStarted = new NetworkVariable<int>(0);
     private void Awake() => Members = new NetworkList<Member>();
     public override void OnNetworkSpawn()
     {
@@ -65,5 +67,19 @@ public class PartyRoster : NetworkBehaviour
     {
         int index = Index(id);
         return index < 0 ? fallback : Members[index].Name.ToString();
+    }
+    [ServerRpc(RequireOwnership = false)]
+    public void SetReadyServerRpc(bool value, ServerRpcParams rpc = default)
+    {
+        ulong id = rpc.Receive.SenderClientId;
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "Character" || !NetworkManager.ConnectedClients.ContainsKey(id)) return;
+        int index = Index(id);
+        if (index < 0) return;
+        var member = Members[index]; member.Ready = value; Members[index] = member;
+    }
+    public void ResetReady()
+    {
+        if (!IsServer) return;
+        for (int i=0;i<Members.Count;i++) { var member=Members[i];member.Ready=false;Members[i]=member; }
     }
 }
