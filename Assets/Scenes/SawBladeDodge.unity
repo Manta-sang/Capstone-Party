@@ -2162,9 +2162,9 @@ MonoBehaviour:
   beginWithoutSceneEvent: 0
   showDebugHUD: 1
   flightDistance: 12
-  arcHeight: 4
+  arcHeight: 10
   flightDuration: 1.2
-  removeDelay: 3
+  removeDelay: 2
   resultSceneName: Ranking
   resultDelay: 3
 --- !u!1001 &495643353
