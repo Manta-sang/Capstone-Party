@@ -140,7 +140,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1028045001897163678, guid: 84dbef50a8937ea409a9a5104cdd8426, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 18
+      value: 19
       objectReference: {fileID: 0}
     - target: {fileID: 1028045001897163678, guid: 84dbef50a8937ea409a9a5104cdd8426, type: 3}
       propertyPath: m_LocalRotation.w
@@ -461,7 +461,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4161269380967649672, guid: ed19f3a06e856dc429cd6c2376df3ba3, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 36
+      value: 37
       objectReference: {fileID: 0}
     - target: {fileID: 4161269380967649672, guid: ed19f3a06e856dc429cd6c2376df3ba3, type: 3}
       propertyPath: m_LocalRotation.w
@@ -556,6 +556,38 @@ PrefabInstance:
     - target: {fileID: 6830240860700947854, guid: ed2dea76b89e5b54a87ab306f58ea020, type: 3}
       propertyPath: m_Name
       value: Sidewalk_Start_Platform
+      objectReference: {fileID: 0}
+    - target: {fileID: 8200000000000000013, guid: ed2dea76b89e5b54a87ab306f58ea020, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -21.62
+      objectReference: {fileID: 0}
+    - target: {fileID: 8200000000000000013, guid: ed2dea76b89e5b54a87ab306f58ea020, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8200000000000000013, guid: ed2dea76b89e5b54a87ab306f58ea020, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 8.075001
+      objectReference: {fileID: 0}
+    - target: {fileID: 8200000000000000013, guid: ed2dea76b89e5b54a87ab306f58ea020, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8200000000000000013, guid: ed2dea76b89e5b54a87ab306f58ea020, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8200000000000000013, guid: ed2dea76b89e5b54a87ab306f58ea020, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8200000000000000013, guid: ed2dea76b89e5b54a87ab306f58ea020, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8200000000000000013, guid: ed2dea76b89e5b54a87ab306f58ea020, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
