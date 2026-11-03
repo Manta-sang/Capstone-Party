@@ -16,6 +16,8 @@ namespace CrosswalkRun
         [SerializeField] private TMPro.TMP_Text statusText;
         [SerializeField] private UnityEngine.UI.Button qteButton;
         [SerializeField] private UnityEngine.UI.Button tileFlipButton;
+        [SerializeField] private UnityEngine.UI.Button blockFallButton;
+        [SerializeField] private string blockFallScene = "BlockFall";
         [Header("버튼별 이동할 씬 이름 (Build Settings 등록 필요)")]
         [SerializeField] private string crosswalkScene = "CrosswalkRun";
         [SerializeField] private string sawBladeScene = "SawBladeDodge";
@@ -76,6 +78,7 @@ namespace CrosswalkRun
             sawBladeButton.interactable = ready;
             if (qteButton != null) qteButton.interactable = ready;
             if (tileFlipButton != null) tileFlipButton.interactable = ready;
+            if (blockFallButton != null) blockFallButton.interactable = ready;
             // 기본 버튼 문구는 Label에서, 상태별 안내는 이 컴포넌트의 Inspector에서 수정합니다.
             statusText.text = !online ? disconnectedText : loading ? loadingText :
                 !network.IsServer ? waitingHostText : ready ? "호스트가 미니게임을 선택해 주세요" : waitingPlayersText;
@@ -96,6 +99,7 @@ namespace CrosswalkRun
         // 알파용 씬 진입 버튼입니다. QTE와 TileFlip의 게임 로직 자체는 이번 작업에서 변경하지 않습니다.
         public void StartQte() => StartMiniGame(qteScene);
         public void StartTileFlip() => StartMiniGame(tileFlipScene);
+        public void StartBlockFall() => StartMiniGame(blockFallScene);
 
         // 준비된 호스트만 선택할 수 있으며, 로딩 중에는 모든 버튼을 잠급니다.
         private void StartMiniGame(string sceneName)
