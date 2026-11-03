@@ -64,12 +64,14 @@
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryRequest.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallAllCrystalLights.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryPolish.cs" />
+    <Compile Include="Assets\Editor\PartyContinuationValidation.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryBuilder.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryRefine.cs" />
     <Compile Include="Assets\FREE\Pack_FREE_PartyCharacters\Editor\CharacterPromoWindow.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryContactLayout.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryFrontLayout.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryMotionUpgrade.cs" />
+    <Compile Include="Assets\Editor\BoardingPassUI.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallSideTier.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallLandingValidation.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallValidation.cs" />
@@ -80,7 +82,9 @@
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallUniformGrid.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\Editor\CrosswalkModularBuilder.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallIntegration.cs" />
+    <Compile Include="Assets\Editor\PartyFlowBuilder.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallArenaSix.cs" />
+    <Compile Include="Assets\Editor\CharacterCabinBuilder.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
