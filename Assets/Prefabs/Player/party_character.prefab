@@ -152,7 +152,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 10
-  rotationSpeed: 100
+  rotationSpeed: 10
   jumpForce: 5
   isKnockedBack: 0
 --- !u!136 &4275090437496979798
