@@ -430,6 +430,8 @@ MonoBehaviour:
   characterPrefabs:
   - {fileID: 1787574108986877123, guid: b3f543bae91f9b94598a8372bfe747f8, type: 3}
   - {fileID: 8493455008323162100, guid: 0c76b793a5061c942beb17b723fa0688, type: 3}
+  - {fileID: 423204541801243725, guid: 2db78aee60cd8d546a87018ddb2c472e, type: 3}
+  - {fileID: 7114332553452603157, guid: 82844e53739a9cc4cac4ddffd2ff10e9, type: 3}
   spawnPoints:
   - {fileID: 1700000011}
   - {fileID: 1700000013}

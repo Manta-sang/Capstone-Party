@@ -173,15 +173,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.96}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
+  m_Sprite: {fileID: 21300000, guid: eee748854acae0643a08ffeae41cedfb, type: 2}
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -1194,6 +1194,8 @@ MonoBehaviour:
   characterPrefabs:
   - {fileID: 1787574108986877123, guid: b3f543bae91f9b94598a8372bfe747f8, type: 3}
   - {fileID: 8493455008323162100, guid: 0c76b793a5061c942beb17b723fa0688, type: 3}
+  - {fileID: 423204541801243725, guid: 2db78aee60cd8d546a87018ddb2c472e, type: 3}
+  - {fileID: 7114332553452603157, guid: 82844e53739a9cc4cac4ddffd2ff10e9, type: 3}
   spawnPoints:
   - {fileID: 1087325753}
   - {fileID: 1903320922}
@@ -1201,7 +1203,7 @@ MonoBehaviour:
   - {fileID: 623096544}
   qteText: {fileID: 720376137}
   koreanFont: {fileID: 11400000, guid: 536b6e16f85795d46a21f43033295334, type: 2}
-  qteBoostDistance: 1.5
+  qteBoostDistance: 3
   movementDurationPerLetter: 0.25
   finishLineZ: 98
   sequenceLength: 4
