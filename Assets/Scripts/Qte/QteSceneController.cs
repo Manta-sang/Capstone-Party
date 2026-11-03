@@ -17,7 +17,7 @@ public sealed class QteSceneController : MonoBehaviour
     [SerializeField] private Transform[] spawnPoints;
     [SerializeField] private TextMeshProUGUI qteText;
     [SerializeField] private TMP_FontAsset koreanFont;
-    [SerializeField] private float qteBoostDistance = 1.5f;
+    [SerializeField] private float qteBoostDistance = 3f;
     [SerializeField] private float movementDurationPerLetter = 0.25f;
     [SerializeField] private float finishLineZ = 98f;
     [SerializeField] private int sequenceLength = 4;
@@ -55,16 +55,21 @@ public sealed class QteSceneController : MonoBehaviour
     private float stunUntil;
     private string entryError;
     private RectTransform statusPanelRect;
+    private RectTransform qteIndicatorRoot;
+    private readonly List<Image> qteIndicatorCircles = new List<Image>();
+    private readonly List<TextMeshProUGUI> qteIndicatorLabels = new List<TextMeshProUGUI>();
     private TextMeshProUGUI statusText;
     private TextMeshProUGUI countdownText;
     private Camera qteCamera;
     private Vector3 cameraVelocity;
     private bool spawnRequested;
+    private bool qteMovementAnimationStarted;
     public string DeveloperStatus => statusText != null ? statusText.text : "QTE 준비 중";
 
     private void Awake()
     {
         CreateStatusUI();
+        CreateQteIndicators();
         qteCamera = Camera.main;
         network = NetworkManager.Singleton;
         if (network == null || !network.IsListening) return;
@@ -116,6 +121,7 @@ public sealed class QteSceneController : MonoBehaviour
             int prefabIndex = (int)(clientId % (ulong)characterPrefabs.Length);
             Transform point = spawnPoints[slot];
             GameObject instance = Instantiate(characterPrefabs[prefabIndex], point.position, point.rotation);
+            PreparePlayerForQte(instance);
             NetworkObject player = instance.GetComponent<NetworkObject>();
             if (player == null)
             {
@@ -145,6 +151,24 @@ public sealed class QteSceneController : MonoBehaviour
         }
     }
 
+    private void PreparePlayerForQte(GameObject player)
+    {
+        var movement = player.GetComponent<PlayerMovement>();
+        if (movement != null) movement.enabled = false;
+        var legacyRunner = player.GetComponent<QteRunner>();
+        if (legacyRunner != null) legacyRunner.enabled = false;
+
+        foreach (Animator animator in player.GetComponentsInChildren<Animator>(true))
+        {
+            animator.ResetTrigger("doJump");
+            animator.SetBool("isMoving", false);
+            animator.Play("Idle", 0, 0f);
+            animator.Update(0f);
+            animator.speed = 0f;
+            animator.enabled = false;
+        }
+    }
+
     private void Update()
     {
         if (network == null || !network.IsListening) return;
@@ -156,6 +180,8 @@ public sealed class QteSceneController : MonoBehaviour
             if (movement != null && movement.enabled) movement.enabled = false;
             var legacy = player.GetComponent<QteRunner>();
             if(legacy!=null)legacy.enabled=false;
+            var animator = player.GetComponentInChildren<Animator>();
+            if (animator != null) animator.ResetTrigger("doJump");
         }
 
         if (rosterReceived && !localReady && LocalRosterIsPresent())
@@ -179,12 +205,22 @@ public sealed class QteSceneController : MonoBehaviour
             targetPosition = activePlayer.transform.position;
             currentSequence = null;
             localFinished = false;
+            qteMovementAnimationStarted = false;
+            if (activeAnimator != null)
+            {
+                activeAnimator.ResetTrigger("doJump");
+                activeAnimator.SetBool("isMoving", false);
+                activeAnimator.Play("Idle", 0, 0f);
+                activeAnimator.Update(0f);
+                activeAnimator.speed = 0f;
+                activeAnimator.enabled = false;
+            }
         }
 
         if (!gameStarted)
         {
             SetWalking(false);
-            if (qteText != null && startsAt < 0) qteText.text = localReady ? "모든 참가자 준비 대기 중" : "캐릭터 동기화 중";
+            if (qteText != null && startsAt < 0) ShowQteMessage(localReady ? "모든 참가자 준비 대기 중" : "캐릭터 동기화 중");
             return;
         }
 
@@ -194,7 +230,7 @@ public sealed class QteSceneController : MonoBehaviour
             if (!localFinished)
             {
                 localFinished = true;
-                if (qteText != null) qteText.text = "완주했습니다. 다른 플레이어를 기다리는 중...";
+                ShowQteMessage("완주했습니다. 다른 플레이어를 기다리는 중...");
             }
             SetWalking(false);
             return;
@@ -204,14 +240,13 @@ public sealed class QteSceneController : MonoBehaviour
         {
             targetPosition = activePlayer.transform.position;
             SetWalking(false);
-            if (qteText != null)
-                qteText.text = $"<color=#FF5555>그로기 {Mathf.Max(0, stunUntil - Time.unscaledTime):0.0}초</color>\n{FormatSequence()}";
+            ShowQteMessage($"<color=#FF5555>그로기 {Mathf.Max(0, stunUntil - Time.unscaledTime):0.0}초</color>\n{FormatSequence()}");
             return;
         }
         else if (stunUntil > 0)
         {
             stunUntil = 0;
-            if (qteText != null) qteText.text = FormatSequence();
+            ShowQtePrompt();
         }
 
         CheckInput();
@@ -333,18 +368,15 @@ public sealed class QteSceneController : MonoBehaviour
             stunUntil = Time.unscaledTime + stunDuration;
             targetPosition = activePlayer.transform.position;
             SetWalking(false);
-            if (qteText != null)
-                qteText.text = $"<color=#FF5555>그로기 {stunDuration:0.0}초</color>\n{FormatSequence()}";
+            ShowQteMessage($"<color=#FF5555>그로기 {stunDuration:0.0}초</color>\n{FormatSequence()}");
             return;
         }
 
         float stepDistance = qteBoostDistance / Mathf.Max(1, sequenceLength);
         targetPosition = new Vector3(targetPosition.x, targetPosition.y, Mathf.Min(finishLineZ, targetPosition.z + stepDistance));
-        currentIndex++;
-        if (currentIndex >= currentSequence.Length)
-            GenerateSequence();
-        else if (qteText != null)
-            qteText.text = FormatSequence();
+        currentSequence = currentSequence.Substring(1) + availableKeys[UnityEngine.Random.Range(0, availableKeys.Length)];
+        currentIndex = 0;
+        ShowQtePrompt();
     }
 
     private void MoveTowardTarget()
@@ -362,7 +394,20 @@ public sealed class QteSceneController : MonoBehaviour
 
     private void SetWalking(bool walking)
     {
-        if (activeAnimator != null) activeAnimator.SetBool("isMoving", walking);
+        if (activeAnimator == null) return;
+        if (walking)
+        {
+            qteMovementAnimationStarted = true;
+            activeAnimator.enabled = true;
+            activeAnimator.speed = 1f;
+        }
+        else if (!qteMovementAnimationStarted)
+        {
+            activeAnimator.enabled = false;
+            activeAnimator.speed = 0f;
+        }
+        activeAnimator.SetBool("isMoving", walking);
+        if (!walking) activeAnimator.ResetTrigger("doJump");
     }
 
     private void GenerateSequence()
@@ -371,15 +416,104 @@ public sealed class QteSceneController : MonoBehaviour
         currentIndex = 0;
         for (int i = 0; i < sequenceLength; i++)
             currentSequence += availableKeys[UnityEngine.Random.Range(0, availableKeys.Length)];
-        if (qteText != null) qteText.text = FormatSequence();
+        ShowQtePrompt();
     }
 
     private string FormatSequence()
     {
         var display = new List<string>();
         for (int i = 0; i < currentSequence.Length; i++)
-            display.Add(i < currentIndex ? "<color=#55DD88>" + currentSequence[i] + "</color>" : currentSequence[i].ToString());
+        {
+            string color = i == 0 ? "#55DD88" : i == 1 ? "#FFD447" : "#FF625C";
+            display.Add($"<color={color}>{currentSequence[i]}</color>");
+        }
         return string.Join(" ", display);
+    }
+
+    private void CreateQteIndicators()
+    {
+        if (qteText == null || qteText.transform.parent == null) return;
+        var rootObject = new GameObject("QTE Key Indicators", typeof(RectTransform));
+        qteIndicatorRoot = rootObject.GetComponent<RectTransform>();
+        qteIndicatorRoot.SetParent(qteText.transform.parent, false);
+        qteIndicatorRoot.anchorMin = qteIndicatorRoot.anchorMax = new Vector2(0.5f, 0.5f);
+        qteIndicatorRoot.pivot = new Vector2(0.5f, 0.5f);
+        qteIndicatorRoot.anchoredPosition = Vector2.zero;
+        qteIndicatorRoot.sizeDelta = new Vector2(500f, 150f);
+        Sprite circleSprite = CreateCircleSprite();
+        for (int i = 0; i < 4; i++)
+        {
+            var circleObject = new GameObject($"QTE Key Circle {i + 1}", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            var circleRect = circleObject.GetComponent<RectTransform>();
+            circleRect.SetParent(qteIndicatorRoot, false);
+            circleRect.anchorMin = circleRect.anchorMax = new Vector2(0.5f, 0.5f);
+            circleRect.pivot = new Vector2(0.5f, 0.5f);
+            circleRect.anchoredPosition = new Vector2((i - 1.5f) * 112f, 0f);
+            circleRect.sizeDelta = new Vector2(84f, 84f);
+            var circle = circleObject.GetComponent<Image>();
+            circle.sprite = circleSprite;
+            circle.raycastTarget = false;
+            qteIndicatorCircles.Add(circle);
+
+            var labelObject = new GameObject($"QTE Key Label {i + 1}", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+            var labelRect = labelObject.GetComponent<RectTransform>();
+            labelRect.SetParent(circleRect, false);
+            labelRect.anchorMin = Vector2.zero;
+            labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = labelRect.offsetMax = Vector2.zero;
+            var label = labelObject.GetComponent<TextMeshProUGUI>();
+            label.font = qteText.font;
+            label.fontSharedMaterial = qteText.fontSharedMaterial;
+            label.fontSize = 44f;
+            label.fontStyle = FontStyles.Bold;
+            label.alignment = TextAlignmentOptions.Center;
+            label.color = Color.white;
+            label.raycastTarget = false;
+            qteIndicatorLabels.Add(label);
+        }
+        qteText.gameObject.SetActive(false);
+    }
+
+    private Sprite CreateCircleSprite()
+    {
+        const int size = 128;
+        var texture = new Texture2D(size, size, TextureFormat.RGBA32, false) { name = "QTE Circle Sprite Texture" };
+        var pixels = new Color[size * size];
+        Vector2 center = new Vector2((size - 1) * 0.5f, (size - 1) * 0.5f);
+        float radius = size * 0.48f;
+        for (int y = 0; y < size; y++)
+        for (int x = 0; x < size; x++)
+        {
+            float distance = Vector2.Distance(new Vector2(x, y), center);
+            float alpha = Mathf.Clamp01(radius + 1f - distance);
+            pixels[y * size + x] = new Color(1f, 1f, 1f, alpha);
+        }
+        texture.SetPixels(pixels);
+        texture.Apply();
+        return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+    }
+
+    private void ShowQteMessage(string message)
+    {
+        if (qteIndicatorRoot != null) qteIndicatorRoot.gameObject.SetActive(false);
+        if (qteText == null) return;
+        qteText.gameObject.SetActive(true);
+        qteText.text = message;
+    }
+
+    private void ShowQtePrompt()
+    {
+        if (qteIndicatorRoot == null || qteText == null || string.IsNullOrEmpty(currentSequence)) return;
+        qteText.gameObject.SetActive(false);
+        qteIndicatorRoot.gameObject.SetActive(true);
+        for (int i = 0; i < qteIndicatorLabels.Count; i++)
+        {
+            qteIndicatorLabels[i].text = currentSequence[i].ToString();
+            qteIndicatorLabels[i].color = Color.white;
+            qteIndicatorCircles[i].color = i == 0
+                ? new Color(0.12f, 0.68f, 0.31f, 1f)
+                : i == 1 ? new Color(0.95f, 0.67f, 0.08f, 1f) : new Color(0.78f, 0.16f, 0.16f, 1f);
+        }
     }
 
     private void LateUpdate()
@@ -422,7 +556,7 @@ public sealed class QteSceneController : MonoBehaviour
         if (!roundEnding && owners.Count > 0 && owners.All(id=>!network.ConnectedClients.ContainsKey(id)||finishedPlayers.Contains(id)))
         {
             roundEnding = true;
-            if (qteText != null) qteText.text = "모든 플레이어가 완주했습니다!";
+            ShowQteMessage("모든 플레이어가 완주했습니다!");
             StartCoroutine(EndRoundAndReturnToRanking());
         }
     }
