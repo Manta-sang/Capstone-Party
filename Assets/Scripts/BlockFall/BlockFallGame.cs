@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Collections;
+using CrosswalkRun;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -12,24 +14,42 @@ namespace BlockFall
         public GameObject[] characters;
         public GameObject blockVisual;
         public float duration = 60, warningTime = 1.2f, fallTime = .45f;
+        [Header("Continuous falling blocks")]
+        [Min(0.1f)] public float initialDropInterval = .4f;
+        [Min(0.1f)] public float middleDropInterval = .3f;
+        [Min(0.1f)] public float finalDropInterval = .22f;
+        // Three equal time bands. Floor keeps coverage within the requested fraction.
+        public static int DifficultyStage(double elapsed, float roundDuration)
+            => Mathf.Clamp(Mathf.FloorToInt((float)(elapsed / System.Math.Max(1f, roundDuration) * 3)), 0, 2);
+        public static int CoverageLimit(int cellCount, int stage)
+            => Mathf.Max(0, Mathf.Min(cellCount - 1, Mathf.FloorToInt(cellCount * (Mathf.Clamp(stage, 0, 2) + 1) / 4f)));
+        readonly List<int> availableCells = new List<int>();
+        readonly HashSet<int> occupiedCells = new HashSet<int>();
+        [SerializeField] private string resultSceneName = "Ranking";
+        [SerializeField] private float resultDelay = 3f;
+        private bool loadingResults;
         readonly NetworkVariable<double> begins = new NetworkVariable<double>(-1);
         readonly NetworkVariable<bool> ended = new NetworkVariable<bool>();
         readonly HashSet<ulong> ready = new HashSet<ulong>();
         readonly List<ulong> alive = new List<ulong>();
         readonly Dictionary<ulong, int> ranks = new Dictionary<ulong, int>();
         readonly List<Wave> waves = new List<Wave>();
+        readonly List<ulong> contactDeaths = new List<ulong>();
+        readonly Dictionary<ulong, Collider[]> playerColliders = new Dictionary<ulong, Collider[]>();
         readonly Stack<GameObject> pool = new Stack<GameObject>();
         Transform[] cells;
+        BlockFallCellArea[] cellAreas;
         bool spawned, sentReady, unlocked;
         int playersAtStart;
         float deadline;
         double nextWave;
         string result = "";
-        class Wave { public int[] cells; public double hit; public GameObject[] visuals; public bool judged; }
+        class Wave { public int[] cells; public double hit; public GameObject[] visuals; }
         public override void OnNetworkSpawn()
         {
             cells = new Transform[tiles.childCount];
-            for (int i=0;i<cells.Length;i++) cells[i]=tiles.GetChild(i);
+            cellAreas = new BlockFallCellArea[cells.Length];
+            for (int i=0;i<cells.Length;i++){cells[i]=tiles.GetChild(i);cellAreas[i]=cells[i].GetComponent<BlockFallCellArea>();}
             deadline = Time.realtimeSinceStartup + 30;
             if(IsServer) NetworkManager.SceneManager.OnLoadEventCompleted += Loaded;
         }
@@ -45,7 +65,7 @@ namespace BlockFall
                 if(old!=null) old.Despawn(true);
                 var p=Instantiate(characters[i%characters.Length],starts[i].position,starts[i].rotation);
                 p.GetComponent<NetworkObject>().SpawnAsPlayerObject(id,true);
-                alive.Add(id); i++;
+                alive.Add(id); playerColliders[id]=p.GetComponentsInChildren<Collider>(); i++;
             }
         }
         bool RoundHasWinner => alive.Count == 0 || (playersAtStart > 1 && alive.Count == 1);
@@ -58,7 +78,7 @@ namespace BlockFall
                 Controls(local.gameObject,false); sentReady=true; ReadyServerRpc();
             }
             double now=NetworkManager.ServerTime.Time;
-            if(IsServer && spawned && begins.Value<0 && ready.Count>=alive.Count) { playersAtStart=alive.Count; begins.Value=now+3; nextWave=begins.Value; }
+            if(IsServer && spawned && begins.Value<0 && ready.Count>=alive.Count) { playersAtStart=alive.Count; begins.Value=now; nextWave=begins.Value+2; }
             if(begins.Value<0) { if(Time.realtimeSinceStartup>deadline) result="Waiting timed out. Return to lobby."; return; }
             if(!unlocked && now>=begins.Value && !ended.Value)
             { unlocked=true; if(local!=null) Controls(local.gameObject,true); }
@@ -66,15 +86,35 @@ namespace BlockFall
             {
                 for(int i=alive.Count-1;i>=0;i--) if(!NetworkManager.ConnectedClients.ContainsKey(alive[i])) { ranks[alive[i]]=alive.Count; alive.RemoveAt(i); }
                 if(now>=begins.Value+duration || RoundHasWinner) Finish();
-                else if(now>=nextWave)
+                else if(now>=nextWave && now+warningTime+fallTime+.65 < begins.Value+duration)
                 {
-                    int count=Mathf.Min(Mathf.Max(1,cells.Length/3),4+(int)((now-begins.Value)/15)*2);
-                    var indices=new int[count]; var used=new HashSet<int>();
-                    for(int i=0;i<count;i++) { int n; do { n=Random.Range(0,cells.Length); } while(!used.Add(n)); indices[i]=n; }
-                    WaveClientRpc(indices,now+warningTime+fallTime);
-                    nextWave=now+warningTime+fallTime+.45;
+                    // Reserve warning and falling cells together, including the brief impact effect.
+                    occupiedCells.Clear();
+                    foreach (var pending in waves)
+                        if (now <= pending.hit + .65f)
+                            foreach (int cell in pending.cells) occupiedCells.Add(cell);
+                    availableCells.Clear();
+                    for (int i = 0; i < cells.Length; i++)
+                        if (!occupiedCells.Contains(i)) availableCells.Add(i);
+                    int stage = DifficultyStage(now - begins.Value, duration);
+                    int cap = CoverageLimit(cells.Length, stage);
+                    int count = Mathf.Min(Random.Range(1, 4), Mathf.Max(0, cap - occupiedCells.Count), availableCells.Count);
+                    if (count > 0)
+                    {
+                        var indices = new int[count];
+                        for (int i = 0; i < count; i++)
+                        {
+                            int pick = Random.Range(0, availableCells.Count);
+                            indices[i] = availableCells[pick];
+                            availableCells.RemoveAt(pick);
+                        }
+                        WaveClientRpc(indices, now + warningTime + fallTime);
+                    }
+                    float interval = stage == 0 ? initialDropInterval : stage == 1 ? middleDropInterval : finalDropInterval;
+                    nextWave = now + Mathf.Max(.1f, interval);
                 }
             }
+            contactDeaths.Clear();
             for(int w=waves.Count-1;w>=0;w--)
             {
                 var wave=waves[w];
@@ -83,31 +123,51 @@ namespace BlockFall
                     var cell=cells[wave.cells[j]];
                     float remaining=(float)(wave.hit-now);
                     var v=wave.visuals[j];
-                    v.transform.position=cell.position+Vector3.up*(cell.lossyScale.y*.5f+(remaining>fallTime?.035f:Mathf.Lerp(1,12,Mathf.Clamp01(remaining/fallTime))));
-                    v.transform.localScale=new Vector3(cell.lossyScale.x*.96f,remaining>fallTime?.05f:2,cell.lossyScale.z*.96f);
+                    var styled = v.GetComponent<BlockFallVisual>();
+                    var area = cellAreas[wave.cells[j]];
+                    Vector3 areaCenter = area != null ? area.center : cell.position;
+                    Vector3 areaSize = area != null ? area.size : cell.lossyScale;
+                    if (styled != null) {
+                        v.transform.position = areaCenter + Vector3.up * (areaSize.y * .5f + .035f);
+                        v.transform.localScale = new Vector3(areaSize.x, 2, areaSize.z);
+                        styled.Animate(remaining, fallTime, warningTime, wave.cells[j] + (int)(wave.hit * 100));
+                    } else {
+                        v.transform.position=cell.position+Vector3.up*(cell.lossyScale.y*.5f+(remaining>fallTime?.035f:Mathf.Lerp(1,12,Mathf.Clamp01(remaining/fallTime))));
+                        v.transform.localScale=new Vector3(cell.lossyScale.x*.96f,remaining>fallTime?.05f:2,cell.lossyScale.z*.96f);
+                    }
                 }
-                if(IsServer && !wave.judged && now>=wave.hit && !ended.Value)
+                if(IsServer && !ended.Value && now>=wave.hit && now<=wave.hit+.65)
                 {
-                    wave.judged=true;
-                    var dead=new List<ulong>();
                     foreach(ulong id in alive)
                     {
-                        var p=NetworkManager.SpawnManager.GetPlayerNetworkObject(id);
-                        if(p==null) continue;
-                        foreach(int index in wave.cells)
+                        if(contactDeaths.Contains(id) || !playerColliders.TryGetValue(id,out var colliders))continue;
+                        bool hit=false;
+                        foreach(var visual in wave.visuals)
                         {
-                            Vector3 q=cells[index].InverseTransformPoint(p.transform.position);
-                            if(Mathf.Abs(q.x)<.5f && Mathf.Abs(q.z)<.5f) { dead.Add(id); break; }
+                            var styled=visual.GetComponent<BlockFallVisual>();
+                            if(styled==null || !styled.TryGetDamageBounds(out var bookBounds))continue;
+                            foreach(var collider in colliders)
+                                if(collider!=null && collider.enabled && !collider.isTrigger && collider.gameObject.activeInHierarchy && bookBounds.Intersects(collider.bounds)){hit=true;break;}
+                            if(hit)break;
                         }
+                        if(hit)contactDeaths.Add(id);
                     }
-                    int rank=alive.Count-dead.Count+1;
-                    foreach(ulong id in dead) { ranks[id]=rank; alive.Remove(id); DeathClientRpc(id); }
-                    if(RoundHasWinner) Finish();
                 }
-                if(now>wave.hit+.15) { foreach(var v in wave.visuals) { v.SetActive(false); pool.Push(v); } waves.RemoveAt(w); }
+                if(now>wave.hit+.65) { foreach(var v in wave.visuals) { v.SetActive(false); pool.Push(v); } waves.RemoveAt(w); }
+            }
+            if(IsServer && !ended.Value && contactDeaths.Count>0){
+                int rank=alive.Count-contactDeaths.Count+1;
+                foreach(var id in contactDeaths){ranks[id]=rank;alive.Remove(id);DeathClientRpc(id);}
+                if(RoundHasWinner)Finish();
             }
         }
         [ServerRpc(RequireOwnership=false)] void ReadyServerRpc(ServerRpcParams p=default) { ready.Add(p.Receive.SenderClientId); }
+        [ClientRpc]
+        public void CorrectBoundaryClientRpc(ulong owner, Vector3 position){
+            var player=NetworkManager.LocalClient != null ? NetworkManager.LocalClient.PlayerObject : null;
+            if(player!=null && player.IsOwner && player.OwnerClientId==owner)
+                BlockFallArenaBoundary.ApplyPosition(player,position);
+        }
         [ClientRpc] void WaveClientRpc(int[] indices,double hit)
         {
             var visuals=new GameObject[indices.Length];
@@ -130,29 +190,55 @@ namespace BlockFall
         }
         void Finish()
         {
-            if(ended.Value) return;
+            if(!IsServer || ended.Value) return;
             ended.Value=true;
             foreach(var id in alive) ranks[id]=1;
             string text="BlockFall — Results\n";
             foreach(var item in ranks) text+=$"Player {item.Key}: #{item.Value} / +{Mathf.Max(0,4-item.Value)}\n";
+            var ranking = RankingManager.Instance;
+            if (ranking != null && ranking.IsSpawned)
+            {
+                foreach (var item in ranks)
+                {
+                    string playerName = $"Player {item.Key}";
+                    foreach (var score in ranking.ScoreList)
+                        if (score.ClientId == item.Key) { playerName = score.PlayerName.ToString(); break; }
+                    ranking.AddScore(item.Key, playerName, Mathf.Max(0, 4 - item.Value));
+                }
+            }
+            else Debug.LogError("[BlockFall] RankingManager is not spawned; scores could not be saved.");
             ResultClientRpc(text);
+            StartCoroutine(GoToResults());
+        }
+        IEnumerator GoToResults()
+        {
+            loadingResults = true;
+            yield return new WaitForSecondsRealtime(resultDelay);
+            LoadResults();
+        }
+        public void LoadResults()
+        {
+            if (!IsSpawned || !IsServer || !ended.Value) return;
+            if (string.IsNullOrWhiteSpace(resultSceneName) || !Application.CanStreamedLevelBeLoaded(resultSceneName))
+            { loadingResults = false; Debug.LogError("[BlockFall] Invalid result scene: " + resultSceneName); return; }
+            var status = NetworkManager.SceneManager.LoadScene(resultSceneName, LoadSceneMode.Single);
+            loadingResults = status == SceneEventProgressStatus.Started;
+            if (!loadingResults) Debug.LogError("[BlockFall] Ranking load failed: " + status);
         }
         [ClientRpc] void ResultClientRpc(string text)
         {
             result=text;
             var p=NetworkManager.LocalClient.PlayerObject; if(p!=null) Controls(p.gameObject,false);
         }
-        void OnGUI()
-        {
-            GUILayout.BeginArea(new Rect(20,20,330,240),GUI.skin.box);
-            GUILayout.Label("BLOCK FALL");
-            if(!IsSpawned) GUILayout.Label("Enter from the multiplayer lobby.");
-            else if(result!="") GUILayout.Label(result);
-            else if(begins.Value<0) GUILayout.Label("Waiting for players...");
-            else { double t=NetworkManager.ServerTime.Time-begins.Value; GUILayout.Label(t<0?$"Ready: {-t:F0}":$"Time: {Mathf.Max(0,duration-(float)t):F0}"); }
-            if(IsSpawned && IsServer && (ended.Value || result!="") && GUILayout.Button("Return to Character"))
-                NetworkManager.SceneManager.LoadScene("Character",LoadSceneMode.Single);
-            GUILayout.EndArea();
+        public string GameplayStatus => ended.Value ? "경기 종료 · 랭킹으로 이동 중" : DeveloperStatus;
+        public string DeveloperStatus {
+            get {
+                if(!IsSpawned)return "멀티플레이 방에서 입장하세요.";
+                if(result!="")return result;
+                if(begins.Value<0)return "참가자 준비 확인 중...";
+                double t=NetworkManager.ServerTime.Time-begins.Value;
+                return $"남은 시간 {Mathf.Max(0,duration-(float)t):F0}초 / 단계 {DifficultyStage(t,duration)+1}";
+            }
         }
         public override void OnNetworkDespawn()
         {
@@ -163,6 +249,3 @@ namespace BlockFall
         }
     }
 }
-
-
-

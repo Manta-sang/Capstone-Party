@@ -33,11 +33,10 @@ public static class BlockFallValidation {
   System.IO.File.WriteAllBytes("BlockFall-preview.png",image.EncodeToPNG());
   cam.targetTexture=null; RenderTexture.active=null; UnityEngine.Object.DestroyImmediate(rt); UnityEngine.Object.DestroyImmediate(image);
   EditorSceneManager.OpenScene("Assets/Scenes/Character.unity");
-  if(UnityEngine.Object.FindObjectsOfType<BlockFallLobby>().Length!=1) throw new Exception("Lobby entry count invalid");
+  var controller = UnityEngine.Object.FindObjectOfType<CrosswalkRun.CharacterRoundRestart>();
+  var entry = new SerializedObject(controller).FindProperty("blockFallButton").objectReferenceValue as UnityEngine.UI.Button;
+  if(entry == null || entry.onClick.GetPersistentMethodName(0) != "StartBlockFall") throw new Exception("Lobby button binding invalid");
   Debug.Log("BLOCKFALL_VALIDATION_PASS: scene references, 25 tiles, 4 spawns, network components, build registration, lobby entry, render.");
  }
 }}
 #endif
-
-
-

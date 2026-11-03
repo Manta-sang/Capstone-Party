@@ -1,10 +1,13 @@
-using UnityEngine;
+﻿using UnityEngine;
 using Unity.Netcode;
 
 public class CustomSpawner : MonoBehaviour
 {
     [Header("스폰할 캐릭터 프리팹 리스트 (원하는 만큼 넣으세요)")]
     [SerializeField] private GameObject[] characterPrefabs;
+
+    private readonly System.Collections.Generic.Dictionary<ulong, int> lobbySlots =
+        new System.Collections.Generic.Dictionary<ulong, int>();
 
     void Start()
     {
@@ -19,11 +22,17 @@ public class CustomSpawner : MonoBehaviour
 
         // 게임 중에 뒤늦게 들어오는 사람들을 위해 이벤트 연결
         NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
+        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
     }
 
     void OnClientConnected(ulong clientId)
     {
         SpawnPlayerIfNoCharacter(clientId);
+    }
+
+    private void OnClientDisconnected(ulong clientId)
+    {
+        lobbySlots.Remove(clientId);
     }
 
     void SpawnPlayerIfNoCharacter(ulong clientId)
@@ -45,7 +54,12 @@ public class CustomSpawner : MonoBehaviour
         if (prefabToSpawn == null) return;
 
         // 안 겹치게 옆으로 살짝 띄워서 스폰
-        Vector3 spawnPosition = new Vector3(clientId * 2f, 1f, 0f);
+        // 재참가자의 증가한 clientId 대신 비어 있는 대기 위치를 선택한다.
+        int slot = 0;
+        while (slot < 4 && lobbySlots.ContainsValue(slot)) slot++;
+        if (slot == 4) return;
+        lobbySlots[clientId] = slot;
+        Vector3 spawnPosition = new Vector3(slot * 2f, 1f, 0f);
         GameObject spawnedInstance = Instantiate(prefabToSpawn, spawnPosition, Quaternion.identity);
 
         NetworkObject netObj = spawnedInstance.GetComponent<NetworkObject>();
@@ -61,6 +75,7 @@ public class CustomSpawner : MonoBehaviour
         if (NetworkManager.Singleton != null)
         {
             NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
+            NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
         }
     }
 }

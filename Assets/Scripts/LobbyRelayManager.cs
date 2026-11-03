@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
@@ -34,16 +34,47 @@ public class LobbyRelayManager : MonoBehaviour
 
     // 현재 사용자가 방장인지 저장합니다.
     private bool isHost;
+    private bool busy;
+    public static string RoomNumber { get; private set; }
+    [SerializeField] private string waitingScene = "Character";
+
+    // 공개 검색 인덱스로 네 자리 번호만 공유하고 Relay 접속 정보는 멤버에게만 공개한다.
+    private static async System.Threading.Tasks.Task<List<Lobby>> FindRooms(string number)
+    {
+        var result = await LobbyService.Instance.QueryLobbiesAsync(new QueryLobbiesOptions
+        {
+            Count = 2,
+            Filters = new List<QueryFilter> { new QueryFilter(QueryFilter.FieldOptions.S1, number, QueryFilter.OpOptions.EQ) }
+        });
+        return result.Results;
+    }
+    private static async System.Threading.Tasks.Task<Lobby> CreateNumberedRoom(CreateLobbyOptions options)
+    {
+        for (int attempt = 0; attempt < 5; attempt++)
+        {
+            string number = UnityEngine.Random.Range(0, 10000).ToString("D4");
+            if ((await FindRooms(number)).Count == 0)
+            {
+                options.Data["partyNumber"] = new DataObject(DataObject.VisibilityOptions.Public, number, DataObject.IndexOptions.S1);
+                var room = await LobbyService.Instance.CreateLobbyAsync("Party " + number, MaxPlayers, options);
+                bool selected = false;
+                try
+                {
+                    // 같은 시점에 선택된 번호나 아직 검색되지 않는 방은 사용자에게 공개하지 않는다.
+                    await System.Threading.Tasks.Task.Delay(1200);
+                    var matches = await FindRooms(number);
+                    selected = matches.Count == 1 && matches[0].Id == room.Id;
+                    if (selected) return room;
+                }
+                finally { if (!selected) await LobbyService.Instance.DeleteLobbyAsync(room.Id); }
+            }
+            await System.Threading.Tasks.Task.Delay(1200);
+        }
+        throw new Exception("사용 가능한 방번호를 찾지 못했습니다. 다시 시도하세요.");
+    }
 
     // 방장이 Lobby를 유지하기 위해 보내는 heartbeat 코루틴입니다.
     private Coroutine heartbeatCoroutine;
-
-    /// <summary>
-    /// 참가자에게 공유할 현재 Lobby Code입니다.
-    /// 아직 방이 없으면 빈 문자열을 반환합니다.
-    /// </summary>
-    public string CurrentLobbyCode =>
-        currentLobby == null ? string.Empty : currentLobby.LobbyCode;
 
     /// <summary>
     /// UI가 상태 메시지를 받을 수 있도록 알립니다.
@@ -62,6 +93,21 @@ public class LobbyRelayManager : MonoBehaviour
         {
             unityTransport = GetComponent<UnityTransport>();
         }
+        if (networkManager != null) networkManager.OnClientStopped += OnNetworkStopped;
+    }
+
+    private void OnDestroy()
+    {
+        if (networkManager != null) networkManager.OnClientStopped -= OnNetworkStopped;
+    }
+
+    // 연결 타임아웃이나 호스트 종료 시에도 Lobby 슬롯과 로컬 방번호를 해제한다.
+    private async void OnNetworkStopped(bool wasHost)
+    {
+        if (currentLobby == null) return;
+        busy = true;
+        try { await ClearRoom(false); SetStatus("방 연결이 종료되었습니다."); }
+        finally { busy = false; }
     }
 
     /// <summary>
@@ -76,6 +122,7 @@ public class LobbyRelayManager : MonoBehaviour
 
         try
         {
+            busy = true;
             SetStatus("Relay와 방을 생성하는 중입니다...");
 
             // 방장을 제외한 참가자 최대 3명을 위한 Relay 공간을 생성합니다.
@@ -108,12 +155,8 @@ public class LobbyRelayManager : MonoBehaviour
             };
 
             // 참가자가 공유받을 Lobby Code를 생성합니다.
-            currentLobby = await LobbyService.Instance.CreateLobbyAsync(
-                "테스트 방",
-                MaxPlayers,
-                lobbyOptions
-            );
-
+            currentLobby = await CreateNumberedRoom(lobbyOptions);
+            RoomNumber = currentLobby.Data["partyNumber"].Value;
             isHost = true;
             StartHeartbeat();
 
@@ -123,12 +166,16 @@ public class LobbyRelayManager : MonoBehaviour
                 throw new Exception("NGO Host를 시작하지 못했습니다.");
             }
 
-            SetStatus($"방 생성 완료! 방 코드를 참가자에게 공유하세요.");
+            SetStatus("대기실로 이동 중…");
+            var status = networkManager.SceneManager.LoadScene(waitingScene, UnityEngine.SceneManagement.LoadSceneMode.Single);
+            if (status != Unity.Netcode.SceneEventProgressStatus.Started) throw new Exception($"대기실 이동 실패: {status}");
         }
         catch (Exception exception)
         {
+            await ClearRoom();
             SetStatus($"방 생성 실패: {exception.Message}", true);
         }
+        finally { busy = false; }
     }
 
     /// <summary>
@@ -141,20 +188,22 @@ public class LobbyRelayManager : MonoBehaviour
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(lobbyCode))
+        if (!System.Text.RegularExpressions.Regex.IsMatch(lobbyCode ?? "", @"^[0-9]{4}$"))
         {
-            SetStatus("방 코드를 입력하세요.", true);
+            SetStatus("숫자 네 자리 방번호를 입력하세요.", true);
             return;
         }
 
         try
         {
+            busy = true;
             SetStatus("방에 참가하는 중입니다...");
 
             // 사용자가 입력한 Lobby Code로 방에 참가합니다.
-            currentLobby = await LobbyService.Instance.JoinLobbyByCodeAsync(
-                lobbyCode.Trim().ToUpperInvariant()
-            );
+            var rooms = await FindRooms(lobbyCode);
+            if (rooms.Count != 1) throw new Exception(rooms.Count == 0 ? "해당 방번호를 찾지 못했습니다." : "방번호가 중복되어 참가할 수 없습니다.");
+            currentLobby = await LobbyService.Instance.JoinLobbyByIdAsync(rooms[0].Id);
+            RoomNumber = lobbyCode;
 
             isHost = false;
 
@@ -181,8 +230,10 @@ public class LobbyRelayManager : MonoBehaviour
         }
         catch (Exception exception)
         {
+            await ClearRoom();
             SetStatus($"방 참가 실패: {exception.Message}", true);
         }
+        finally { busy = false; }
     }
 
     /// <summary>
@@ -190,39 +241,29 @@ public class LobbyRelayManager : MonoBehaviour
     /// </summary>
     public async void LeaveRoom()
     {
+        if (busy) return;
+        busy = true;
+        try { await ClearRoom(); SetStatus("방에서 나왔습니다."); }
+        finally { busy = false; }
+    }
+
+    // 연결 실패와 자발적 퇴장에서 같은 방식으로 Lobby 멤버십을 정리한다.
+    private async System.Threading.Tasks.Task ClearRoom(bool stopNetwork = true)
+    {
+        StopHeartbeat();
+        var room = currentLobby;
+        bool owned = isHost;
+        currentLobby = null;
+        isHost = false;
+        RoomNumber = null;
+        if (stopNetwork && networkManager.IsListening) networkManager.Shutdown();
+        if (room == null) return;
         try
         {
-            if (networkManager.IsListening)
-            {
-                networkManager.Shutdown();
-            }
-
-            if (currentLobby != null)
-            {
-                // 방장은 Lobby 자체를 삭제하고, 참가자는 자기 정보만 제거합니다.
-                if (isHost)
-                {
-                    await LobbyService.Instance.DeleteLobbyAsync(currentLobby.Id);
-                }
-                else
-                {
-                    await LobbyService.Instance.RemovePlayerAsync(
-                        currentLobby.Id,
-                        AuthenticationService.Instance.PlayerId
-                    );
-                }
-            }
-
-            currentLobby = null;
-            isHost = false;
-            StopHeartbeat();
-
-            SetStatus("방에서 나왔습니다.");
+            if (owned) await LobbyService.Instance.DeleteLobbyAsync(room.Id);
+            else await LobbyService.Instance.RemovePlayerAsync(room.Id, AuthenticationService.Instance.PlayerId);
         }
-        catch (Exception exception)
-        {
-            SetStatus($"방 나가기 실패: {exception.Message}", true);
-        }
+        catch (Exception e) { Debug.LogWarning($"방 정리 실패: {e.Message}"); }
     }
 
     /// <summary>
@@ -230,7 +271,8 @@ public class LobbyRelayManager : MonoBehaviour
     /// </summary>
     private bool CanStartNetwork()
     {
-        if (!AuthenticationService.Instance.IsSignedIn)
+        if (busy || currentLobby != null) return false;
+        if (Unity.Services.Core.UnityServices.State != Unity.Services.Core.ServicesInitializationState.Initialized || !AuthenticationService.Instance.IsSignedIn)
         {
             SetStatus("UGS 로그인이 아직 완료되지 않았습니다.", true);
             return false;
@@ -268,7 +310,7 @@ public class LobbyRelayManager : MonoBehaviour
         while (isHost && currentLobby != null)
         {
             // Lobby는 일정 시간 활동이 없으면 사라질 수 있으므로 15초마다 유지 신호를 보냅니다.
-            yield return new WaitForSeconds(15f);
+            yield return new WaitForSecondsRealtime(15f);
             SendHeartbeat();
         }
     }

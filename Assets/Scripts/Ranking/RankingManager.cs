@@ -51,6 +51,8 @@ namespace CrosswalkRun
         public void AddScore(ulong clientId, string playerName, int points)
         {
             if (!IsServer) return;
+            // 모든 미니게임은 점수 저장 시 동일한 참가자 닉네임을 사용한다.
+            if (PartyRoster.Current != null) playerName = PartyRoster.Current.NameFor(clientId, playerName);
 
             for (int i = 0; i < ScoreList.Count; i++)
             {
