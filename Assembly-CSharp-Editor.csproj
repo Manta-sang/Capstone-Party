@@ -60,12 +60,27 @@
     <Analyzer Include="C:\Unity Editor\2022.3.62f2\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallBoundaryFit.cs" />
+    <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryRequest.cs" />
+    <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallAllCrystalLights.cs" />
+    <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryPolish.cs" />
+    <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryBuilder.cs" />
+    <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryRefine.cs" />
     <Compile Include="Assets\FREE\Pack_FREE_PartyCharacters\Editor\CharacterPromoWindow.cs" />
+    <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryContactLayout.cs" />
+    <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryFrontLayout.cs" />
+    <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryMotionUpgrade.cs" />
+    <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallSideTier.cs" />
+    <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallLandingValidation.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallValidation.cs" />
+    <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallAppearance.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallBuilder.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallResize.cs" />
     <Compile Include="Assets\FREE\Pack_FREE_PartyCharacters\Editor\FreeCharacterCustomizerWindow.cs" />
+    <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallUniformGrid.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\Editor\CrosswalkModularBuilder.cs" />
+    <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallIntegration.cs" />
+    <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallArenaSix.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

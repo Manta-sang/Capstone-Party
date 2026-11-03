@@ -64,16 +64,20 @@
     <Compile Include="Assets\Scripts\CustomCylinderCollider.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\PrefabRoadManager.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\AutoScrollCamera.cs" />
+    <Compile Include="Assets\Scripts\BlockFall\BlockFallCellArea.cs" />
     <Compile Include="Assets\Scripts\TileFlip\TF_TilePaintTracker.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_Blade.cs" />
     <Compile Include="Assets\Scripts\Ranking\RankingUI.cs" />
     <Compile Include="Assets\Scripts\PartyTitle.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CharacterRoundRestart.cs" />
+    <Compile Include="Assets\Scripts\BlockFall\BlockFallCrystalGlow.cs" />
     <Compile Include="Assets\Scripts\PartyRoomView.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_GameManager.cs" />
     <Compile Include="Assets\Scripts\ClientNetworkTransform.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_PlayerDeath.cs" />
+    <Compile Include="Assets\Scripts\BlockFall\BlockFallVisual.cs" />
     <Compile Include="Assets\Scripts\TileFlip\TF_GameManager.cs" />
+    <Compile Include="Assets\Scripts\BlockFall\BlockFallArenaBoundary.cs" />
     <Compile Include="Assets\Scripts\CustomSpawner.cs" />
     <Compile Include="Assets\Scripts\Qte\QteRunner.cs" />
     <Compile Include="Assets\Scripts\TileFlip\TF_Tile.cs" />
@@ -104,6 +108,7 @@
     <Compile Include="Assets\Scripts\CrosswalkRun\CrosswalkGameManager.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\Scripts\BlockFall\PastelMarble.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Overlay.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap.shader" />
@@ -119,8 +124,10 @@
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Leading Characters.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Properties.cginc" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Surface.cginc" />
+    <None Include="Assets\Scripts\BlockFall\CrystalHalo.shader" />
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Following Characters.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Masking.shader" />
+    <None Include="Assets\Scripts\BlockFall\Warning.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF Overlay.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap-Mobile.shader" />
     <None Include="Assets\TextMesh Pro\Fonts\LiberationSans - OFL.txt" />

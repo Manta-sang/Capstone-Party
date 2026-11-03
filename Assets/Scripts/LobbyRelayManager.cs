@@ -77,13 +77,6 @@ public class LobbyRelayManager : MonoBehaviour
     private Coroutine heartbeatCoroutine;
 
     /// <summary>
-    /// 참가자에게 공유할 현재 Lobby Code입니다.
-    /// 아직 방이 없으면 빈 문자열을 반환합니다.
-    /// </summary>
-    public string CurrentLobbyCode =>
-        RoomNumber ?? string.Empty;
-
-    /// <summary>
     /// UI가 상태 메시지를 받을 수 있도록 알립니다.
     /// </summary>
     public event Action<string> StatusChanged;
@@ -173,7 +166,7 @@ public class LobbyRelayManager : MonoBehaviour
                 throw new Exception("NGO Host를 시작하지 못했습니다.");
             }
 
-            SetStatus($"방번호 {RoomNumber} · 대기실로 이동합니다.");
+            SetStatus("대기실로 이동 중…");
             var status = networkManager.SceneManager.LoadScene(waitingScene, UnityEngine.SceneManagement.LoadSceneMode.Single);
             if (status != Unity.Netcode.SceneEventProgressStatus.Started) throw new Exception($"대기실 이동 실패: {status}");
         }
