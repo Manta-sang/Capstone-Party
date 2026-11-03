@@ -31,6 +31,7 @@ namespace CrosswalkRun
 
         private bool loadCompleted;
         private bool loading;
+        public bool IsLoading => loading;
         public bool ParticipantsReady { get; set; } = true;
         public bool CanStart => startButton != null && startButton.interactable && !loading;
 

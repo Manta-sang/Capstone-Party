@@ -8,6 +8,8 @@ using CrosswalkRun;
 public sealed class CharacterCabinLobby : MonoBehaviour {
  public TMP_Text roomNumber, rosterText, hint, nameTemplate;
  public Button startButton, readyButton;
+ public Button leaveButton;
+ bool leaving;
  public TMP_Text readyLabel;
  public GameObject gameSelection;
  public CharacterRoundRestart round;
@@ -15,6 +17,8 @@ public sealed class CharacterCabinLobby : MonoBehaviour {
  public bool showGameStartButton=true;
  public bool showReadyButton=true;
  public Sprite roundedSprite;
+ [Header("기내에서 걸을 수 있는 앞뒤 범위")]
+ public Vector2 walkableZ=new Vector2(-4,4);
  readonly Dictionary<ulong,RectTransform> labels=new Dictionary<ulong,RectTransform>();
  readonly Dictionary<ulong,NetworkObject> players=new Dictionary<ulong,NetworkObject>();
  readonly List<ulong> stale=new List<ulong>();
@@ -39,8 +43,9 @@ public sealed class CharacterCabinLobby : MonoBehaviour {
   var n=NetworkManager.Singleton;bool online=n!=null&&n.IsListening,host=online&&n.IsServer;
   startButton.gameObject.SetActive(showGameStartButton&&host);
   readyButton.gameObject.SetActive(showReadyButton&&online&&!host);
-  startButton.interactable=host&&round.CanStart;
-  readyButton.interactable=online&&roster!=null&&n.LocalClient!=null&&n.LocalClient.PlayerObject!=null;
+  startButton.interactable=!leaving&&host&&round.CanStart;
+  readyButton.interactable=!leaving&&online&&roster!=null&&n.LocalClient!=null&&n.LocalClient.PlayerObject!=null;
+  if(leaveButton!=null)leaveButton.interactable=!leaving&&online&&!round.IsLoading;
   if(gameSelection.activeSelf&&(!host||!round.CanStart))gameSelection.SetActive(false);
  }
  void Refresh(){
@@ -91,12 +96,18 @@ public sealed class CharacterCabinLobby : MonoBehaviour {
   foreach(var player in players.Values){
    if(player==null||!player.IsOwner)continue;
    var body=player.GetComponent<Rigidbody>();if(body==null)continue;
-   var p=body.position;var corrected=new Vector3(Mathf.Clamp(p.x,-10f,16f),p.y,Mathf.Clamp(p.z,-4f,4f));
+   var p=body.position;var corrected=new Vector3(Mathf.Clamp(p.x,-10f,16f),p.y,Mathf.Clamp(p.z,walkableZ.x,walkableZ.y));
    if(p.y<-.5f)corrected.y=1;
    if(corrected!=p){body.position=corrected;var v=body.velocity;if(corrected.x!=p.x)v.x=0;if(corrected.z!=p.z)v.z=0;if(corrected.y!=p.y)v.y=0;body.velocity=v;}
   }
  }
- public void OpenGames(){if(round.CanStart&&NetworkManager.Singleton.IsServer)round.StartRandomGame();}
+ public void OpenGames(){if(!leaving&&round.CanStart&&NetworkManager.Singleton.IsServer)round.StartRandomGame();}
+ public void LeaveRoom(){
+  if(leaving)return;
+  var manager=FindObjectOfType<LobbyRelayManager>();
+  if(manager==null||manager.IsBusy)return;
+  leaving=true;manager.LeaveRoom();
+ }
  public void CloseGames(){gameSelection.SetActive(false);}
  public void ToggleReady(){
   if(roster==null||NetworkManager.Singleton==null)return;

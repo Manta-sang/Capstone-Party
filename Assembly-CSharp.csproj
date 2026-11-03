@@ -75,6 +75,7 @@
     <Compile Include="Assets\Scripts\BlockFall\BlockFallCrystalGlow.cs" />
     <Compile Include="Assets\Scripts\PartyRoomView.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_GameManager.cs" />
+    <Compile Include="Assets\Scripts\Presentation\TicketSweepTransition.cs" />
     <Compile Include="Assets\Scripts\ClientNetworkTransform.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_PlayerDeath.cs" />
     <Compile Include="Assets\Scripts\BlockFall\BlockFallVisual.cs" />
@@ -95,6 +96,7 @@
     <Compile Include="Assets\Scripts\CrosswalkRun\SlipperyZone.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CrosswalkNetworkEntry.cs" />
     <Compile Include="Assets\Scripts\NetController.cs" />
+    <Compile Include="Assets\Scripts\Presentation\SoftTicketGradient.cs" />
     <Compile Include="Assets\Scripts\PartyFlow\PartyDeveloperTools.cs" />
     <Compile Include="Assets\Scripts\LobbyUI.cs" />
     <Compile Include="Assets\Scripts\BlockFall\BlockFallLobby.cs" />
@@ -111,6 +113,7 @@
     <Compile Include="Assets\Scripts\PartyFlow\PartyButtonFeedback.cs" />
     <Compile Include="Assets\Scripts\CharacterCabin\CharacterCabinCamera.cs" />
     <Compile Include="Assets\Scripts\PartyRoster.cs" />
+    <Compile Include="Assets\Scripts\Presentation\PartySplash.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CrosswalkGameManager.cs" />
   </ItemGroup>
   <ItemGroup>
