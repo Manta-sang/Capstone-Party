@@ -5,6 +5,7 @@ public class NetController : MonoBehaviour
 {
     void OnGUI()
     {
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "CrosswalkRun") return;
         // 화면 좌측 상단에 박스 영역을 그림
         GUILayout.BeginArea(new Rect(20, 20, 250, 150));
 

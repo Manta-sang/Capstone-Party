@@ -5,7 +5,7 @@ using Unity.Netcode;
 using UnityEngine.SceneManagement;
 using CrosswalkRun;
 
-// 알파 테스트: 서버에서 누적된 점수를 표시하고 호스트 버튼으로 같은 방의 로비에 돌아갑니다.
+// 누적 순위를 표시하고 남은 게임으로 이어갑니다. 순회가 끝나면 캐릭터 로비로 돌아갑니다.
 public class RankingUI : MonoBehaviour
 {
     [Header("순위 텍스트 UI (1등~4등)")]
@@ -15,11 +15,13 @@ public class RankingUI : MonoBehaviour
     public TextMeshProUGUI actionButtonText;
     [Header("랭킹 확인 후 이동")]
     [SerializeField] private string returnSceneName = "Character";
-    [SerializeField] private string returnButtonLabel = "캐릭터 로비로 돌아가기";
+    [SerializeField] private string returnButtonLabel = "다음 게임으로 가기";
+    [SerializeField] private TMP_Text flowHint;
     private RankingManager ranking;
     private NetworkManager network;
     private bool sceneReady;
     private bool loading;
+    private bool FinalResult => PartyRoster.Current != null ? PartyRoster.Current.GamesStarted.Value >= PartyGameRotation.Scenes.Length : PartyGameRotation.IsComplete;
 
     // 모든 참가자의 랭킹 씬 로딩이 끝나기 전에 다음 씬을 요청하지 않습니다.
     private void Awake()
@@ -56,6 +58,8 @@ public class RankingUI : MonoBehaviour
         }
         if (actionButton != null)
             actionButton.interactable = network != null && network.IsListening && network.IsServer && sceneReady && !loading;
+        if(actionButtonText!=null)actionButtonText.text=FinalResult?"캐릭터 로비로 돌아가기":"다음 게임으로 가기";
+        if(flowHint!=null)flowHint.text=FinalResult?"최종 누적 결과입니다. 호스트가 버튼을 누르면 모두 로비로 돌아갑니다.":"호스트가 버튼을 누르면 모두 다음 무작위 게임으로 이동합니다.";
     }
 
     private void OnScoreChanged(NetworkListEvent<PlayerScoreData> change) => RefreshScores();
@@ -77,10 +81,16 @@ public class RankingUI : MonoBehaviour
         }
     }
 
-    // Inspector의 On Click에서 연결합니다. 목적지는 이 컴포넌트의 Return Scene Name으로 지정합니다.
+    // 중간 결과에서는 다음 게임, 최종 결과에서는 Inspector의 로비 씬으로 이동합니다.
     public void OnActionButtonClicked()
     {
         if (network == null || !network.IsListening || !network.IsServer || !sceneReady || loading) return;
+        if(!PartyGameRotation.IsComplete)
+        {
+            loading=true;if(actionButton!=null)actionButton.interactable=false;
+            if(!PartyGameRotation.StartRandom(network,out string error)){loading=false;Debug.LogError("[Ranking 다음 게임] "+error);}
+            return;
+        }
         if (string.IsNullOrWhiteSpace(returnSceneName) || !Application.CanStreamedLevelBeLoaded(returnSceneName))
         {
             Debug.LogError("[Ranking 이동] Build Settings에서 이동할 씬을 확인해 주세요: " + returnSceneName);

@@ -429,6 +429,7 @@ public class SD_GameManager : NetworkBehaviour
 
     private void OnGUI()
     {
+        if (gameObject.scene.name != "CrosswalkRun") return;
         if (!showDebugHUD) return;
 
         GUILayout.BeginArea(new Rect(Screen.width - 260f, 10f, 250f, 160f), GUI.skin.box);
@@ -465,4 +466,6 @@ public class SD_GameManager : NetworkBehaviour
 
         GUILayout.EndArea();
     }
+    public string DeveloperStatus => !IsSpawned ? "멀티플레이 방에서 입장하세요." : IsGameOver ? "게임 종료 · 결과 화면 이동 중" : $"생존 {AliveCount}명";
+    public void RetryDeveloperResults() { if (IsServer && IsGameOver && !returningToLobby) BeginLobbyReturn(); }
 }

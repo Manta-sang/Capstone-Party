@@ -230,16 +230,15 @@ namespace BlockFall
             result=text;
             var p=NetworkManager.LocalClient.PlayerObject; if(p!=null) Controls(p.gameObject,false);
         }
-        void OnGUI()
-        {
-            GUILayout.BeginArea(new Rect(20,20,330,240),GUI.skin.box);
-            GUILayout.Label("BLOCK FALL");
-            if(!IsSpawned) GUILayout.Label("Enter from the multiplayer lobby.");
-            else if(result!="") GUILayout.Label(result);
-            else if(begins.Value<0) GUILayout.Label("Waiting for players...");
-            else { double t=NetworkManager.ServerTime.Time-begins.Value; GUILayout.Label(t<0?$"Ready: {-t:F0}":$"Time: {Mathf.Max(0,duration-(float)t):F0} / Stage {DifficultyStage(t, duration) + 1}"); }
-            if (ended.Value) GUILayout.Label("Opening ranking...");
-            GUILayout.EndArea();
+        public string GameplayStatus => ended.Value ? "경기 종료 · 랭킹으로 이동 중" : DeveloperStatus;
+        public string DeveloperStatus {
+            get {
+                if(!IsSpawned)return "멀티플레이 방에서 입장하세요.";
+                if(result!="")return result;
+                if(begins.Value<0)return "참가자 준비 확인 중...";
+                double t=NetworkManager.ServerTime.Time-begins.Value;
+                return $"남은 시간 {Mathf.Max(0,duration-(float)t):F0}초 / 단계 {DifficultyStage(t,duration)+1}";
+            }
         }
         public override void OnNetworkDespawn()
         {

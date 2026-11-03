@@ -31,6 +31,8 @@ namespace CrosswalkRun
 
         private bool loadCompleted;
         private bool loading;
+        public bool ParticipantsReady { get; set; } = true;
+        public bool CanStart => startButton != null && startButton.interactable && !loading;
 
         // 씬 로딩 완료 이벤트를 Start 이전에 구독하여 빠른 호스트의 중복 전환을 막습니다.
         private void Awake()
@@ -74,6 +76,7 @@ namespace CrosswalkRun
             if (ready)
                 foreach (ulong id in network.ConnectedClientsIds)
                     if (network.SpawnManager.GetPlayerNetworkObject(id) == null) ready = false;
+            ready &= ParticipantsReady;
             startButton.interactable = ready;
             sawBladeButton.interactable = ready;
             if (qteButton != null) qteButton.interactable = ready;
@@ -100,6 +103,13 @@ namespace CrosswalkRun
         public void StartQte() => StartMiniGame(qteScene);
         public void StartTileFlip() => StartMiniGame(tileFlipScene);
         public void StartBlockFall() => StartMiniGame(blockFallScene);
+        public void StartRandomGame()
+        {
+            if (!CanStart || network == null || !network.IsServer) return;
+            loading = true; Update();
+            if (!PartyGameRotation.StartRandom(network, out string error))
+            { loading = false; Update(); statusText.text = error; Debug.LogWarning(error); }
+        }
 
         // 준비된 호스트만 선택할 수 있으며, 로딩 중에는 모든 버튼을 잠급니다.
         private void StartMiniGame(string sceneName)
