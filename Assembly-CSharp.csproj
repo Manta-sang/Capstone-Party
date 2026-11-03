@@ -66,10 +66,12 @@
     <Compile Include="Assets\Scripts\CrosswalkRun\AutoScrollCamera.cs" />
     <Compile Include="Assets\Scripts\BlockFall\BlockFallCellArea.cs" />
     <Compile Include="Assets\Scripts\TileFlip\TF_TilePaintTracker.cs" />
+    <Compile Include="Assets\Scripts\Qte\QteSceneController.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_Blade.cs" />
     <Compile Include="Assets\Scripts\Ranking\RankingUI.cs" />
     <Compile Include="Assets\Scripts\PartyTitle.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CharacterRoundRestart.cs" />
+    <Compile Include="Assets\Scripts\PartyFlow\PartyGameRotation.cs" />
     <Compile Include="Assets\Scripts\BlockFall\BlockFallCrystalGlow.cs" />
     <Compile Include="Assets\Scripts\PartyRoomView.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_GameManager.cs" />
@@ -93,6 +95,7 @@
     <Compile Include="Assets\Scripts\CrosswalkRun\SlipperyZone.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CrosswalkNetworkEntry.cs" />
     <Compile Include="Assets\Scripts\NetController.cs" />
+    <Compile Include="Assets\Scripts\PartyFlow\PartyDeveloperTools.cs" />
     <Compile Include="Assets\Scripts\LobbyUI.cs" />
     <Compile Include="Assets\Scripts\BlockFall\BlockFallLobby.cs" />
     <Compile Include="Assets\Scripts\BlockFall\BlockFallGame.cs" />
@@ -100,10 +103,12 @@
     <Compile Include="Assets\Scripts\PlayerInteraction.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\IKillable.cs" />
     <Compile Include="Assets\Scripts\ClientNetworkAnimator.cs" />
+    <Compile Include="Assets\Scripts\CharacterCabin\CharacterCabinLobby.cs" />
     <Compile Include="Assets\Scripts\TileFlip\TF_CameraFollow.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_BladeSpawner.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_CameraFollow.cs" />
     <Compile Include="Assets\Scripts\SceneLoader.cs" />
+    <Compile Include="Assets\Scripts\PartyFlow\PartyButtonFeedback.cs" />
     <Compile Include="Assets\Scripts\PartyRoster.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CrosswalkGameManager.cs" />
   </ItemGroup>
