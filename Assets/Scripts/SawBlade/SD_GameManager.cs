@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Linq;
 using Unity.Netcode;
@@ -51,6 +51,15 @@ public class SD_GameManager : NetworkBehaviour
     [SerializeField] private float flightDuration = 1.2f;
     [Tooltip("죽은 뒤 이 시간(초)이 지나면 플레이어 오브젝트가 제거된다")]
     [SerializeField] private float removeDelay = 3f;
+
+    [Header("종료 연출 (살아남은 플레이어)")]
+    [Tooltip("게임이 끝나면 살아남은 내 캐릭터가 카메라 쪽(화면 정면)을 바라보게 한다. Y축으로만 회전한다")]
+    [SerializeField] private bool faceCameraAtEnd = true;
+    [Tooltip("카메라 쪽으로 돌아서는 데 걸리는 시간(초)")]
+    [SerializeField] private float faceCameraDuration = 0.4f;
+
+    private static readonly int IsMovingHash = Animator.StringToHash("isMoving");
+    private NetworkObject localPlayerObject; // 이 컴퓨터의 내 플레이어
 
     // 모든 참가자에게 공유되는 상태 (값을 바꾸는 건 Host만)
     private readonly NetworkVariable<int> expectedPlayersNet = new NetworkVariable<int>(0);
@@ -250,6 +259,7 @@ public class SD_GameManager : NetworkBehaviour
     // 내 캐릭터를 카메라와 관전 카메라에 연결한다
     private void HookLocalPlayer(NetworkObject localPlayer)
     {
+        localPlayerObject = localPlayer;
         if (cameraFollow != null) cameraFollow.SetTarget(localPlayer.transform);
         if (spectatorCamera != null) spectatorCamera.SetLocalPlayer(localPlayer.GetComponent<SD_PlayerDeath>());
     }
@@ -380,7 +390,75 @@ public class SD_GameManager : NetworkBehaviour
             player.SetControlsEnabled(false);
             if (winnerIdNet.Value != NoWinner && player.OwnerId == winnerIdNet.Value) winner = player;
         }
+        StartCoroutine(EndPoseRoutine());
         GameOver?.Invoke(winner);
+    }
+
+    // 게임이 끝났을 때 살아남은 내 캐릭터를 멈추고 카메라 쪽(화면 정면)을 바라보게 한다. (Y축 회전만)
+    // 위치와 회전은 그 캐릭터의 주인 컴퓨터만 정하고, 다른 컴퓨터에는 위치 동기화로 보인다. 그래서 내 플레이어만 처리한다.
+    // 이미 죽은 플레이어는 날아가는 연출이 진행 중이므로 건드리지 않는다.
+    private IEnumerator EndPoseRoutine()
+    {
+        NetworkObject player = localPlayerObject;
+        if (player == null) yield break;
+
+        SD_PlayerDeath death = player.GetComponent<SD_PlayerDeath>();
+        if (death != null && death.IsDead) yield break;
+
+        Rigidbody rb = player.GetComponent<Rigidbody>();
+
+        // 달리기 애니메이션 정지 (PlayerMovement가 쓰는 isMoving)
+        Animator anim = player.GetComponentInChildren<Animator>();
+        if (anim != null) anim.SetBool(IsMovingHash, false);
+
+        Quaternion startRotation = player.transform.rotation;
+        Quaternion targetRotation = startRotation;
+        bool canFace = faceCameraAtEnd && TryGetFacingRotation(out targetRotation);
+
+        float duration = Mathf.Max(0.01f, faceCameraDuration);
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            // 오브젝트가 사라졌거나 그 사이에 죽었으면(죽음 연출이 위치를 가져간다) 중단
+            if (player == null || (death != null && death.IsDead)) yield break;
+
+            elapsed += Time.deltaTime;
+
+            // 돌아서는 동안 남은 이동 속도(관성)를 계속 지워서 미끄러지지 않게 한다
+            if (rb != null && !rb.isKinematic)
+            {
+                rb.velocity = new Vector3(0f, rb.velocity.y, 0f);
+                rb.angularVelocity = Vector3.zero;
+            }
+
+            if (canFace)
+                player.transform.rotation = Quaternion.Slerp(startRotation, targetRotation, Mathf.Clamp01(elapsed / duration));
+
+            yield return null;
+        }
+    }
+
+    // 카메라 쪽을 바라보는 회전값 (Y축으로만 회전)
+    private bool TryGetFacingRotation(out Quaternion rotation)
+    {
+        Transform cam = cameraFollow != null ? cameraFollow.transform : (Camera.main != null ? Camera.main.transform : null);
+        rotation = Quaternion.identity;
+        if (cam == null) return false;
+
+        Vector3 facing = -cam.forward;
+        facing.y = 0f;
+
+        // 카메라가 거의 수직으로 내려다보면 화면 아래쪽을 정면으로 본다
+        if (facing.sqrMagnitude < 0.0001f)
+        {
+            facing = -cam.up;
+            facing.y = 0f;
+        }
+        if (facing.sqrMagnitude < 0.0001f) return false;
+
+        rotation = Quaternion.LookRotation(facing.normalized, Vector3.up);
+        return true;
     }
 
     // 최초 복귀와 실패 후 재시도 모두 호스트만 실행합니다.
