@@ -84,6 +84,17 @@ public class TF_GameManager : NetworkBehaviour
     private bool roundStarted;
     private bool gameOverRaised;
 
+    [Header("게임 종료 후 이동 (SD_GameManager와 같은 방식)")]
+    [Tooltip("게임이 끝난 뒤 Host가 네트워크로 불러올 결과 씬. Build Settings에 등록되어 있어야 한다")]
+    [SerializeField] private string resultSceneName = "Ranking";
+    [Tooltip("게임이 끝난 뒤 결과 씬으로 이동하기까지 기다리는 시간(초)")]
+    [SerializeField, Min(0f)] private float resultDelay = 3f;
+    [Tooltip("게임이 끝난 뒤 결과/이동 안내(와 이동 실패 시 재시도 버튼)를 화면에 띄운다")]
+    [SerializeField] private bool showResultHUD = true;
+
+    private bool returningToLobby;
+    private string returnError;
+
     // 칠하기 보고를 한 참가자가 몇 번 자리인지 서버가 직접 알아내기 위한 표 (Host에서만 사용)
     private readonly Dictionary<ulong, int> slotOfClient = new Dictionary<ulong, int>();
     private int localSlot = -1; // 이 컴퓨터의 내 플레이어 자리 번호
@@ -493,7 +504,9 @@ public class TF_GameManager : NetworkBehaviour
 
         Debug.Log($"[TF] 게임 종료. 점수: {scoreText}/ 승자 마스크: {mask}");
 
+        AwardRankingScores(max);
         winnersMaskNet.Value = mask;
+        BeginLobbyReturn();
     }
 
     // 모든 컴퓨터에서 호출된다
@@ -523,8 +536,96 @@ public class TF_GameManager : NetworkBehaviour
     [ContextMenu("Restart Game")]
     public void RestartGame()
     {
-        if (!IsSpawned || !IsServer) return;
+        if (!IsSpawned || !IsServer || IsGameOver || returningToLobby) return;
         NetworkManager.SceneManager.LoadScene(gameObject.scene.name, LoadSceneMode.Single);
+    }
+
+    // ---------------------------------------------------------------- 종료 후 처리 (점수 기록, 결과 씬 이동)
+
+    // Host 전용: 타일 수 순위로 랭킹 점수를 기록한다. 횡단보도·SD와 같은 3/2/1/0점 규칙이고, 동점은 같은 순위(같은 점수)로 본다.
+    // 아무도 칠하지 못했으면(max가 0) 기록하지 않는다. 매니저가 없더라도 기존 종료·이동 처리는 유지한다.
+    private void AwardRankingScores(int max)
+    {
+        if (!IsServer || max <= 0 || grid == null) return;
+
+        var ranking = CrosswalkRun.RankingManager.Instance;
+        if (ranking == null || !ranking.IsSpawned)
+        {
+            Debug.LogError("[TF 점수] RankingManager가 네트워크에 생성되지 않아 점수를 기록하지 못했습니다.");
+            return;
+        }
+
+        foreach (KeyValuePair<ulong, int> participant in slotOfClient)
+        {
+            int score = grid.GetScore(participant.Value);
+            int rank = 1 + slotOfClient.Values.Count(otherSlot => grid.GetScore(otherSlot) > score);
+            ranking.AddScore(participant.Key, $"Player {participant.Key}", Mathf.Max(0, 4 - rank));
+        }
+    }
+
+    // 최초 이동과 실패 후 재시도 모두 호스트만 실행한다.
+    private void BeginLobbyReturn()
+    {
+        if (!IsSpawned || !IsServer || !IsGameOver || returningToLobby) return;
+        returningToLobby = true;
+        returnError = null;
+        StartCoroutine(ReturnToLobby());
+    }
+
+    private IEnumerator ReturnToLobby()
+    {
+        // 타임스케일과 무관하게 Inspector에 지정한 시간만큼 종료 연출을 보여 준 뒤 방 연결을 유지하며 이동한다.
+        yield return new WaitForSecondsRealtime(resultDelay);
+        if (!IsSpawned || NetworkManager == null || !NetworkManager.IsListening || !IsServer)
+        {
+            returningToLobby = false;
+            yield break;
+        }
+        var sceneManager = NetworkManager.SceneManager;
+        if (sceneManager == null)
+        {
+            returnError = "네트워크 씬 관리자가 없습니다.";
+        }
+        else if (string.IsNullOrWhiteSpace(resultSceneName) || !Application.CanStreamedLevelBeLoaded(resultSceneName))
+        {
+            returnError = "Build Settings에서 결과 씬을 확인해 주세요: " + resultSceneName;
+        }
+        else
+        {
+            var status = sceneManager.LoadScene(resultSceneName, LoadSceneMode.Single);
+            if (status == SceneEventProgressStatus.Started) yield break;
+            returnError = resultSceneName + " 이동 실패: " + status;
+        }
+        returningToLobby = false;
+        Debug.LogError("[TF 복귀] " + returnError);
+    }
+
+    // 게임이 끝난 뒤에만 보이는 작은 안내창. 이동 요청이 실패하면 자동 반복 대신 호스트가 명시적으로 다시 시도한다.
+    private void OnGUI()
+    {
+        if (!showResultHUD || !IsGameOver) return;
+
+        GUILayout.BeginArea(new Rect(Screen.width - 260f, 10f, 250f, 160f), GUI.skin.box);
+        GUILayout.Label("[ 타일 뒤집기 ]");
+
+        if (winners.Count == 0)
+        {
+            GUILayout.Label("게임 종료: 승자 없음");
+        }
+        else
+        {
+            string names = string.Join(", ", winners.Select(slot => "P" + (slot + 1)));
+            GUILayout.Label(winners.Count == 1 ? $"승리: {names}" : $"공동 승리: {names}");
+        }
+
+        GUILayout.Label(resultSceneName + " 씬으로 이동합니다...");
+        if (IsServer && !returningToLobby && !string.IsNullOrEmpty(returnError))
+        {
+            GUILayout.Label(returnError);
+            if (GUILayout.Button("결과 화면 이동 재시도")) BeginLobbyReturn();
+        }
+
+        GUILayout.EndArea();
     }
 
     // ---------------------------------------------------------------- 종료 연출

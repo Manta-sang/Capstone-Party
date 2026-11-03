@@ -8684,6 +8684,9 @@ MonoBehaviour:
   lockControlsAtEnd: 1
   faceCameraAtEnd: 1
   faceCameraDuration: 0.4
+  resultSceneName: Ranking
+  resultDelay: 3
+  showResultHUD: 0
 --- !u!114 &1899639670
 MonoBehaviour:
   m_ObjectHideFlags: 0
