@@ -61,6 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\CrosswalkRun\CarSpawner.cs" />
+    <Compile Include="Assets\Scripts\FinalRanking\AirportAtmosphere.cs" />
     <Compile Include="Assets\Scripts\CustomCylinderCollider.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\PrefabRoadManager.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\AutoScrollCamera.cs" />
@@ -69,6 +70,7 @@
     <Compile Include="Assets\Scripts\Qte\QteSceneController.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_Blade.cs" />
     <Compile Include="Assets\Scripts\Ranking\RankingUI.cs" />
+    <Compile Include="Assets\Scripts\GameplayUI\PartyJumpProbe.cs" />
     <Compile Include="Assets\Scripts\PartyTitle.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CharacterRoundRestart.cs" />
     <Compile Include="Assets\Scripts\PartyFlow\PartyGameRotation.cs" />
@@ -85,6 +87,7 @@
     <Compile Include="Assets\Scripts\BlockFall\BlockFallVisual.cs" />
     <Compile Include="Assets\Scripts\TileFlip\TF_GameManager.cs" />
     <Compile Include="Assets\Scripts\BlockFall\BlockFallArenaBoundary.cs" />
+    <Compile Include="Assets\Scripts\PartyFlow\PartyScoreRules.cs" />
     <Compile Include="Assets\Scripts\CustomSpawner.cs" />
     <Compile Include="Assets\Scripts\Qte\QteRunner.cs" />
     <Compile Include="Assets\Scripts\TileFlip\TF_Tile.cs" />
@@ -98,6 +101,7 @@
     <Compile Include="Assets\Scripts\PlayerMovement.cs" />
     <Compile Include="Assets\Scripts\FinalRanking\FinalRanking.cs" />
     <Compile Include="Assets\Scripts\LobbyRelayManager.cs" />
+    <Compile Include="Assets\Scripts\GameplayUI\RoundEndFacing.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CarObstacle.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\SlipperyZone.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CrosswalkNetworkEntry.cs" />

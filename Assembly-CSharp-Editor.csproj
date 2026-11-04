@@ -75,6 +75,7 @@
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryContactLayout.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryFrontLayout.cs" />
     <Compile Include="Assets\Editor\TicketPresentationRefinement.cs" />
+    <Compile Include="Assets\Editor\AirportRuinUpgrade.cs" />
     <Compile Include="Assets\Editor\GameStartUIBuilder.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryMotionUpgrade.cs" />
     <Compile Include="Assets\Editor\BoardingPassUI.cs" />
@@ -98,6 +99,7 @@
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallIntegration.cs" />
     <Compile Include="Assets\Editor\PartyFlowBuilder.cs" />
     <Compile Include="Assets\Editor\PartyFinaleRefinement.cs" />
+    <Compile Include="Assets\Editor\AircraftMetalPolish.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallArenaSix.cs" />
     <Compile Include="Assets\Editor\GameplayUIValidation.cs" />
     <Compile Include="Assets\Editor\CharacterCabinBuilder.cs" />

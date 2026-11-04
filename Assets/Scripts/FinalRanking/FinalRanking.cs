@@ -12,6 +12,7 @@ public sealed class FinalRanking : MonoBehaviour
     public GameObject crownPrefab;
     public TMP_Text winnerText, rankingText, returnText;
     public TMP_Text[] scoreRows;
+    public TMP_Text[] scoreValues;
     [Min(1)] public float celebrationSeconds = 15;
     public string returnScene = "Character";
     public Vector2 walkableX = new Vector2(-8.5f, 7.2f), walkableZ = new Vector2(-3, 5.5f);
@@ -119,7 +120,8 @@ public sealed class FinalRanking : MonoBehaviour
         }
         int slot = Mathf.Clamp(index >= 0 ? index : fallbackSlot,1,displaySpots.Length-1);
         var spot = displaySpots[slot];
-        rotation = spot.rotation * Quaternion.Euler(0,0,90);
+        // Side fall, face-down and face-up, each with a distinct heading.
+        rotation = spot.rotation * (slot==1?Quaternion.Euler(8,0,90):slot==2?Quaternion.Euler(90,18,12):Quaternion.Euler(-90,-23,-14));
         // The avatar's pivot is at its feet; offset by half its height to center the horizontal body on the marker.
         position = spot.position + Vector3.up*.53f - rotation*Vector3.up*1.1f;
     }
@@ -135,14 +137,15 @@ public sealed class FinalRanking : MonoBehaviour
         for (int i = 0; i < scoreRows.Length; i++)
         {
             var row = scoreRows[i]; row.gameObject.SetActive(i < scores.Count);
-            if (i >= scores.Count) continue;
+            if (i >= scores.Count){if(scoreValues!=null&&i<scoreValues.Length&&scoreValues[i]!=null)scoreValues[i].gameObject.SetActive(false);continue;}
             var entry = scores[i]; if (i > 0 && entry.Score != scores[i - 1].Score) rank = i + 1;
             bool won = rank == 1;
             if (won) winners += (winners.Length > 0 ? " · " : "") + entry.PlayerName;
             row.fontSize = won ? 44 : 29;
             row.fontSizeMax = won ? 44 : 29; row.fontSizeMin = won ? 30 : 23; row.enableAutoSizing = true;
             row.color = won ? new Color(1, .81f, .32f) : new Color(.91f, .95f, 1);
-            row.text = $"{rank}위  {entry.PlayerName}   {entry.Score}점";
+            row.text = $"{rank}위  {entry.PlayerName}";
+            if(scoreValues!=null&&i<scoreValues.Length&&scoreValues[i]!=null){var value=scoreValues[i];value.gameObject.SetActive(true);value.text=entry.Score+"점";value.color=row.color;value.fontSize=won?44:29;}
         }
         winnerText.text = scores.Count == 0 ? "최종 결과를 기다리는 중..." : winners + "\n최종 우승을 축하합니다!";
     }
