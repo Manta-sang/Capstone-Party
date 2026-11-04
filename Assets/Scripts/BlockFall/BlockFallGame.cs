@@ -160,7 +160,12 @@ namespace BlockFall
             }
             if(IsServer && !ended.Value && contactDeaths.Count>0){
                 int rank=alive.Count-contactDeaths.Count+1;
-                foreach(var id in contactDeaths){ranks[id]=rank;alive.Remove(id);DeathClientRpc(id);}
+                foreach(var id in contactDeaths){
+                    ranks[id]=rank;
+                    alive.Remove(id);
+                    var player=NetworkManager.SpawnManager.GetPlayerNetworkObject(id);
+                    if(player!=null)DeathClientRpc(new NetworkObjectReference(player));
+                }
                 if(RoundHasWinner)Finish();
             }
         }
@@ -177,14 +182,13 @@ namespace BlockFall
             for(int i=0;i<indices.Length;i++) { visuals[i]=pool.Count>0?pool.Pop():Instantiate(blockVisual); visuals[i].SetActive(true); }
             waves.Add(new Wave { cells=indices,hit=hit,visuals=visuals });
         }
-        [ClientRpc] void DeathClientRpc(ulong id)
+        [ClientRpc] void DeathClientRpc(NetworkObjectReference playerReference)
         {
-            var p=NetworkManager.SpawnManager.GetPlayerNetworkObject(id);
-            if(p==null) return;
-            Controls(p.gameObject,false);
-            foreach(var c in p.GetComponentsInChildren<Collider>()) c.enabled=false;
-            foreach(var r in p.GetComponentsInChildren<Renderer>()) r.enabled=false;
-            var body=p.GetComponent<Rigidbody>(); if(body!=null) body.isKinematic=true;
+            if(!playerReference.TryGet(out var player,NetworkManager)) return;
+            Controls(player.gameObject,false);
+            foreach(var c in player.GetComponentsInChildren<Collider>()) c.enabled=false;
+            foreach(var r in player.GetComponentsInChildren<Renderer>()) r.enabled=false;
+            var body=player.GetComponent<Rigidbody>(); if(body!=null) body.isKinematic=true;
         }
         static void Controls(GameObject p,bool enabled)
         {
