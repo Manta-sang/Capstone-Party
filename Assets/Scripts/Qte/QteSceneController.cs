@@ -36,6 +36,7 @@ public sealed class QteSceneController : MonoBehaviour
     private const string ReadyMessage = "QTE.Entry.Ready";
     private const string ReadyStatusMessage = "QTE.Entry.ReadyStatus";
     private const string StartMessage = "QTE.Entry.Start";
+    private const string FinishCountdownMessage = "QTE.Finish.Countdown";
     private static readonly KeyCode[] Keys = { KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.LeftArrow, KeyCode.RightArrow };
     private static readonly string[] Arrows = { "↑", "↓", "←", "→" };
     private const int ArrowInputsPerHurdle=4;
@@ -50,6 +51,8 @@ public sealed class QteSceneController : MonoBehaviour
     private readonly HashSet<ulong> readyClients = new HashSet<ulong>();
     private readonly HashSet<ulong> finishedPlayers = new HashSet<ulong>();
     private readonly HashSet<ulong> playersPastStart = new HashSet<ulong>();
+    private readonly Dictionary<ulong, float> observedRaceDistance = new Dictionary<ulong, float>();
+    private readonly Dictionary<ulong, float> lastTrackCoordinate = new Dictionary<ulong, float>();
     private readonly Dictionary<int, GameObject> hurdles = new Dictionary<int, GameObject>();
     private readonly Dictionary<string, Material> materials = new Dictionary<string, Material>();
     private readonly Dictionary<Rigidbody, RunnerBodyState> runnerBodyStates = new Dictionary<Rigidbody, RunnerBodyState>();
@@ -68,6 +71,8 @@ public sealed class QteSceneController : MonoBehaviour
     public bool HasRoundStarted => gameStarted;
     public float CountdownRemaining => network == null || startsAt < 0 ? 0 : Mathf.Max(0, (float)(startsAt - network.ServerTime.Time));
     private bool rosterReceived, localReady, startScheduled, gameStarted, spawnRequested, localFinished, roundEnding;
+    private double finishWindowEndsAt = -1;
+    private int lastFinishCountdownSent = -1;
     private bool overviewMode = true;
     private string entryError;
     private float distanceAlongTrack, stunUntil;
@@ -111,6 +116,7 @@ public sealed class QteSceneController : MonoBehaviour
         messages.RegisterNamedMessageHandler(ReadyMessage, OnReadyReceived);
         messages.RegisterNamedMessageHandler(ReadyStatusMessage, OnReadyStatusReceived);
         messages.RegisterNamedMessageHandler(StartMessage, OnStartReceived);
+        messages.RegisterNamedMessageHandler(FinishCountdownMessage, OnFinishCountdownReceived);
         if (network.IsServer) network.SceneManager.OnLoadEventCompleted += OnSceneLoaded;
     }
 
@@ -140,6 +146,8 @@ public sealed class QteSceneController : MonoBehaviour
             if (player == null) { Destroy(instance); FailEntry("캐릭터 프리팹에 NetworkObject가 없습니다."); yield break; }
             player.SpawnAsPlayerObject(id, true);
             owners.Add(id); objectIds.Add(player.NetworkObjectId);
+            lastTrackCoordinate[id] = StartOffsetForLane(slot);
+            observedRaceDistance[id] = 0f;
         }
         rosterReceived = true;
         using (var writer = new FastBufferWriter(128, Allocator.Temp))
@@ -510,6 +518,13 @@ public sealed class QteSceneController : MonoBehaviour
         using(var w=new FastBufferWriter(12,Allocator.Temp)){w.WriteValueSafe(entryToken);w.WriteValueSafe(startsAt);foreach(ulong id in owners)if(id!=NetworkManager.ServerClientId&&network.ConnectedClients.ContainsKey(id))messages.SendNamedMessage(StartMessage,id,w,NetworkDelivery.ReliableSequenced);}
     }
     private void OnStartReceived(ulong sender,FastBufferReader r){if(sender!=NetworkManager.ServerClientId||network.IsServer)return;r.ReadValueSafe(out int token);r.ReadValueSafe(out double t);if(token==entryToken)startsAt=t;}
+    private void OnFinishCountdownReceived(ulong sender, FastBufferReader r)
+    {
+        if (sender != NetworkManager.ServerClientId || network.IsServer) return;
+        r.ReadValueSafe(out int token); r.ReadValueSafe(out int seconds);
+        if (token != entryToken || instructionText == null) return;
+        instructionText.text = seconds > 0 ? $"첫 주자 완주! 남은 시간 {seconds}초 · 달리세요" : "시간 종료! 남은 거리로 순위를 정합니다";
+    }
 
     private void LateUpdate()
     {
@@ -563,7 +578,10 @@ public sealed class QteSceneController : MonoBehaviour
         var ranking=RankingManager.Instance; bool canScore=ranking!=null&&ranking.IsSpawned;
         for(int i=0;i<objectIds.Count;i++)
         {
-            ulong owner=owners[i];if(finishedPlayers.Contains(owner)||!network.SpawnManager.SpawnedObjects.TryGetValue(objectIds[i],out var p))continue;
+            ulong owner=owners[i];
+            if(!network.SpawnManager.SpawnedObjects.TryGetValue(objectIds[i],out var p))continue;
+            UpdateObservedRaceDistance(owner, p.transform.position, i);
+            if(finishedPlayers.Contains(owner))continue;
             // Host observes each owner-authoritative runner crossing the same oval's finish mark after one full lap.
             int slot=i;
             Vector3 start=TrackPosition(StartOffsetForLane(slot),slot);
@@ -571,10 +589,101 @@ public sealed class QteSceneController : MonoBehaviour
             if(!playersPastStart.Contains(owner))continue;
             Vector3 finish=TrackPosition(FinishOffset,slot);
             if(Vector3.Distance(p.transform.position,finish)>2.75f)continue;
-            int place=finishedPlayers.Count+1; if(canScore)ranking.AddScore(owner,$"Player {owner}",Mathf.Max(0,4-place)); finishedPlayers.Add(owner);
+            int place=finishedPlayers.Count+1;
+            if(canScore)ranking.AddScore(owner,$"Player {owner}",Mathf.Max(0,4-place));
+            finishedPlayers.Add(owner);
+            if(finishWindowEndsAt < 0)
+            {
+                finishWindowEndsAt=network.ServerTime.Time+5d;
+                lastFinishCountdownSent=-1;
+            }
         }
-        if(!roundEnding&&owners.Count>0&&owners.All(id=>!network.ConnectedClients.ContainsKey(id)||finishedPlayers.Contains(id)))
-        {roundEnding=true;instructionText.text="모든 주자가 완주했습니다!";StartCoroutine(ReturnToRanking());}
+        if(finishWindowEndsAt>=0&&!roundEnding)
+        {
+            int secondsLeft=Mathf.CeilToInt((float)(finishWindowEndsAt-network.ServerTime.Time));
+            if(secondsLeft!=lastFinishCountdownSent)
+            {
+                lastFinishCountdownSent=secondsLeft;
+                BroadcastFinishCountdown(secondsLeft);
+            }
+            if(owners.All(finishedPlayers.Contains))
+            {
+                roundEnding=true;
+                instructionText.text="모든 주자가 완주했습니다!";
+                StartCoroutine(ReturnToRanking());
+            }
+            else if(network.ServerTime.Time>=finishWindowEndsAt)
+            {
+                FinalizeUnfinishedByDistance(canScore?ranking:null);
+                roundEnding=true;
+                instructionText.text="시간 종료! 남은 거리로 순위를 정했습니다";
+                BroadcastFinishCountdown(0);
+                StartCoroutine(ReturnToRanking());
+            }
+        }
+        else if(!roundEnding&&owners.Count>0&&owners.All(id=>!network.ConnectedClients.ContainsKey(id)))
+        {roundEnding=true;StartCoroutine(ReturnToRanking());}
+    }
+    private void UpdateObservedRaceDistance(ulong owner, Vector3 position, int lane)
+    {
+        float lap=PlayerLapLength(lane);
+        float coordinate=NearestTrackCoordinate(position,lane);
+        if(!lastTrackCoordinate.TryGetValue(owner,out float previous))
+        {
+            lastTrackCoordinate[owner]=coordinate;
+            observedRaceDistance[owner]=0f;
+            return;
+        }
+        float delta=Mathf.Repeat(coordinate-previous,lap);
+        if(delta>lap*.5f)delta-=lap;
+        if(delta>0f)
+        {
+            observedRaceDistance.TryGetValue(owner,out float totalDistance);
+            observedRaceDistance[owner]=totalDistance+delta;
+        }
+        lastTrackCoordinate[owner]=coordinate;
+    }
+    private float NearestTrackCoordinate(Vector3 position,int lane)
+    {
+        float lap=PlayerLapLength(lane),bestDistance=float.MaxValue,bestCoordinate=0f;
+        for(float d=0f;d<lap;d+=1f)
+        {
+            Vector3 sample=TrackPosition(d,lane);
+            float dx=sample.x-position.x,dz=sample.z-position.z,squared=dx*dx+dz*dz;
+            if(squared<bestDistance){bestDistance=squared;bestCoordinate=d;}
+        }
+        float refined=bestCoordinate;
+        for(float d=bestCoordinate-1f;d<=bestCoordinate+1f;d+=.1f)
+        {
+            float coordinate=Mathf.Repeat(d,lap);
+            Vector3 sample=TrackPosition(coordinate,lane);
+            float dx=sample.x-position.x,dz=sample.z-position.z,squared=dx*dx+dz*dz;
+            if(squared<bestDistance){bestDistance=squared;refined=coordinate;}
+        }
+        return refined;
+    }
+    private void FinalizeUnfinishedByDistance(RankingManager ranking)
+    {
+        var remaining=owners.Where(id=>!finishedPlayers.Contains(id))
+            .OrderByDescending(id=>observedRaceDistance.TryGetValue(id,out float distance)?distance:0f)
+            .ThenBy(id=>id).ToArray();
+        foreach(ulong owner in remaining)
+        {
+            int place=finishedPlayers.Count+1;
+            if(ranking!=null)ranking.AddScore(owner,$"Player {owner}",Mathf.Max(0,4-place));
+            finishedPlayers.Add(owner);
+        }
+    }
+    private void BroadcastFinishCountdown(int seconds)
+    {
+        if(instructionText!=null)instructionText.text=seconds>0?$"첫 주자 완주! 남은 시간 {seconds}초 · 달리세요":"시간 종료! 남은 거리로 순위를 정합니다";
+        using(var writer=new FastBufferWriter(8,Allocator.Temp))
+        {
+            writer.WriteValueSafe(entryToken);writer.WriteValueSafe(seconds);
+            foreach(ulong id in owners)
+                if(id!=NetworkManager.ServerClientId&&network.ConnectedClients.ContainsKey(id))
+                    messages.SendNamedMessage(FinishCountdownMessage,id,writer,NetworkDelivery.ReliableSequenced);
+        }
     }
     private IEnumerator ReturnToRanking()
     {
@@ -602,7 +711,7 @@ public sealed class QteSceneController : MonoBehaviour
             if(!state.Key.isKinematic){state.Key.velocity=Vector3.zero;state.Key.angularVelocity=Vector3.zero;}
         }
         if(network!=null&&network.IsServer&&network.SceneManager!=null)network.SceneManager.OnLoadEventCompleted-=OnSceneLoaded;
-        if(messages!=null){messages.UnregisterNamedMessageHandler(RosterMessage);messages.UnregisterNamedMessageHandler(ReadyMessage);messages.UnregisterNamedMessageHandler(ReadyStatusMessage);messages.UnregisterNamedMessageHandler(StartMessage);}
+        if(messages!=null){messages.UnregisterNamedMessageHandler(RosterMessage);messages.UnregisterNamedMessageHandler(ReadyMessage);messages.UnregisterNamedMessageHandler(ReadyStatusMessage);messages.UnregisterNamedMessageHandler(StartMessage);messages.UnregisterNamedMessageHandler(FinishCountdownMessage);}
     }
 
     private Vector3 TrackPosition(float distance, int lane)
