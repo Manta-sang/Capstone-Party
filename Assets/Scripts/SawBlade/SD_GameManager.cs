@@ -294,7 +294,7 @@ public class SD_GameManager : NetworkBehaviour
         {
             if (expectedPlayersNet.Value > 0 && readyClients.Count >= expectedPlayersNet.Value)
             {
-                startTimeNet.Value = NetworkManager.ServerTime.Time + GameStartPresentation.CountdownSeconds;
+                startTimeNet.Value = NetworkManager.ServerTime.Time + GameStartPresentation.ScheduledStartDelay;
             }
             else if (Time.realtimeSinceStartup > entryDeadline)
             {
@@ -490,7 +490,7 @@ public class SD_GameManager : NetworkBehaviour
         }
         else
         {
-            var status = sceneManager.LoadScene(resultSceneName, LoadSceneMode.Single);
+            var status = sceneManager.LoadScene(PartyGameRotation.ResultScene(resultSceneName), LoadSceneMode.Single);
             if (status == SceneEventProgressStatus.Started) yield break;
             returnError = resultSceneName + " 이동 실패: " + status;
         }

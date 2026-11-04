@@ -57,7 +57,7 @@ public sealed class PartyDeveloperTools : MonoBehaviour {
   if(PartyGameRotation.Loading){feedback="씬 로딩 완료를 기다려 주세요.";return;}
   if(!Application.CanStreamedLevelBeLoaded(scene)){feedback="Build Settings에 없는 씬입니다.";return;}
   var n=NetworkManager.Singleton;
-  if(n!=null&&n.IsListening){if(!n.IsServer){feedback="호스트만 이동할 수 있습니다.";return;}var result=n.SceneManager.LoadScene(scene,LoadSceneMode.Single);feedback=result==SceneEventProgressStatus.Started?"이동 중...":"이동 실패: "+result;}
+  if(n!=null&&n.IsListening){if(!n.IsServer){feedback="호스트만 이동할 수 있습니다.";return;}if(System.Array.IndexOf(PartyGameRotation.Scenes,scene)>=0){feedback=PartyGameRotation.StartSelected(n,scene,out var error)?"조작법 안내로 이동 중...":error;return;}var result=n.SceneManager.LoadScene(scene,LoadSceneMode.Single);feedback=result==SceneEventProgressStatus.Started?"이동 중...":"이동 실패: "+result;}
   else SceneManager.LoadScene(scene);
  }
  public void StartHost(){var n=NetworkManager.Singleton;if(n!=null&&!n.IsListening)feedback=n.StartHost()?"호스트 시작":"호스트 시작 실패";}

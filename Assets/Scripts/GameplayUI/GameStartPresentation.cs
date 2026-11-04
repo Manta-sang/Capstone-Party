@@ -4,7 +4,8 @@ using UnityEngine;
 [DefaultExecutionOrder(-200)]
 public sealed class GameStartPresentation : MonoBehaviour
 {
-    public const float CountdownSeconds=3f;
+    public const float CountdownSeconds=1f;
+    public static float ScheduledStartDelay => CountdownSeconds + PartyTicketTravel.RemainingReveal;
     public TMP_Text countdownText;
     public TMP_Text tileTimer;
     public CrosswalkRun.CrosswalkNetworkEntry crosswalk;
@@ -23,8 +24,8 @@ public sealed class GameStartPresentation : MonoBehaviour
     void Update(){
         float remain=Remaining;
         countdownText.gameObject.SetActive(!HasStarted);
-        if(!HasStarted){countdownText.fontSize=remain>0?150:32;countdownText.text=remain>0?Mathf.Clamp(Mathf.CeilToInt(remain),1,3).ToString():"참가자 준비 중...";}
-        if(tileTimer!=null&&tile!=null){int seconds=Mathf.CeilToInt(tile.RemainingTime);if(seconds!=lastTileSeconds){lastTileSeconds=seconds;tileTimer.text=$"{seconds/60:00}:{seconds%60:00}";}}
+        if(!HasStarted){countdownText.fontSize=remain>0?150:32;countdownText.text=remain>0?Mathf.Clamp(Mathf.CeilToInt(remain),1,(int)CountdownSeconds).ToString():"참가자 준비 중...";}
+        if(tileTimer!=null&&tile!=null){int seconds=Mathf.CeilToInt(tile.RemainingTime);if(seconds!=lastTileSeconds){lastTileSeconds=seconds;tileTimer.text=Mathf.Clamp(seconds,0,99).ToString("00");}}
     }
     void OnDestroy(){if(current==this)current=null;}
 }

@@ -80,7 +80,7 @@ namespace BlockFall
                 Controls(local.gameObject,false); sentReady=true; ReadyServerRpc();
             }
             double now=NetworkManager.ServerTime.Time;
-            if(IsServer && spawned && begins.Value<0 && ready.Count>=alive.Count) { playersAtStart=alive.Count; begins.Value=now+GameStartPresentation.CountdownSeconds; nextWave=begins.Value+2; }
+            if(IsServer && spawned && begins.Value<0 && ready.Count>=alive.Count) { playersAtStart=alive.Count; begins.Value=now+GameStartPresentation.ScheduledStartDelay; nextWave=begins.Value+2; }
             if(begins.Value<0) { if(Time.realtimeSinceStartup>deadline) result="Waiting timed out. Return to lobby."; return; }
             if(!unlocked && now>=begins.Value && !ended.Value)
             { unlocked=true; if(local!=null) Controls(local.gameObject,true); }
@@ -223,7 +223,7 @@ namespace BlockFall
             if (!IsSpawned || !IsServer || !ended.Value) return;
             if (string.IsNullOrWhiteSpace(resultSceneName) || !Application.CanStreamedLevelBeLoaded(resultSceneName))
             { loadingResults = false; Debug.LogError("[BlockFall] Invalid result scene: " + resultSceneName); return; }
-            var status = NetworkManager.SceneManager.LoadScene(resultSceneName, LoadSceneMode.Single);
+            var status = NetworkManager.SceneManager.LoadScene(PartyGameRotation.ResultScene(resultSceneName), LoadSceneMode.Single);
             loadingResults = status == SceneEventProgressStatus.Started;
             if (!loadingResults) Debug.LogError("[BlockFall] Ranking load failed: " + status);
         }

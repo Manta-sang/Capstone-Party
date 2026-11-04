@@ -129,7 +129,9 @@ namespace CrosswalkRun
             }
             loading = true;
             Update();
-            var status = network.SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
+            bool started=PartyGameRotation.StartSelected(network,sceneName,out string travelError);
+            if(started)return;
+            var status = SceneEventProgressStatus.SceneNotLoaded;
             if (status != SceneEventProgressStatus.Started)
             {
                 loading = false;

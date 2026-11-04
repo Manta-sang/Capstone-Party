@@ -34691,6 +34691,64 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1072235275}
   m_Mesh: {fileID: 4300000, guid: e851fabbbc1ed904f8223f0e4dca2187, type: 2}
+--- !u!1 &1074186023
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1074186025}
+  - component: {fileID: 1074186024}
+  m_Layer: 0
+  m_Name: "Original game lighting \xB7 scene isolation"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1074186024
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1074186023}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 818088c8e341ec342a96e1971290f394, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ambientMode: 1
+  sky: {r: 0.32, g: 0.33, b: 0.43, a: 1}
+  equator: {r: 0.23, g: 0.22, b: 0.3, a: 1}
+  ground: {r: 0.1, g: 0.085, b: 0.13, a: 1}
+  fogColor: {r: 0.45, g: 0.5, b: 0.55, a: 1}
+  ambientIntensity: 1
+  reflectionIntensity: 1
+  fogDensity: 0.01
+  fogStart: 35
+  fogEnd: 100
+  fog: 0
+  fogMode: 1
+  skybox: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  sun: {fileID: 1432428941}
+--- !u!4 &1074186025
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1074186023}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1075680348
 GameObject:
   m_ObjectHideFlags: 0
@@ -43998,7 +44056,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 3
+  m_text: 1
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 536b6e16f85795d46a21f43033295334, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 243f4db6d5a383449946d4b38e6f07fa, type: 2}
@@ -68695,3 +68753,4 @@ SceneRoots:
   - {fileID: 1582798010}
   - {fileID: 2015102673}
   - {fileID: 1857943740}
+  - {fileID: 1074186025}

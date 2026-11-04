@@ -60,6 +60,7 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.62f2\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Editor\AirportFinaleArt.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallBoundaryFit.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryRequest.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallAllCrystalLights.cs" />
@@ -67,6 +68,7 @@
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryPolish.cs" />
     <Compile Include="Assets\Editor\PartyContinuationValidation.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryBuilder.cs" />
+    <Compile Include="Assets\Editor\PartyFinaleBuilder.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryRefine.cs" />
     <Compile Include="Assets\FREE\Pack_FREE_PartyCharacters\Editor\CharacterPromoWindow.cs" />
     <Compile Include="Assets\Editor\CharacterCabinExpansion.cs" />
@@ -91,9 +93,11 @@
     <Compile Include="Assets\Editor\TicketPileUpgrade.cs" />
     <Compile Include="Assets\FREE\Pack_FREE_PartyCharacters\Editor\FreeCharacterCustomizerWindow.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallUniformGrid.cs" />
+    <Compile Include="Assets\Editor\PartyFinaleValidation.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\Editor\CrosswalkModularBuilder.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallIntegration.cs" />
     <Compile Include="Assets\Editor\PartyFlowBuilder.cs" />
+    <Compile Include="Assets\Editor\PartyFinaleRefinement.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallArenaSix.cs" />
     <Compile Include="Assets\Editor\GameplayUIValidation.cs" />
     <Compile Include="Assets\Editor\CharacterCabinBuilder.cs" />

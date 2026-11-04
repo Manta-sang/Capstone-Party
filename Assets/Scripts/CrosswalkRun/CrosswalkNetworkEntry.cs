@@ -263,7 +263,7 @@ namespace CrosswalkRun
         // 기존 카메라의 대기 시간을 사용하여 서버 시간 기준의 공통 시작 시점을 전달합니다.
         private void ScheduleStart()
         {
-            startsAt = network.ServerTime.Time + GameStartPresentation.CountdownSeconds;
+            startsAt = network.ServerTime.Time + GameStartPresentation.ScheduledStartDelay;
             using (var writer = new FastBufferWriter(12, Allocator.Temp))
             {
                 writer.WriteValueSafe(entryToken);
@@ -377,7 +377,7 @@ namespace CrosswalkRun
                 Debug.LogError("[Crosswalk 이동] 결과 씬 설정이 올바르지 않습니다: " + resultSceneName);
                 yield break;
             }
-            var status = sceneManager.LoadScene(resultSceneName, LoadSceneMode.Single);
+            var status = sceneManager.LoadScene(PartyGameRotation.ResultScene(resultSceneName), LoadSceneMode.Single);
             if (status != SceneEventProgressStatus.Started)
             {
                 gameManager.SetNetworkWaitingStatus(resultSceneName + " 이동 실패: " + status);

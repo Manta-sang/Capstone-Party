@@ -21,6 +21,7 @@ public class RankingUI : MonoBehaviour
     private NetworkManager network;
     private bool sceneReady;
     private bool loading;
+    private void LateUpdate(){if(FinalResult && sceneReady && !loading && network!=null && network.IsServer)loading=network.SceneManager.LoadScene("FinalRanking",LoadSceneMode.Single)==SceneEventProgressStatus.Started;}
     private bool FinalResult => PartyRoster.Current != null ? PartyRoster.Current.GamesStarted.Value >= PartyGameRotation.Scenes.Length : PartyGameRotation.IsComplete;
 
     // 모든 참가자의 랭킹 씬 로딩이 끝나기 전에 다음 씬을 요청하지 않습니다.
@@ -57,7 +58,7 @@ public class RankingUI : MonoBehaviour
             RefreshScores();
         }
         if (actionButton != null)
-            actionButton.interactable = network != null && network.IsListening && network.IsServer && sceneReady && !loading;
+            actionButton.interactable = network != null && network.IsListening && network.IsServer && sceneReady && !loading && !FinalResult;
         if(actionButtonText!=null)actionButtonText.text=FinalResult?"캐릭터 로비로 돌아가기":"다음 게임으로 가기";
         if(flowHint!=null)flowHint.text=FinalResult?"최종 누적 결과입니다. 호스트가 버튼을 누르면 모두 로비로 돌아갑니다.":"호스트가 버튼을 누르면 모두 다음 무작위 게임으로 이동합니다.";
     }
@@ -84,6 +85,7 @@ public class RankingUI : MonoBehaviour
     // 중간 결과에서는 다음 게임, 최종 결과에서는 Inspector의 로비 씬으로 이동합니다.
     public void OnActionButtonClicked()
     {
+        if(FinalResult)return; // Final results advance automatically after everyone has loaded.
         if (network == null || !network.IsListening || !network.IsServer || !sceneReady || loading) return;
         if(!PartyGameRotation.IsComplete)
         {
