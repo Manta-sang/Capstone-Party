@@ -58,6 +58,8 @@ public sealed class QteSceneController : MonoBehaviour
     private Vector3 cameraVelocity;
     private int entryToken;
     private double startsAt = -1;
+    public bool HasRoundStarted => gameStarted;
+    public float CountdownRemaining => network == null || startsAt < 0 ? 0 : Mathf.Max(0, (float)(startsAt - network.ServerTime.Time));
     private bool rosterReceived, localReady, startScheduled, gameStarted, spawnRequested, localFinished, roundEnding;
     private bool overviewMode = true;
     private string entryError;
@@ -140,6 +142,7 @@ public sealed class QteSceneController : MonoBehaviour
         foreach (NetworkObject p in network.SpawnManager.SpawnedObjectsList)
         {
             var movement = p.GetComponent<PlayerMovement>(); if (movement != null) movement.enabled = false;
+            var push = p.GetComponent<PlayerInteraction>(); if (push != null) push.enabled = false;
             var legacy = p.GetComponent<QteRunner>(); if (legacy != null) legacy.enabled = false;
             if(p.IsPlayerObject)FreezeRunnerPhysics(p);
         }
@@ -181,7 +184,7 @@ public sealed class QteSceneController : MonoBehaviour
         if (hurdlePrompted && !hurdleResolved) { ShowInstruction(timeToHurdle);ReadArrowInput(); }
         if (!hurdleResolved && hurdlePrompted && timeToHurdle <= 0.02f) ResolveHurdle(false);
         float speed = stunUntil > 0 ? 0 : runSpeed;
-        distanceAlongTrack += speed * Time.deltaTime;
+        distanceAlongTrack = Mathf.Min(RaceDistance, distanceAlongTrack + speed * Time.deltaTime);
         if (queuedJump && distanceAlongTrack >= queuedJumpAt)
         {
             queuedJump = false; jumping = true; jumpStartedAt = Time.time;
@@ -264,6 +267,13 @@ public sealed class QteSceneController : MonoBehaviour
     }
     private void UpdateCountdown()
     {
+        if (GameStartPresentation.HasSharedCountdown)
+        {
+            int sharedTick = Mathf.CeilToInt(CountdownRemaining - .001f);
+            if (sharedTick > 0 && sharedTick <= GameStartPresentation.CountdownSeconds) PlayCountdownTone(sharedTick);
+            if (countdownText != null) countdownText.text = string.Empty;
+            return;
+        }
         int tick = startsAt < 0 ? 0 : Mathf.CeilToInt((float)(startsAt - network.ServerTime.Time) - .001f);
         if (countdownText == null) return;
         countdownText.text = tick > 0 ? $"<size=30>출발 준비</size>\n<color=#FFD55A>{tick}</color>" : (startsAt >= 0 ? "<color=#FF625C>출발!</color>" : "");
@@ -394,7 +404,7 @@ public sealed class QteSceneController : MonoBehaviour
     private void OnReadyStatusReceived(ulong sender, FastBufferReader r){if(sender!=NetworkManager.ServerClientId||network.IsServer)return;r.ReadValueSafe(out int token);r.ReadValueSafe(out ulong id);if(token==entryToken&&owners.Contains(id))readyClients.Add(id);}
     private void ScheduleStart()
     {
-        startScheduled=true;startsAt=network.ServerTime.Time+3.0;
+        startScheduled=true;startsAt=network.ServerTime.Time+GameStartPresentation.ScheduledStartDelay;
         using(var w=new FastBufferWriter(12,Allocator.Temp)){w.WriteValueSafe(entryToken);w.WriteValueSafe(startsAt);foreach(ulong id in owners)if(id!=NetworkManager.ServerClientId&&network.ConnectedClients.ContainsKey(id))messages.SendNamedMessage(StartMessage,id,w,NetworkDelivery.ReliableSequenced);}
     }
     private void OnStartReceived(ulong sender,FastBufferReader r){if(sender!=NetworkManager.ServerClientId||network.IsServer)return;r.ReadValueSafe(out int token);r.ReadValueSafe(out double t);if(token==entryToken)startsAt=t;}
@@ -441,7 +451,7 @@ public sealed class QteSceneController : MonoBehaviour
     {
         yield return new WaitForSecondsRealtime(3f);
         if(network==null||!network.IsListening||!network.IsServer||network.SceneManager==null)yield break;
-        var result=network.SceneManager.LoadScene("Ranking",LoadSceneMode.Single);
+        var result=network.SceneManager.LoadScene(PartyGameRotation.ResultScene(),LoadSceneMode.Single);
         if(result!=SceneEventProgressStatus.Started){roundEnding=false;entryError="랭킹 화면 이동 실패: "+result;}
     }
     private void RefreshStatus()

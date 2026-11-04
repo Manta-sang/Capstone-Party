@@ -86,6 +86,7 @@ public static class QteSceneBuilder
         controller.BuildSchoolTrackForEditor();
         EditorUtility.SetDirty(controllerObject);
 
+        QteImportValidation.AttachSharedStartUI();
         EditorSceneManager.SaveScene(scene, "Assets/Scenes/Qte.unity");
         AssetDatabase.SaveAssets();
         Debug.Log($"QTE_SCHOOL_TRACK_BUILD_PASS: saved scene with four network character prefabs, {audiencePrefabs.Length} idle crowd prefabs, bleachers, four lane spawns, an overview camera, and a school-day directional light.");

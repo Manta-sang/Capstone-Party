@@ -30,6 +30,7 @@ public class PlayerMovement : NetworkBehaviour
     void Update()
     {
         if (!IsOwner) return;
+        if (GameStartPresentation.BlocksGameplayInput) return;
         if (isKnockedBack) return;
 
         float horizontalInput = Input.GetAxisRaw("Horizontal");

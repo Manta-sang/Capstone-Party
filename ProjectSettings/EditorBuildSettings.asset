@@ -35,4 +35,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/BlockFall.unity
     guid: 3fc7dcd819a5e10458e2e6ba3c20436a
+  - enabled: 1
+    path: Assets/Scenes/GameBriefing.unity
+    guid: 57b96f2eb69ad574cbb5d1ac8472ba2a
+  - enabled: 1
+    path: Assets/Scenes/FinalRanking.unity
+    guid: ddb4ac52f2164a2419e5a8bc918466c9
   m_configObjects: {}
