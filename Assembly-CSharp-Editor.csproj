@@ -60,30 +60,46 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.62f2\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Editor\AirportFinaleArt.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallBoundaryFit.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryRequest.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallAllCrystalLights.cs" />
+    <Compile Include="Assets\Editor\ProjectMergeValidation.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryPolish.cs" />
     <Compile Include="Assets\Editor\PartyContinuationValidation.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryBuilder.cs" />
+    <Compile Include="Assets\Editor\PartyFinaleBuilder.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryRefine.cs" />
     <Compile Include="Assets\FREE\Pack_FREE_PartyCharacters\Editor\CharacterPromoWindow.cs" />
+    <Compile Include="Assets\Editor\CharacterCabinExpansion.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryContactLayout.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryFrontLayout.cs" />
+    <Compile Include="Assets\Editor\TicketPresentationRefinement.cs" />
+    <Compile Include="Assets\Editor\GameStartUIBuilder.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryMotionUpgrade.cs" />
     <Compile Include="Assets\Editor\BoardingPassUI.cs" />
+    <Compile Include="Assets\Editor\TicketPresentationValidation.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallSideTier.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallLandingValidation.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallValidation.cs" />
+    <Compile Include="Assets\Editor\PushCooldownHUDBuilder.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallAppearance.cs" />
+    <Compile Include="Assets\Editor\QteSceneBuilder.cs" />
+    <Compile Include="Assets\Editor\CharacterCabinRefit.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallBuilder.cs" />
+    <Compile Include="Assets\Editor\IllustratedMenuBuilder.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallResize.cs" />
+    <Compile Include="Assets\Editor\QteImportValidation.cs" />
+    <Compile Include="Assets\Editor\TicketPileUpgrade.cs" />
     <Compile Include="Assets\FREE\Pack_FREE_PartyCharacters\Editor\FreeCharacterCustomizerWindow.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallUniformGrid.cs" />
+    <Compile Include="Assets\Editor\PartyFinaleValidation.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\Editor\CrosswalkModularBuilder.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallIntegration.cs" />
     <Compile Include="Assets\Editor\PartyFlowBuilder.cs" />
+    <Compile Include="Assets\Editor\PartyFinaleRefinement.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallArenaSix.cs" />
+    <Compile Include="Assets\Editor\GameplayUIValidation.cs" />
     <Compile Include="Assets\Editor\CharacterCabinBuilder.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -427,14 +443,6 @@
       <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.62f2\Editor\Data\Managed\UnityEditor.Graphs.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="UnityEditor.Android.Extensions">
-      <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.62f2\Editor\Data\PlaybackEngines\AndroidPlayer\UnityEditor.Android.Extensions.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEditor.iOS.Extensions">
-      <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.62f2\Editor\Data\PlaybackEngines\iOSSupport\UnityEditor.iOS.Extensions.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="UnityEditor.WindowsStandalone.Extensions">
       <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.62f2\Editor\Data\PlaybackEngines\WindowsStandaloneSupport\UnityEditor.WindowsStandalone.Extensions.dll</HintPath>
       <Private>False</Private>
@@ -505,26 +513,6 @@
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>Library\PackageCache\com.unity.ext.nunit@1.0.6\net35\unity-custom\nunit.framework.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEditor.iOS.Extensions.Xcode">
-      <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.62f2\Editor\Data\PlaybackEngines\iOSSupport\UnityEditor.iOS.Extensions.Xcode.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEditor.iOS.Extensions.Common">
-      <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.62f2\Editor\Data\PlaybackEngines\iOSSupport\UnityEditor.iOS.Extensions.Common.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.Android.Types">
-      <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.62f2\Editor\Data\PlaybackEngines\AndroidPlayer\Unity.Android.Types.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.Android.Gradle">
-      <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.62f2\Editor\Data\PlaybackEngines\AndroidPlayer\Unity.Android.Gradle.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.Android.GradleProject">
-      <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.62f2\Editor\Data\PlaybackEngines\AndroidPlayer\Unity.Android.GradleProject.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="mscorlib">

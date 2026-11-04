@@ -10,10 +10,12 @@ public class PlayerInteraction : NetworkBehaviour
     public float stunDuration = 0.8f; // ★ 기절(넉백 및 조작 불가) 시간 추가
 
     private float lastPushTime = -100f;
+    // The local HUD reads the same clock and duration used by the actual input gate.
+    public float PushCooldownProgress => pushCooldown <= 0f ? 1f : Mathf.Clamp01((Time.time - lastPushTime) / pushCooldown);
 
     void Update()
     {
-        if (!IsOwner) return;
+        if (!IsOwner || GameStartPresentation.BlocksGameplayInput) return;
 
         if (Input.GetKeyDown(KeyCode.LeftShift))
         {

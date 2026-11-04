@@ -23,7 +23,7 @@ public class PartyTitle : MonoBehaviour
         AudioListener.volume = PlayerPrefs.GetFloat("Party.Volume", 1f);
         if (PlayerPrefs.HasKey("Party.Fullscreen"))
             Screen.fullScreen = PlayerPrefs.GetInt("Party.Fullscreen") == 1;
-        settingsPanel.SetActive(false);
+        if (settingsPanel != null) settingsPanel.SetActive(false);
     }
 
     // 인증과 닉네임 확인이 끝나야 방 화면으로 이동한다.
@@ -47,7 +47,7 @@ public class PartyTitle : MonoBehaviour
     }
 
     // 설정 패널은 에디터에서 배치를 조정할 수 있다.
-    public void ToggleSettings() { settingsPanel.SetActive(!settingsPanel.activeSelf); RefreshSettings(); }
+    public void ToggleSettings() { if (settingsPanel == null) return; settingsPanel.SetActive(!settingsPanel.activeSelf); RefreshSettings(); }
     public void VolumeUp() => ChangeVolume(0.1f);
     public void VolumeDown() => ChangeVolume(-0.1f);
     private void ChangeVolume(float delta)
@@ -65,6 +65,6 @@ public class PartyTitle : MonoBehaviour
         PlayerPrefs.Save();
         RefreshSettings();
     }
-    private void RefreshSettings() => settingsText.text = $"전체 음량 {Mathf.RoundToInt(AudioListener.volume * 100)}%  ·  전체화면 {(PlayerPrefs.GetInt("Party.Fullscreen", Screen.fullScreen ? 1 : 0) == 1 ? "켜짐" : "꺼짐")}";
+    private void RefreshSettings() { if(settingsText != null) settingsText.text = $"전체 음량 {Mathf.RoundToInt(AudioListener.volume * 100)}%  ·  전체화면 {(PlayerPrefs.GetInt("Party.Fullscreen", Screen.fullScreen ? 1 : 0) == 1 ? "켜짐" : "꺼짐")}"; }
     public void QuitGame() => Application.Quit();
 }

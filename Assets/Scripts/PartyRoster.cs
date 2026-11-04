@@ -17,6 +17,10 @@ public class PartyRoster : NetworkBehaviour
     }
     public static PartyRoster Current { get; private set; }
     public NetworkList<Member> Members;
+    public NetworkVariable<double> BriefingEndsAt = new NetworkVariable<double>(-1);
+    public NetworkVariable<double> FinalReturnAt = new NetworkVariable<double>(-1);
+    public NetworkVariable<int> BriefingGame = new NetworkVariable<int>(-1);
+    [ClientRpc] public void CoverTravelClientRpc(){ PartyTicketTravel.Cover(); }
     public NetworkVariable<int> GamesStarted = new NetworkVariable<int>(0);
     private void Awake() => Members = new NetworkList<Member>();
     public override void OnNetworkSpawn()
