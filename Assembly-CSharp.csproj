@@ -73,6 +73,7 @@
     <Compile Include="Assets\Scripts\CrosswalkRun\CharacterRoundRestart.cs" />
     <Compile Include="Assets\Scripts\PartyFlow\PartyGameRotation.cs" />
     <Compile Include="Assets\Scripts\BlockFall\BlockFallCrystalGlow.cs" />
+    <Compile Include="Assets\Scripts\GameplayUI\GameStartPresentation.cs" />
     <Compile Include="Assets\Scripts\PartyRoomView.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_GameManager.cs" />
     <Compile Include="Assets\Scripts\Presentation\TicketSweepTransition.cs" />
@@ -107,6 +108,7 @@
     <Compile Include="Assets\Scripts\ClientNetworkAnimator.cs" />
     <Compile Include="Assets\Scripts\CharacterCabin\CharacterCabinLobby.cs" />
     <Compile Include="Assets\Scripts\TileFlip\TF_CameraFollow.cs" />
+    <Compile Include="Assets\Scripts\GameplayUI\PushGestureGraphic.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_BladeSpawner.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_CameraFollow.cs" />
     <Compile Include="Assets\Scripts\SceneLoader.cs" />
@@ -115,6 +117,7 @@
     <Compile Include="Assets\Scripts\PartyRoster.cs" />
     <Compile Include="Assets\Scripts\Presentation\PartySplash.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CrosswalkGameManager.cs" />
+    <Compile Include="Assets\Scripts\GameplayUI\PushCooldownHUD.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Scripts\BlockFall\PastelMarble.shader" />

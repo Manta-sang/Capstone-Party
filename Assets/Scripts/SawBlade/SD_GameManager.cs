@@ -37,8 +37,6 @@ public class SD_GameManager : NetworkBehaviour
     [SerializeField] private SD_SpectatorCamera spectatorCamera;
 
     [Header("진행")]
-    [Tooltip("모두 준비된 뒤 시작까지 기다리는 시간(초)")]
-    [SerializeField] private float startDelay = 3f;
     [Tooltip("이 시간(초) 안에 모두 준비되지 않으면 입장 실패로 처리")]
     [SerializeField] private float readyTimeout = 30f;
     [Tooltip("이 씬에서 NetworkManager를 직접 시작해 테스트할 때만 켠다 (씬 전환 이벤트가 없어서 시작 신호를 직접 준다)")]
@@ -76,6 +74,8 @@ public class SD_GameManager : NetworkBehaviour
     private float entryDeadline;
     private bool localReady;
     private bool roundStarted;
+    public bool HasRoundStarted => roundStarted;
+    public float CountdownRemaining => !IsSpawned||startTimeNet.Value<0?0:Mathf.Max(0,(float)(startTimeNet.Value-NetworkManager.ServerTime.Time));
     private int playersAtStart;
     private bool gameOverRaised;
     [Header("게임 종료 후 이동")]
@@ -294,7 +294,7 @@ public class SD_GameManager : NetworkBehaviour
         {
             if (expectedPlayersNet.Value > 0 && readyClients.Count >= expectedPlayersNet.Value)
             {
-                startTimeNet.Value = NetworkManager.ServerTime.Time + startDelay;
+                startTimeNet.Value = NetworkManager.ServerTime.Time + GameStartPresentation.CountdownSeconds;
             }
             else if (Time.realtimeSinceStartup > entryDeadline)
             {

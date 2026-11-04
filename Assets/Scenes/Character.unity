@@ -496,6 +496,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b705900b0dbe891478729abd384a58d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  disabledColor: {r: 0.8, g: 0.81, b: 0.82, a: 1}
 --- !u!1 &24990246
 GameObject:
   m_ObjectHideFlags: 0
@@ -1990,6 +1991,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b705900b0dbe891478729abd384a58d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  disabledColor: {r: 0.8, g: 0.81, b: 0.82, a: 1}
 --- !u!1001 &109025473
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14297,6 +14299,7 @@ GameObject:
   - component: {fileID: 880946471}
   - component: {fileID: 880946470}
   - component: {fileID: 880946474}
+  - component: {fileID: 880946475}
   m_Layer: 0
   m_Name: Passenger ready
   m_TagString: Untagged
@@ -14373,7 +14376,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.68, g: 0.72, b: 0.77, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -14430,6 +14433,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b705900b0dbe891478729abd384a58d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  disabledColor: {r: 0.68, g: 0.72, b: 0.77, a: 1}
+--- !u!114 &880946475
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 880946469}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19747de3f5aca642ab2be37e372fb86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_EffectColor: {r: 0.25, g: 0.3, b: 0.36, a: 0.7}
+  m_EffectDistance: {x: 1, y: -1}
+  m_UseGraphicAlpha: 1
 --- !u!1 &881492428
 GameObject:
   m_ObjectHideFlags: 0
@@ -15240,6 +15259,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b705900b0dbe891478729abd384a58d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  disabledColor: {r: 0.8, g: 0.81, b: 0.82, a: 1}
 --- !u!1 &937509327
 GameObject:
   m_ObjectHideFlags: 0
@@ -25958,7 +25978,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColor: {r: 0.16, g: 0.2, b: 0.25, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -27798,6 +27818,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b705900b0dbe891478729abd384a58d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  disabledColor: {r: 0.8, g: 0.81, b: 0.82, a: 1}
 --- !u!1 &1696103601
 GameObject:
   m_ObjectHideFlags: 0
@@ -34856,6 +34877,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b705900b0dbe891478729abd384a58d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  disabledColor: {r: 0.8, g: 0.81, b: 0.82, a: 1}
 --- !u!1 &2100000210
 GameObject:
   m_ObjectHideFlags: 0
@@ -35271,6 +35293,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b705900b0dbe891478729abd384a58d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  disabledColor: {r: 0.8, g: 0.81, b: 0.82, a: 1}
 --- !u!1 &2100000405
 GameObject:
   m_ObjectHideFlags: 0
@@ -35551,6 +35574,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b705900b0dbe891478729abd384a58d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  disabledColor: {r: 0.8, g: 0.81, b: 0.82, a: 1}
 --- !u!1 &2100548844
 GameObject:
   m_ObjectHideFlags: 0

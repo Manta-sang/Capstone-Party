@@ -33,7 +33,13 @@ namespace CrosswalkRun
         private bool loading;
         public bool IsLoading => loading;
         public bool ParticipantsReady { get; set; } = true;
-        public bool CanStart => startButton != null && startButton.interactable && !loading;
+        public static bool DeveloperSoloStart { get; set; }
+        public static bool HasEnoughPlayers(int count) => count >= 2 || (DeveloperSoloStart && count == 1);
+        public bool CanStart => network != null && network.IsListening && network.IsServer && loadCompleted && !loading && ParticipantsReady && HasEnoughPlayers(network.ConnectedClientsIds.Count) && AllCharactersLoaded();
+        public bool CanStartSolo => network != null && network.IsListening && network.IsServer && loadCompleted && !loading && ParticipantsReady && network.ConnectedClientsIds.Count==1 && AllCharactersLoaded();
+        public void StartSoloGame(){if(!CanStartSolo)return;DeveloperSoloStart=true;try{StartRandomGame();}finally{DeveloperSoloStart=false;}}
+        private bool AllCharactersLoaded(){foreach(ulong id in network.ConnectedClientsIds)if(network.SpawnManager.GetPlayerNetworkObject(id)==null)return false;return true;}
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]static void ResetDeveloperSolo(){DeveloperSoloStart=false;}
 
         // 씬 로딩 완료 이벤트를 Start 이전에 구독하여 빠른 호스트의 중복 전환을 막습니다.
         private void Awake()
@@ -77,7 +83,7 @@ namespace CrosswalkRun
             if (ready)
                 foreach (ulong id in network.ConnectedClientsIds)
                     if (network.SpawnManager.GetPlayerNetworkObject(id) == null) ready = false;
-            ready &= ParticipantsReady;
+            ready &= ParticipantsReady && HasEnoughPlayers(online && network.IsServer ? network.ConnectedClientsIds.Count : 0);
             startButton.interactable = ready;
             sawBladeButton.interactable = ready;
             if (qteButton != null) qteButton.interactable = ready;
@@ -115,7 +121,7 @@ namespace CrosswalkRun
         // 준비된 호스트만 선택할 수 있으며, 로딩 중에는 모든 버튼을 잠급니다.
         private void StartMiniGame(string sceneName)
         {
-            if (network == null || !network.IsServer || !startButton.interactable || loading) return;
+            if (!CanStart) return;
             if (string.IsNullOrWhiteSpace(sceneName) || !Application.CanStreamedLevelBeLoaded(sceneName))
             {
                 Debug.LogError("[Character 이동] Build Settings에서 이동할 씬을 확인해 주세요: " + sceneName);

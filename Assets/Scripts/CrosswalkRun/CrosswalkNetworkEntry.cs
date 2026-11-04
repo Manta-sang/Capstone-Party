@@ -58,6 +58,8 @@ namespace CrosswalkRun
         private bool started;
         private bool failed;
         private double startsAt = -1;
+        public bool HasRoundStarted => started;
+        public float CountdownRemaining => startsAt<0||network==null?0:Mathf.Max(0,(float)(startsAt-network.ServerTime.Time));
         private float readyDeadline;
         private PrefabRoadManager roadManager;
 
@@ -261,7 +263,7 @@ namespace CrosswalkRun
         // 기존 카메라의 대기 시간을 사용하여 서버 시간 기준의 공통 시작 시점을 전달합니다.
         private void ScheduleStart()
         {
-            startsAt = network.ServerTime.Time + Math.Max(1.0, scrollCamera.StartDelay);
+            startsAt = network.ServerTime.Time + GameStartPresentation.CountdownSeconds;
             using (var writer = new FastBufferWriter(12, Allocator.Temp))
             {
                 writer.WriteValueSafe(entryToken);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode; // [Crosswalk 연동] 기존 네트워크 연결 여부만 확인합니다.
@@ -19,7 +19,6 @@ namespace CrosswalkRun
         [Header("설정")]
         [Tooltip("최소 요구 플레이어 수 (1인 솔로 테스트 시 1, 멀티플레이 시 2 이상)")]
         [SerializeField] private int minPlayersToStart = 1;
-        [SerializeField] private bool showDebugHUD = true;
 
         // 등록된 전체 플레이어 및 현재 생존 플레이어 목록
         private readonly List<GameObject> allPlayers = new List<GameObject>();
@@ -203,25 +202,5 @@ namespace CrosswalkRun
             EndGame(winner != null ? $"승리! 최후의 생존자: {winner.name}" : "모두 탈락했습니다! (게임 오버)");
         }
 
-        private void OnGUI()
-        {
-            if (!showDebugHUD) return;
-
-            GUILayout.BeginArea(new Rect(20, 20, 300, 150), GUI.skin.box);
-            GUILayout.Label("<b>[ Crosswalk Run 미니게임 ]</b>");
-            GUILayout.Label($"등록된 플레이어: {allPlayers.Count}명");
-            GUILayout.Label($"생존 플레이어: {alivePlayers.Count}명");
-            GUILayout.Label($"상태: {gameResultText}");
-
-            // 온라인에서는 호스트의 네트워크 씬 전환을 사용하므로 로컬 씬 재시작을 막습니다.
-            bool online = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
-            if (!online && !isGameActive && GUILayout.Button("씬 재시작 (Restart)"))
-            {
-                UnityEngine.SceneManagement.SceneManager.LoadScene(
-                    UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex
-                );
-            }
-            GUILayout.EndArea();
-        }
     }
 }
