@@ -51,8 +51,6 @@ public class TF_GameManager : NetworkBehaviour
     [SerializeField] private Transform[] spawnPoints;
 
     [Header("진행")]
-    [Tooltip("모두 준비된 뒤 시작까지 기다리는 시간(초). 이 시간 동안 조작이 잠겨 있다")]
-    [SerializeField] private float startDelay = 3f;
     [Tooltip("게임 시간(초). 시작된 뒤 이 시간이 지나면 종료되고 승자가 정해진다")]
     [SerializeField] private float gameDuration = 60f;
     [Tooltip("이 시간(초) 안에 모두 준비되지 않으면 입장 실패로 처리")]
@@ -82,6 +80,7 @@ public class TF_GameManager : NetworkBehaviour
     private float entryDeadline;
     private bool localReady;
     private bool roundStarted;
+    public bool HasRoundStarted => roundStarted;
     private bool gameOverRaised;
 
     [Header("게임 종료 후 이동 (SD_GameManager와 같은 방식)")]
@@ -408,7 +407,7 @@ public class TF_GameManager : NetworkBehaviour
         {
             if (expectedPlayersNet.Value > 0 && readyClients.Count >= expectedPlayersNet.Value)
             {
-                double start = NetworkManager.ServerTime.Time + startDelay;
+                double start = NetworkManager.ServerTime.Time + GameStartPresentation.ScheduledStartDelay;
                 startTimeNet.Value = start;
                 endTimeNet.Value = start + gameDuration;
             }
@@ -592,7 +591,7 @@ public class TF_GameManager : NetworkBehaviour
         }
         else
         {
-            var status = sceneManager.LoadScene(resultSceneName, LoadSceneMode.Single);
+            var status = sceneManager.LoadScene(PartyGameRotation.ResultScene(resultSceneName), LoadSceneMode.Single);
             if (status == SceneEventProgressStatus.Started) yield break;
             returnError = resultSceneName + " 이동 실패: " + status;
         }

@@ -15,6 +15,27 @@ public class LobbyUI : MonoBehaviour
     [SerializeField] private Button joinRoomButton;
     [SerializeField] private TMP_InputField roomCodeInput;
     [SerializeField] private TMP_Text statusText;
+    [SerializeField] private Button backButton;
+
+    private void Update()
+    {
+        bool available = lobbyRelayManager != null && !lobbyRelayManager.IsBusy;
+        createRoomButton.interactable = available;
+        joinRoomButton.interactable = available;
+        roomCodeInput.interactable = available;
+        if (backButton != null) backButton.interactable = available;
+    }
+
+    public void BackToNickname()
+    {
+        if (lobbyRelayManager == null || lobbyRelayManager.IsBusy) return;
+        var network = Unity.Netcode.NetworkManager.Singleton;
+        if(network != null && network.IsListening) return;
+        if(network != null) Destroy(network.gameObject);
+        if(CrosswalkRun.RankingManager.Instance != null)
+            Destroy(CrosswalkRun.RankingManager.Instance.gameObject);
+        UnityEngine.SceneManagement.SceneManager.LoadScene("NicknameScene");
+    }
 
     private void Start()
     {

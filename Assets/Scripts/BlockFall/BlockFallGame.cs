@@ -40,6 +40,8 @@ namespace BlockFall
         Transform[] cells;
         BlockFallCellArea[] cellAreas;
         bool spawned, sentReady, unlocked;
+        public bool HasRoundStarted => unlocked;
+        public float CountdownRemaining => !IsSpawned||begins.Value<0?0:Mathf.Max(0,(float)(begins.Value-NetworkManager.ServerTime.Time));
         int playersAtStart;
         float deadline;
         double nextWave;
@@ -78,7 +80,7 @@ namespace BlockFall
                 Controls(local.gameObject,false); sentReady=true; ReadyServerRpc();
             }
             double now=NetworkManager.ServerTime.Time;
-            if(IsServer && spawned && begins.Value<0 && ready.Count>=alive.Count) { playersAtStart=alive.Count; begins.Value=now; nextWave=begins.Value+2; }
+            if(IsServer && spawned && begins.Value<0 && ready.Count>=alive.Count) { playersAtStart=alive.Count; begins.Value=now+GameStartPresentation.ScheduledStartDelay; nextWave=begins.Value+2; }
             if(begins.Value<0) { if(Time.realtimeSinceStartup>deadline) result="Waiting timed out. Return to lobby."; return; }
             if(!unlocked && now>=begins.Value && !ended.Value)
             { unlocked=true; if(local!=null) Controls(local.gameObject,true); }
@@ -221,7 +223,7 @@ namespace BlockFall
             if (!IsSpawned || !IsServer || !ended.Value) return;
             if (string.IsNullOrWhiteSpace(resultSceneName) || !Application.CanStreamedLevelBeLoaded(resultSceneName))
             { loadingResults = false; Debug.LogError("[BlockFall] Invalid result scene: " + resultSceneName); return; }
-            var status = NetworkManager.SceneManager.LoadScene(resultSceneName, LoadSceneMode.Single);
+            var status = NetworkManager.SceneManager.LoadScene(PartyGameRotation.ResultScene(resultSceneName), LoadSceneMode.Single);
             loadingResults = status == SceneEventProgressStatus.Started;
             if (!loadingResults) Debug.LogError("[BlockFall] Ranking load failed: " + status);
         }
@@ -237,6 +239,7 @@ namespace BlockFall
                 if(result!="")return result;
                 if(begins.Value<0)return "참가자 준비 확인 중...";
                 double t=NetworkManager.ServerTime.Time-begins.Value;
+                if(t<0)return "게임 시작 준비 중...";
                 return $"남은 시간 {Mathf.Max(0,duration-(float)t):F0}초 / 단계 {DifficultyStage(t,duration)+1}";
             }
         }
