@@ -10,6 +10,7 @@ public class RankingUI : MonoBehaviour
 {
     [Header("순위 텍스트 UI (1등~4등)")]
     public TextMeshProUGUI[] rankTexts;
+    public TMP_Text[] scoreValues;
     [Header("버튼 UI 연결")]
     public UnityEngine.UI.Button actionButton;
     public TextMeshProUGUI actionButtonText;
@@ -78,7 +79,8 @@ public class RankingUI : MonoBehaviour
             if (rankTexts[i] == null) continue;
             int rank = i + 1;
             while (rank > 1 && i < scores.Count && scores[rank - 2].Score == scores[i].Score) rank--;
-            rankTexts[i].text = i < scores.Count ? $"{rank}등: {scores[i].PlayerName} ({scores[i].Score}점)" : $"{i + 1}등: -";
+            rankTexts[i].text = i < scores.Count ? $"{rank}등: {scores[i].PlayerName}" : $"{i + 1}등: -";
+            if(scoreValues!=null&&i<scoreValues.Length&&scoreValues[i]!=null)scoreValues[i].text=i<scores.Count?scores[i].Score+"점":"—";
         }
     }
 

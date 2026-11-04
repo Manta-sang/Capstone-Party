@@ -169,7 +169,8 @@ public sealed class QteSceneController : MonoBehaviour
             return;
         }
         if (countdownText != null && Time.unscaledTime >= startFlashUntil) countdownText.text = string.Empty;
-        if (activePlayer == null || localFinished || roundEnding) return;
+        if(localFinished||roundEnding){if(activePlayer!=null)RoundEndFacing.Face(activePlayer);return;}
+        if(activePlayer==null)return;
         if (Time.unscaledTime < stunUntil) { SetWalking(false); instructionText.text = $"<color=#FF625C>잠깐 멈춤 · {Mathf.Max(0, stunUntil - Time.unscaledTime):0.0}초</color>"; return; }
         if (stunUntil > 0) { stunUntil = 0; hurdleResolved = true; PrepareNextHurdle(); }
         if (jumping) UpdateJump();
@@ -267,7 +268,7 @@ public sealed class QteSceneController : MonoBehaviour
     }
     private void UpdateCountdown()
     {
-        if(GameStartPresentation.HasSharedCountdown){int sharedTick=Mathf.CeilToInt(CountdownRemaining-.001f);if(sharedTick>0&&sharedTick<=GameStartPresentation.CountdownSeconds)PlayCountdownTone(sharedTick);if(countdownText!=null)countdownText.text=string.Empty;return;}
+        if(GameStartPresentation.HasSharedCountdown){int sharedTick=Mathf.CeilToInt(CountdownRemaining-.001f);if(PartyTicketTravel.UntilHalfReveal<=0&&sharedTick>0&&sharedTick<=GameStartPresentation.CountdownSeconds)PlayCountdownTone(sharedTick);if(countdownText!=null)countdownText.text=string.Empty;return;}
         int tick = startsAt < 0 ? 0 : Mathf.CeilToInt((float)(startsAt - network.ServerTime.Time) - .001f);
         if (countdownText == null) return;
         countdownText.text = tick > 0 ? $"<size=30>출발 준비</size>\n<color=#FFD55A>{tick}</color>" : (startsAt >= 0 ? "<color=#FF625C>출발!</color>" : "");
@@ -368,7 +369,7 @@ public sealed class QteSceneController : MonoBehaviour
         foreach(var body in player.GetComponentsInChildren<Rigidbody>())
         {
             if(!runnerBodyStates.ContainsKey(body))runnerBodyStates.Add(body,new RunnerBodyState{isKinematic=body.isKinematic,useGravity=body.useGravity});
-            body.velocity=Vector3.zero;body.angularVelocity=Vector3.zero;body.useGravity=false;body.isKinematic=true;
+            if(!body.isKinematic){body.velocity=Vector3.zero;body.angularVelocity=Vector3.zero;}body.useGravity=false;body.isKinematic=true;
         }
     }
     private bool LocalRosterIsPresent()
@@ -436,7 +437,7 @@ public sealed class QteSceneController : MonoBehaviour
             if(!playersPastStart.Contains(owner))continue;
             Vector3 finish=TrackPosition(FinishOffset,slot);
             if(Vector3.Distance(p.transform.position,finish)>2.75f)continue;
-            int place=finishedPlayers.Count+1; if(canScore)ranking.AddScore(owner,$"Player {owner}",Mathf.Max(0,4-place)); finishedPlayers.Add(owner);
+            int place=finishedPlayers.Count+1; if(canScore)ranking.AddScore(owner,$"Player {owner}",PartyScoreRules.ForRank(place)); finishedPlayers.Add(owner);
         }
         if(!roundEnding&&owners.Count>0&&owners.All(id=>!network.ConnectedClients.ContainsKey(id)||finishedPlayers.Contains(id)))
         {roundEnding=true;instructionText.text="모든 주자가 완주했습니다!";StartCoroutine(ReturnToRanking());}
