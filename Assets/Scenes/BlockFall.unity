@@ -446,12 +446,12 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7233857}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 0.4202419
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -660,12 +660,12 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9628332}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 0.52987593
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -931,6 +931,9 @@ MonoBehaviour:
   source: {fileID: 1258689043}
   halo: {fileID: 1883336139}
   peakIntensity: 1.1
+  enableLocalLight: 1
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &17971789
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3116,6 +3119,9 @@ MonoBehaviour:
   source: {fileID: 1561617528}
   halo: {fileID: 1387571993}
   peakIntensity: 1.1
+  enableLocalLight: 0
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &98694353
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -4787,7 +4793,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 0.97612727
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -4959,12 +4965,12 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 135904799}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 1.535872
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -7818,6 +7824,9 @@ MonoBehaviour:
   source: {fileID: 292217535}
   halo: {fileID: 647851036}
   peakIntensity: 1.1
+  enableLocalLight: 1
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &238834695
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -8250,6 +8259,9 @@ MonoBehaviour:
   source: {fileID: 7233859}
   halo: {fileID: 801185504}
   peakIntensity: 1.1
+  enableLocalLight: 0
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &247726126
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -9790,7 +9802,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 0.420001
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -10198,6 +10210,9 @@ MonoBehaviour:
   source: {fileID: 974692993}
   halo: {fileID: 1491452940}
   peakIntensity: 1.1
+  enableLocalLight: 0
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &306283902
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -11580,12 +11595,12 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 377910867}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 0.97448736
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -12089,12 +12104,12 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 381787221}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 0.42000005
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -12194,6 +12209,9 @@ MonoBehaviour:
   source: {fileID: 1497131222}
   halo: {fileID: 1797076615}
   peakIntensity: 1.1
+  enableLocalLight: 0
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &384799320
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -13686,12 +13704,12 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 423984501}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 1.5046295
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -18241,6 +18259,9 @@ MonoBehaviour:
   source: {fileID: 381787223}
   halo: {fileID: 123372072}
   peakIntensity: 1.1
+  enableLocalLight: 0
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &566623762
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -18590,6 +18611,9 @@ MonoBehaviour:
   source: {fileID: 2077728447}
   halo: {fileID: 1248366147}
   peakIntensity: 1.1
+  enableLocalLight: 0
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &583473825
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -19426,7 +19450,10 @@ MonoBehaviour:
   seed: 18.970001
   source: {fileID: 1754206092}
   halo: {fileID: 303835275}
-  peakIntensity: 1.7
+  peakIntensity: 1.1
+  enableLocalLight: 0
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &606337810
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -19941,7 +19968,10 @@ MonoBehaviour:
   seed: 40.65
   source: {fileID: 1614079405}
   halo: {fileID: 2094654132}
-  peakIntensity: 1.7
+  peakIntensity: 1.1
+  enableLocalLight: 0
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &618096770
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -20125,6 +20155,9 @@ MonoBehaviour:
   source: {fileID: 1645983895}
   halo: {fileID: 1917942083}
   peakIntensity: 1.1
+  enableLocalLight: 1
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &625290768
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -20473,7 +20506,10 @@ MonoBehaviour:
   seed: 29.810001
   source: {fileID: 700290439}
   halo: {fileID: 504065565}
-  peakIntensity: 1.7
+  peakIntensity: 1.1
+  enableLocalLight: 0
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &635297310
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -22436,7 +22472,10 @@ MonoBehaviour:
   seed: 21.68
   source: {fileID: 1226490552}
   halo: {fileID: 1470296018}
-  peakIntensity: 1.7
+  peakIntensity: 1.1
+  enableLocalLight: 0
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &692295904
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -22526,12 +22565,12 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 700290437}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 1.2459315
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -22832,6 +22871,9 @@ MonoBehaviour:
   source: {fileID: 1754324118}
   halo: {fileID: 858323132}
   peakIntensity: 1.1
+  enableLocalLight: 0
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &705940223
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -23015,6 +23057,9 @@ MonoBehaviour:
   source: {fileID: 1201906556}
   halo: {fileID: 1218264432}
   peakIntensity: 1.1
+  enableLocalLight: 1
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &712917033
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -23187,12 +23232,12 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 719440831}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 0.8269359
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -26355,7 +26400,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 0.85180706
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -30254,6 +30299,9 @@ MonoBehaviour:
   source: {fileID: 1525661814}
   halo: {fileID: 731426499}
   peakIntensity: 1.1
+  enableLocalLight: 1
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &954539510
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -30509,12 +30557,12 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 957159614}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 1.1317797
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -31184,12 +31232,12 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 974692991}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 0.88877445
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -35942,7 +35990,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 0.5232639
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -37433,12 +37481,12 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1174446866}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 0.4283711
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -38496,7 +38544,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 1.5408361
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -39482,12 +39530,12 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1226490550}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 0.45845905
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -40593,7 +40641,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 0.5132133
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -41982,6 +42030,9 @@ MonoBehaviour:
   source: {fileID: 719440833}
   halo: {fileID: 1246369009}
   peakIntensity: 1.1
+  enableLocalLight: 0
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &1305372192
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -42746,6 +42797,9 @@ MonoBehaviour:
   source: {fileID: 423984503}
   halo: {fileID: 81930309}
   peakIntensity: 1.1
+  enableLocalLight: 0
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &1331041193
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -45119,7 +45173,10 @@ MonoBehaviour:
   seed: 24.39
   source: {fileID: 135904801}
   halo: {fileID: 1559647816}
-  peakIntensity: 1.7
+  peakIntensity: 1.1
+  enableLocalLight: 0
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &1410477134
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -45583,6 +45640,9 @@ MonoBehaviour:
   source: {fileID: 1798859000}
   halo: {fileID: 500495451}
   peakIntensity: 1.1
+  enableLocalLight: 0
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &1424358701
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -46192,6 +46252,9 @@ MonoBehaviour:
   source: {fileID: 131969886}
   halo: {fileID: 1220747460}
   peakIntensity: 1.1
+  enableLocalLight: 1
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &1436421199
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -46956,6 +47019,9 @@ MonoBehaviour:
   source: {fileID: 1108880130}
   halo: {fileID: 136637993}
   peakIntensity: 1.1
+  enableLocalLight: 1
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &1465032883
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -47201,6 +47267,9 @@ MonoBehaviour:
   source: {fileID: 2074059800}
   halo: {fileID: 640510530}
   peakIntensity: 1.1
+  enableLocalLight: 0
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &1468832609
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -48120,12 +48189,12 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1497131220}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 1.2193351
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -48717,7 +48786,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 0.7487133
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -50206,12 +50275,12 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1561617526}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 0.42008314
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -51795,12 +51864,12 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1614079403}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 0.75021726
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -51974,7 +52043,10 @@ MonoBehaviour:
   seed: 35.23
   source: {fileID: 377910869}
   halo: {fileID: 174329099}
-  peakIntensity: 1.7
+  peakIntensity: 1.1
+  enableLocalLight: 0
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &1624206931
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -52650,7 +52722,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 0.42003804
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -53261,7 +53333,10 @@ MonoBehaviour:
   seed: 27.1
   source: {fileID: 9628334}
   halo: {fileID: 1993343442}
-  peakIntensity: 1.7
+  peakIntensity: 1.1
+  enableLocalLight: 0
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &1675422798
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -55794,12 +55869,12 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1754206090}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 1.80612
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -55888,12 +55963,12 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1754324116}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 0.4217507
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -56220,7 +56295,10 @@ MonoBehaviour:
   seed: 16.26
   source: {fileID: 1174446868}
   halo: {fileID: 1689544093}
-  peakIntensity: 1.7
+  peakIntensity: 1.1
+  enableLocalLight: 0
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &1757853691
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -57015,12 +57093,12 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1798858998}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 0.6046518
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -62719,6 +62797,9 @@ MonoBehaviour:
   source: {fileID: 957159616}
   halo: {fileID: 559257141}
   peakIntensity: 1.1
+  enableLocalLight: 0
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &2001074799
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -65305,7 +65386,10 @@ MonoBehaviour:
   seed: 32.52
   source: {fileID: 2080646295}
   halo: {fileID: 762631543}
-  peakIntensity: 1.7
+  peakIntensity: 1.1
+  enableLocalLight: 0
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &2067198500
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -65930,12 +66014,12 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2074059798}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 0.55430067
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -66393,12 +66477,12 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2077728445}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 0.4891928
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -66570,12 +66654,12 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2080646293}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.12, g: 0.42, b: 1, a: 1}
-  m_Intensity: 0.6587719
+  m_Intensity: 1.1
   m_Range: 7.6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -68682,7 +68766,10 @@ MonoBehaviour:
   seed: 37.940002
   source: {fileID: 813583630}
   halo: {fileID: 126740423}
-  peakIntensity: 1.7
+  peakIntensity: 1.1
+  enableLocalLight: 1
+  emissionStrength: 4.5
+  haloAlpha: 0.366
 --- !u!23 &2146765194
 MeshRenderer:
   m_ObjectHideFlags: 0
