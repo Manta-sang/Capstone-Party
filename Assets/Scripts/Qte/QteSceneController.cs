@@ -1036,6 +1036,8 @@ public sealed class QteSceneController : MonoBehaviour
         {
             if(!root.name.StartsWith("Audience Row ",StringComparison.Ordinal))continue;
             foreach(var renderer in root.GetComponentsInChildren<Renderer>(true))renderer.receiveShadows=false;
+            var cheer = root.GetComponent<QteAudienceCheer>();
+            if (cheer != null) { cheer.Begin(); continue; }
             var animator=root.GetComponentInChildren<Animator>();if(animator==null)continue;
             animator.applyRootMotion=false;
             foreach(var parameter in animator.parameters)
