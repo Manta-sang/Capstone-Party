@@ -1175,7 +1175,7 @@ public sealed class QteSceneController : MonoBehaviour
     {
         string key=name+"_"+ColorUtility.ToHtmlStringRGBA(color);
         if(materials.TryGetValue(key,out var cached)&&cached!=null)return cached;
-        string path="Assets/Scenes/QteGenerated/"+key.Replace(" ","_")+".mat";
+        string path="Assets/Materials/QteGenerated/"+key.Replace(" ","_")+".mat";
 #if UNITY_EDITOR
         if(!Application.isPlaying)
         {
@@ -1208,7 +1208,7 @@ public sealed class QteSceneController : MonoBehaviour
 #if UNITY_EDITOR
         if(!Application.isPlaying)
         {
-            string path="Assets/Scenes/QteGenerated/"+meshName.Replace(" ","_")+".asset";
+            string path="Assets/Materials/QteGenerated/"+meshName.Replace(" ","_")+".asset";
             var existing=AssetDatabase.LoadAssetAtPath<Mesh>(path);
             if(existing!=null){existing.Clear();existing.vertices=vertices;existing.triangles=triangles;existing.RecalculateNormals();DestroyImmediate(mesh);mesh=existing;}
             else AssetDatabase.CreateAsset(mesh,path);
