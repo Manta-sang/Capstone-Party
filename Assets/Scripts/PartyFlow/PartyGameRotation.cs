@@ -23,19 +23,25 @@ public static class PartyGameRotation {
  static string pending;
  public static int PlayedCount=>bag.Count;
  public static bool IsComplete=>bag.Count>=Scenes.Length;
+ public static string ResultScene(string normal="Ranking") => (PartyRoster.Current!=null ? PartyRoster.Current.GamesStarted.Value>=Scenes.Length : IsComplete) ? "FinalRanking" : normal;
  public static bool Loading=>pending!=null;
  [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
  public static void Reset(){ClearPending();bag.Reset();if(PartyRoster.Current!=null&&PartyRoster.Current.IsSpawned&&PartyRoster.Current.IsServer)PartyRoster.Current.GamesStarted.Value=0;}
+ public static void CancelPending(){ClearPending();}
  static void ClearPending(){if(pendingNetwork!=null&&pendingNetwork.SceneManager!=null)pendingNetwork.SceneManager.OnLoadEventCompleted-=Completed;pendingNetwork=null;pending=null;}
  public static bool StartRandom(NetworkManager network,out string error){
   error="";
   if(network==null||!network.IsServer||!network.IsListening||Loading){error="호스트의 준비 완료 후 시작할 수 있습니다.";return false;}
-  pending=bag.Pick(Application.CanStreamedLevelBeLoaded);
+  return StartSelected(network,bag.Pick(Application.CanStreamedLevelBeLoaded),out error);
+ }
+ public static bool StartSelected(NetworkManager network,string selected,out string error){
+ error="";if(network==null||!network.IsServer||Loading){error="호스트만 이동할 수 있습니다.";return false;}
+ if(System.Array.IndexOf(Scenes,selected)<0||!Application.CanStreamedLevelBeLoaded(selected)||PartyRoster.Current==null){error="게임 안내와 참가자 정보를 확인해 주세요.";return false;}
+ pending=selected;
   if(pending==null){error="등록된 미니게임이 없습니다.";return false;}
   pendingNetwork=network;network.SceneManager.OnLoadEventCompleted+=Completed;
-  var status=network.SceneManager.LoadScene(pending,LoadSceneMode.Single);
-  if(status==SceneEventProgressStatus.Started)return true;
-  error="씬 이동 실패: "+status;ClearPending();return false;
+  if(PartyRoster.Current!=null){PartyRoster.Current.BriefingGame.Value=System.Array.IndexOf(Scenes,pending);PartyRoster.Current.CoverTravelClientRpc();}
+  PartyTicketTravel.LoadAfterCover(network,"GameBriefing");return true;
  }
  static void Completed(string scene,LoadSceneMode mode,List<ulong> completed,List<ulong> timedOut){
   if(scene!=pending)return;

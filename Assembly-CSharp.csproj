@@ -61,6 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\CrosswalkRun\CarSpawner.cs" />
+    <Compile Include="Assets\Scripts\FinalRanking\AirportAtmosphere.cs" />
     <Compile Include="Assets\Scripts\CustomCylinderCollider.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\PrefabRoadManager.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\AutoScrollCamera.cs" />
@@ -69,17 +70,24 @@
     <Compile Include="Assets\Scripts\Qte\QteSceneController.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_Blade.cs" />
     <Compile Include="Assets\Scripts\Ranking\RankingUI.cs" />
+    <Compile Include="Assets\Scripts\GameplayUI\PartyJumpProbe.cs" />
     <Compile Include="Assets\Scripts\PartyTitle.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CharacterRoundRestart.cs" />
     <Compile Include="Assets\Scripts\PartyFlow\PartyGameRotation.cs" />
     <Compile Include="Assets\Scripts\BlockFall\BlockFallCrystalGlow.cs" />
+    <Compile Include="Assets\Scripts\GameplayUI\GameStartPresentation.cs" />
     <Compile Include="Assets\Scripts\PartyRoomView.cs" />
+    <Compile Include="Assets\Scripts\GameplayUI\SceneLightingProfile.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_GameManager.cs" />
+    <Compile Include="Assets\Scripts\GameBriefing\GameBriefing.cs" />
+    <Compile Include="Assets\Scripts\GameBriefing\PartyTicketTravel.cs" />
+    <Compile Include="Assets\Scripts\Presentation\TicketSweepTransition.cs" />
     <Compile Include="Assets\Scripts\ClientNetworkTransform.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_PlayerDeath.cs" />
     <Compile Include="Assets\Scripts\BlockFall\BlockFallVisual.cs" />
     <Compile Include="Assets\Scripts\TileFlip\TF_GameManager.cs" />
     <Compile Include="Assets\Scripts\BlockFall\BlockFallArenaBoundary.cs" />
+    <Compile Include="Assets\Scripts\PartyFlow\PartyScoreRules.cs" />
     <Compile Include="Assets\Scripts\CustomSpawner.cs" />
     <Compile Include="Assets\Scripts\Qte\QteRunner.cs" />
     <Compile Include="Assets\Scripts\TileFlip\TF_Tile.cs" />
@@ -88,16 +96,21 @@
     <Compile Include="Assets\Scripts\SawBlade\SD_SpectatorCamera.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\RoadChunk.cs" />
     <Compile Include="Assets\Scripts\TileFlip\TF_TileGridManager.cs" />
+    <Compile Include="Assets\Scripts\FinalRanking\FinalCelebrationPlayer.cs" />
     <Compile Include="Assets\Scripts\UgsBootstrap.cs" />
     <Compile Include="Assets\Scripts\PlayerMovement.cs" />
+    <Compile Include="Assets\Scripts\FinalRanking\FinalRanking.cs" />
     <Compile Include="Assets\Scripts\LobbyRelayManager.cs" />
+    <Compile Include="Assets\Scripts\GameplayUI\RoundEndFacing.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CarObstacle.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\SlipperyZone.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CrosswalkNetworkEntry.cs" />
     <Compile Include="Assets\Scripts\NetController.cs" />
+    <Compile Include="Assets\Scripts\Presentation\SoftTicketGradient.cs" />
     <Compile Include="Assets\Scripts\PartyFlow\PartyDeveloperTools.cs" />
     <Compile Include="Assets\Scripts\LobbyUI.cs" />
     <Compile Include="Assets\Scripts\BlockFall\BlockFallLobby.cs" />
+    <Compile Include="Assets\Scripts\FinalRanking\WinnerCrown.cs" />
     <Compile Include="Assets\Scripts\BlockFall\BlockFallGame.cs" />
     <Compile Include="Assets\Scripts\Ranking\RankingManager.cs" />
     <Compile Include="Assets\Scripts\PlayerInteraction.cs" />
@@ -105,12 +118,16 @@
     <Compile Include="Assets\Scripts\ClientNetworkAnimator.cs" />
     <Compile Include="Assets\Scripts\CharacterCabin\CharacterCabinLobby.cs" />
     <Compile Include="Assets\Scripts\TileFlip\TF_CameraFollow.cs" />
+    <Compile Include="Assets\Scripts\GameplayUI\PushGestureGraphic.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_BladeSpawner.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_CameraFollow.cs" />
     <Compile Include="Assets\Scripts\SceneLoader.cs" />
     <Compile Include="Assets\Scripts\PartyFlow\PartyButtonFeedback.cs" />
+    <Compile Include="Assets\Scripts\CharacterCabin\CharacterCabinCamera.cs" />
     <Compile Include="Assets\Scripts\PartyRoster.cs" />
+    <Compile Include="Assets\Scripts\Presentation\PartySplash.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CrosswalkGameManager.cs" />
+    <Compile Include="Assets\Scripts\GameplayUI\PushCooldownHUD.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Scripts\BlockFall\PastelMarble.shader" />
@@ -494,26 +511,6 @@
     </Reference>
     <Reference Include="Mono.Cecil">
       <HintPath>Library\PackageCache\com.unity.nuget.mono-cecil@1.11.4\Mono.Cecil.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEditor.iOS.Extensions.Xcode">
-      <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.62f2\Editor\Data\PlaybackEngines\iOSSupport\UnityEditor.iOS.Extensions.Xcode.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEditor.iOS.Extensions.Common">
-      <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.62f2\Editor\Data\PlaybackEngines\iOSSupport\UnityEditor.iOS.Extensions.Common.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.Android.Types">
-      <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.62f2\Editor\Data\PlaybackEngines\AndroidPlayer\Unity.Android.Types.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.Android.Gradle">
-      <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.62f2\Editor\Data\PlaybackEngines\AndroidPlayer\Unity.Android.Gradle.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.Android.GradleProject">
-      <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.62f2\Editor\Data\PlaybackEngines\AndroidPlayer\Unity.Android.GradleProject.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="netstandard">

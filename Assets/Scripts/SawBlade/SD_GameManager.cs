@@ -37,8 +37,6 @@ public class SD_GameManager : NetworkBehaviour
     [SerializeField] private SD_SpectatorCamera spectatorCamera;
 
     [Header("진행")]
-    [Tooltip("모두 준비된 뒤 시작까지 기다리는 시간(초)")]
-    [SerializeField] private float startDelay = 3f;
     [Tooltip("이 시간(초) 안에 모두 준비되지 않으면 입장 실패로 처리")]
     [SerializeField] private float readyTimeout = 30f;
     [Tooltip("이 씬에서 NetworkManager를 직접 시작해 테스트할 때만 켠다 (씬 전환 이벤트가 없어서 시작 신호를 직접 준다)")]
@@ -76,6 +74,8 @@ public class SD_GameManager : NetworkBehaviour
     private float entryDeadline;
     private bool localReady;
     private bool roundStarted;
+    public bool HasRoundStarted => roundStarted;
+    public float CountdownRemaining => !IsSpawned||startTimeNet.Value<0?0:Mathf.Max(0,(float)(startTimeNet.Value-NetworkManager.ServerTime.Time));
     private int playersAtStart;
     private bool gameOverRaised;
     [Header("게임 종료 후 이동")]
@@ -294,7 +294,7 @@ public class SD_GameManager : NetworkBehaviour
         {
             if (expectedPlayersNet.Value > 0 && readyClients.Count >= expectedPlayersNet.Value)
             {
-                startTimeNet.Value = NetworkManager.ServerTime.Time + startDelay;
+                startTimeNet.Value = NetworkManager.ServerTime.Time + GameStartPresentation.ScheduledStartDelay;
             }
             else if (Time.realtimeSinceStartup > entryDeadline)
             {
@@ -328,9 +328,9 @@ public class SD_GameManager : NetworkBehaviour
         if (!IsSpawned || !IsServer) return;
         if (!runningNet.Value || player == null || player.IsDead) return;
 
-        // 탈락 직전 생존자 수가 이번 순위입니다. 횡단보도와 같은 3/2/1/0점 규칙을 사용합니다.
+        // 탈락 직전 생존자 수가 이번 순위입니다. 횡단보도와 같은 6/4/2/1점 규칙을 사용합니다.
         int rank = SD_PlayerDeath.All.Count(candidate => candidate != null && !candidate.IsDead);
-        AwardRankingScore(player, Mathf.Max(0, 4 - rank));
+        AwardRankingScore(player, PartyScoreRules.ForRank(rank));
         player.ApplyDeath();
         KillClientRpc(player.OwnerId);
     }
@@ -366,7 +366,7 @@ public class SD_GameManager : NetworkBehaviour
     {
         // 서버에서 한 번만 확정하여 복귀 코루틴이 중복 실행되지 않게 합니다.
         if (!IsServer || IsGameOver) return;
-        if (winner != null) AwardRankingScore(winner, 3);
+        if (winner != null) AwardRankingScore(winner, PartyScoreRules.ForRank(1));
         runningNet.Value = false;
         winnerIdNet.Value = winner != null ? winner.OwnerId : NoWinner;
         endedNet.Value = true;
@@ -404,6 +404,7 @@ public class SD_GameManager : NetworkBehaviour
 
         SD_PlayerDeath death = player.GetComponent<SD_PlayerDeath>();
         if (death != null && death.IsDead) yield break;
+        RoundEndFacing.Face(player);
 
         Rigidbody rb = player.GetComponent<Rigidbody>();
 
@@ -490,7 +491,7 @@ public class SD_GameManager : NetworkBehaviour
         }
         else
         {
-            var status = sceneManager.LoadScene(resultSceneName, LoadSceneMode.Single);
+            var status = sceneManager.LoadScene(PartyGameRotation.ResultScene(resultSceneName), LoadSceneMode.Single);
             if (status == SceneEventProgressStatus.Started) yield break;
             returnError = resultSceneName + " 이동 실패: " + status;
         }

@@ -35,6 +35,10 @@ public class LobbyRelayManager : MonoBehaviour
     // 현재 사용자가 방장인지 저장합니다.
     private bool isHost;
     private bool busy;
+    public bool IsBusy => busy;
+    private bool returning;
+    private bool quitting;
+    private void OnApplicationQuit() => quitting = true;
     public static string RoomNumber { get; private set; }
     [SerializeField] private string waitingScene = "Character";
 
@@ -104,10 +108,11 @@ public class LobbyRelayManager : MonoBehaviour
     // 연결 타임아웃이나 호스트 종료 시에도 Lobby 슬롯과 로컬 방번호를 해제한다.
     private async void OnNetworkStopped(bool wasHost)
     {
-        if (currentLobby == null) return;
+        if (currentLobby == null || returning || quitting) return;
+        returning = true;
         busy = true;
-        try { await ClearRoom(false); SetStatus("방 연결이 종료되었습니다."); }
-        finally { busy = false; }
+        try { await ClearRoom(false); }
+        finally { await ReturnToLobby(); }
     }
 
     /// <summary>
@@ -241,10 +246,26 @@ public class LobbyRelayManager : MonoBehaviour
     /// </summary>
     public async void LeaveRoom()
     {
-        if (busy) return;
+        if (busy || returning) return;
+        returning = true;
         busy = true;
-        try { await ClearRoom(); SetStatus("방에서 나왔습니다."); }
-        finally { busy = false; }
+        try { await ClearRoom(); }
+        finally { await ReturnToLobby(); }
+    }
+
+    private async System.Threading.Tasks.Task ReturnToLobby()
+    {
+        // A fresh Lobby scene owns the next NetworkManager. Wait for NGO to finish
+        // despawning before disposing the previous persistent network root.
+        while (networkManager != null && networkManager.ShutdownInProgress)
+            await System.Threading.Tasks.Task.Yield();
+        if (!this || quitting) return;
+        if (CrosswalkRun.RankingManager.Instance != null)
+            Destroy(CrosswalkRun.RankingManager.Instance.gameObject);
+        var root = networkManager != null ? networkManager.gameObject : gameObject;
+        Destroy(root);
+        await System.Threading.Tasks.Task.Yield();
+        UnityEngine.SceneManagement.SceneManager.LoadScene("Lobby");
     }
 
     // 연결 실패와 자발적 퇴장에서 같은 방식으로 Lobby 멤버십을 정리한다.

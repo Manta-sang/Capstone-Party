@@ -51,8 +51,6 @@ public class TF_GameManager : NetworkBehaviour
     [SerializeField] private Transform[] spawnPoints;
 
     [Header("진행")]
-    [Tooltip("모두 준비된 뒤 시작까지 기다리는 시간(초). 이 시간 동안 조작이 잠겨 있다")]
-    [SerializeField] private float startDelay = 3f;
     [Tooltip("게임 시간(초). 시작된 뒤 이 시간이 지나면 종료되고 승자가 정해진다")]
     [SerializeField] private float gameDuration = 60f;
     [Tooltip("이 시간(초) 안에 모두 준비되지 않으면 입장 실패로 처리")]
@@ -82,6 +80,7 @@ public class TF_GameManager : NetworkBehaviour
     private float entryDeadline;
     private bool localReady;
     private bool roundStarted;
+    public bool HasRoundStarted => roundStarted;
     private bool gameOverRaised;
 
     [Header("게임 종료 후 이동 (SD_GameManager와 같은 방식)")]
@@ -408,7 +407,7 @@ public class TF_GameManager : NetworkBehaviour
         {
             if (expectedPlayersNet.Value > 0 && readyClients.Count >= expectedPlayersNet.Value)
             {
-                double start = NetworkManager.ServerTime.Time + startDelay;
+                double start = NetworkManager.ServerTime.Time + GameStartPresentation.ScheduledStartDelay;
                 startTimeNet.Value = start;
                 endTimeNet.Value = start + gameDuration;
             }
@@ -542,7 +541,7 @@ public class TF_GameManager : NetworkBehaviour
 
     // ---------------------------------------------------------------- 종료 후 처리 (점수 기록, 결과 씬 이동)
 
-    // Host 전용: 타일 수 순위로 랭킹 점수를 기록한다. 횡단보도·SD와 같은 3/2/1/0점 규칙이고, 동점은 같은 순위(같은 점수)로 본다.
+    // Host 전용: 타일 수 순위로 랭킹 점수를 기록한다. 횡단보도·SD와 같은 6/4/2/1점 규칙이고, 동점은 같은 순위(같은 점수)로 본다.
     // 아무도 칠하지 못했으면(max가 0) 기록하지 않는다. 매니저가 없더라도 기존 종료·이동 처리는 유지한다.
     private void AwardRankingScores(int max)
     {
@@ -559,7 +558,7 @@ public class TF_GameManager : NetworkBehaviour
         {
             int score = grid.GetScore(participant.Value);
             int rank = 1 + slotOfClient.Values.Count(otherSlot => grid.GetScore(otherSlot) > score);
-            ranking.AddScore(participant.Key, $"Player {participant.Key}", Mathf.Max(0, 4 - rank));
+            ranking.AddScore(participant.Key, $"Player {participant.Key}", PartyScoreRules.ForRank(rank));
         }
     }
 
@@ -592,7 +591,7 @@ public class TF_GameManager : NetworkBehaviour
         }
         else
         {
-            var status = sceneManager.LoadScene(resultSceneName, LoadSceneMode.Single);
+            var status = sceneManager.LoadScene(PartyGameRotation.ResultScene(resultSceneName), LoadSceneMode.Single);
             if (status == SceneEventProgressStatus.Started) yield break;
             returnError = resultSceneName + " 이동 실패: " + status;
         }
@@ -637,6 +636,7 @@ public class TF_GameManager : NetworkBehaviour
     {
         NetworkObject player = localPlayerObject;
         if (player == null) yield break;
+        RoundEndFacing.Face(player);
 
         Rigidbody rb = player.GetComponent<Rigidbody>();
 

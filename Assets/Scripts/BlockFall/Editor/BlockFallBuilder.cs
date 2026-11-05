@@ -40,7 +40,10 @@ public static class BlockFallBuilder {
         var manager=new GameObject("BlockFall Manager"); manager.AddComponent<NetworkObject>();
         var game=manager.AddComponent<BlockFallGame>(); game.tiles=tiles; game.starts=new Transform[4];
         for(int i=0;i<4;i++) { var s=new GameObject("Spawn "+(i+1)); s.transform.position=new Vector3(i%2==0?-7:7,1,i<2?-7:7); game.starts[i]=s.transform; }
-        game.characters=new[] {AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/party_character.prefab"),AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Another_player.prefab")};
+        // Resolve the four registered players by GUID so future folder moves keep working.
+        game.characters=new[] {"b3f543bae91f9b94598a8372bfe747f8","0c76b793a5061c942beb17b723fa0688","43f35dc74b8af374c8ba48ec4ee160e0","07562273415467b4ca8e2b02136ecec3"}
+            .Select(guid=>AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid))).ToArray();
+        if(game.characters.Any(prefab=>prefab==null))throw new System.InvalidOperationException("All four player prefabs must be imported before building BlockFall.");
         var visual=Cube("Block Visual",Vector3.zero,Vector3.one,danger); Object.DestroyImmediate(visual.GetComponent<Collider>());
         game.blockVisual=PrefabUtility.SaveAsPrefabAsset(visual,"Assets/Prefabs/BlockFall/BlockVisual.prefab"); Object.DestroyImmediate(visual);
         EditorSceneManager.SaveScene(scene,"Assets/Scenes/BlockFall.unity");
