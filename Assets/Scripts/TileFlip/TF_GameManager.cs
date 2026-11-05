@@ -541,7 +541,7 @@ public class TF_GameManager : NetworkBehaviour
 
     // ---------------------------------------------------------------- 종료 후 처리 (점수 기록, 결과 씬 이동)
 
-    // Host 전용: 타일 수 순위로 랭킹 점수를 기록한다. 횡단보도·SD와 같은 3/2/1/0점 규칙이고, 동점은 같은 순위(같은 점수)로 본다.
+    // Host 전용: 타일 수 순위로 랭킹 점수를 기록한다. 횡단보도·SD와 같은 6/4/2/1점 규칙이고, 동점은 같은 순위(같은 점수)로 본다.
     // 아무도 칠하지 못했으면(max가 0) 기록하지 않는다. 매니저가 없더라도 기존 종료·이동 처리는 유지한다.
     private void AwardRankingScores(int max)
     {
@@ -558,7 +558,7 @@ public class TF_GameManager : NetworkBehaviour
         {
             int score = grid.GetScore(participant.Value);
             int rank = 1 + slotOfClient.Values.Count(otherSlot => grid.GetScore(otherSlot) > score);
-            ranking.AddScore(participant.Key, $"Player {participant.Key}", Mathf.Max(0, 4 - rank));
+            ranking.AddScore(participant.Key, $"Player {participant.Key}", PartyScoreRules.ForRank(rank));
         }
     }
 
@@ -636,6 +636,7 @@ public class TF_GameManager : NetworkBehaviour
     {
         NetworkObject player = localPlayerObject;
         if (player == null) yield break;
+        RoundEndFacing.Face(player);
 
         Rigidbody rb = player.GetComponent<Rigidbody>();
 

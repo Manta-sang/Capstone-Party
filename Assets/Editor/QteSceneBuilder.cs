@@ -13,7 +13,7 @@ public static class QteSceneBuilder
 
     private static void ConfigureSportsDaySky()
     {
-        const string skyPath = "Assets/Scenes/QteGenerated/QTE_SportsDay_Skybox.mat";
+        const string skyPath = "Assets/Materials/QteGenerated/QTE_SportsDay_Skybox.mat";
         var sky = AssetDatabase.LoadAssetAtPath<Material>(skyPath);
         if (sky == null)
         {
@@ -34,7 +34,7 @@ public static class QteSceneBuilder
 
     private static void BuildSportsDayClouds()
     {
-        const string cloudMaterialPath = "Assets/Scenes/QteGenerated/QTE_SoftClouds.mat";
+        const string cloudMaterialPath = "Assets/Materials/QteGenerated/QTE_SoftClouds.mat";
         var cloudMaterial = AssetDatabase.LoadAssetAtPath<Material>(cloudMaterialPath);
         if (cloudMaterial == null)
         {
@@ -78,8 +78,8 @@ public static class QteSceneBuilder
     {
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         scene.name = "Qte";
-        if (!AssetDatabase.IsValidFolder("Assets/Scenes/QteGenerated"))
-            AssetDatabase.CreateFolder("Assets/Scenes", "QteGenerated");
+        if (!AssetDatabase.IsValidFolder("Assets/Materials/QteGenerated"))
+            AssetDatabase.CreateFolder("Assets/Materials", "QteGenerated");
         ConfigureSportsDaySky();
 
         var light = new GameObject("School Daylight", typeof(Light));
@@ -92,33 +92,17 @@ public static class QteSceneBuilder
         var cameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener));
         cameraObject.tag = "MainCamera";
         // Start inside the campus fence with an elevated view that includes the sky horizon.
-          cameraObject.transform.position = new Vector3(0, 55, -55);
-          cameraObject.transform.LookAt(new Vector3(0, 27, 20));
+          cameraObject.transform.position = new Vector3(0, 52, -36);
+          cameraObject.transform.LookAt(new Vector3(0, 2, 5));
         var camera = cameraObject.GetComponent<Camera>();
-        camera.fieldOfView = 82;
+        camera.fieldOfView = 64;
         camera.farClipPlane = 460;
         camera.backgroundColor = new Color(.52f, .72f, .88f);
         camera.clearFlags = CameraClearFlags.Skybox;
         BuildSportsDayClouds();
 
-        string[] prefabPaths = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs/Player" })
-            .Select(AssetDatabase.GUIDToAssetPath).ToArray();
-        var prefabs = prefabPaths.Select(path =>
-        {
-            var root = PrefabUtility.LoadPrefabContents(path);
-            bool hasNetworkObject = root.GetComponent<NetworkObject>() != null;
-            PrefabUtility.UnloadPrefabContents(root);
-            return hasNetworkObject ? AssetDatabase.LoadAssetAtPath<GameObject>(path) : null;
-        }).Where(p => p != null).Take(4).ToArray();
-        if (prefabs.Length == 0) throw new System.InvalidOperationException("No network character prefabs were found in Assets/Prefabs/Player.");
-
-        var fonts = AssetDatabase.FindAssets("t:TMP_FontAsset", new[] { "Assets" })
-            .Select(AssetDatabase.GUIDToAssetPath)
-            .Select(AssetDatabase.LoadAssetAtPath<TMP_FontAsset>)
-            .Where(font => font != null).ToArray();
-        var korean = fonts.FirstOrDefault(font => font.name.IndexOf("Korean", System.StringComparison.OrdinalIgnoreCase) >= 0)
-            ?? fonts.FirstOrDefault(font => font.name.IndexOf("Noto", System.StringComparison.OrdinalIgnoreCase) >= 0)
-            ?? fonts.FirstOrDefault();
+        var prefabs = new[]{"b3f543bae91f9b94598a8372bfe747f8","0c76b793a5061c942beb17b723fa0688","43f35dc74b8af374c8ba48ec4ee160e0","07562273415467b4ca8e2b02136ecec3"}.Select(guid=>AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid))).ToArray();
+        var korean=AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/NotoSansKR-Black SDF.asset");
 
         var spawnPoints = new Transform[4];
         for (int i = 0; i < spawnPoints.Length; i++)
@@ -135,8 +119,8 @@ public static class QteSceneBuilder
 
         var controllerObject = new GameObject("QTE School Track Controller");
         var controller = controllerObject.AddComponent<QteSceneController>();
-        if (!AssetDatabase.IsValidFolder("Assets/Scenes/QteGenerated"))
-            AssetDatabase.CreateFolder("Assets/Scenes", "QteGenerated");
+        if (!AssetDatabase.IsValidFolder("Assets/Materials/QteGenerated"))
+            AssetDatabase.CreateFolder("Assets/Materials", "QteGenerated");
         var serialized = new SerializedObject(controller);
         var prefabArray = serialized.FindProperty("characterPrefabs");
         prefabArray.arraySize = prefabs.Length;
@@ -157,6 +141,7 @@ public static class QteSceneBuilder
         QteImportValidation.AttachSharedStartUI();
         EditorSceneManager.SaveScene(scene, "Assets/Scenes/Qte.unity");
         AssetDatabase.SaveAssets();
+        QteEnvironmentRefinement.Build();
         Debug.Log($"QTE_SCHOOL_TRACK_BUILD_PASS: saved scene with four network character prefabs, {audiencePrefabs.Length} idle crowd prefabs, bleachers, four lane spawns, an overview camera, and a school-day directional light.");
     }
 
@@ -239,7 +224,7 @@ public static class QteSceneBuilder
 
     private static void ApplyCampusGrassTexture()
     {
-        const string path = "Assets/Scenes/QteGenerated/Campus_grass_field_texture.asset";
+        const string path = "Assets/Materials/QteGenerated/Campus_grass_field_texture.asset";
         var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
         if (texture == null)
         {
@@ -267,7 +252,7 @@ public static class QteSceneBuilder
         var ground = GameObject.Find("School ground");
         if (ground != null)
         {
-            const string materialPath = "Assets/Scenes/QteGenerated/School_ground_natural_turf.mat";
+            const string materialPath = "Assets/Materials/QteGenerated/School_ground_natural_turf.mat";
             var material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
             if (material == null) { material = new Material(ground.GetComponent<Renderer>().sharedMaterial) { name = "School ground natural turf" }; AssetDatabase.CreateAsset(material, materialPath); }
             material.mainTexture = texture; material.color = Color.white; material.mainTextureScale = new Vector2(48, 40);
@@ -276,7 +261,7 @@ public static class QteSceneBuilder
         var park = GameObject.Find("QTE Left neighborhood park lawn");
         if (park != null)
         {
-            const string materialPath = "Assets/Scenes/QteGenerated/Park_natural_turf.mat";
+            const string materialPath = "Assets/Materials/QteGenerated/Park_natural_turf.mat";
             var material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
             if (material == null) { material = new Material(park.GetComponent<Renderer>().sharedMaterial) { name = "Park natural turf" }; AssetDatabase.CreateAsset(material, materialPath); }
             material.mainTexture = texture; material.color = Color.white; material.mainTextureScale = new Vector2(18, 21);
@@ -325,7 +310,7 @@ public static class QteSceneBuilder
         mesh.SetVertices(vertices);
         mesh.SetTriangles(triangles, 0);
         mesh.RecalculateNormals();
-        string path = "Assets/Scenes/QteGenerated/School_perimeter_fence_" + side + ".asset";
+        string path = "Assets/Materials/QteGenerated/School_perimeter_fence_" + side + ".asset";
         var previous = AssetDatabase.LoadAssetAtPath<Mesh>(path);
         if (previous != null)
         {
@@ -552,7 +537,7 @@ public static class QteSceneBuilder
 
     private static Material CampusMaterial(string name, Color color)
     {
-        string path = "Assets/Scenes/QteGenerated/" + name.Replace(" ", "_") + ".mat";
+        string path = "Assets/Materials/QteGenerated/" + name.Replace(" ", "_") + ".mat";
         var material = AssetDatabase.LoadAssetAtPath<Material>(path);
         if (material == null)
         {

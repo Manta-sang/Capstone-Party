@@ -12,7 +12,7 @@ public static class GameplayUIValidation {
  public static void BuildAndRun(){GameStartUIBuilder.Apply();Run();}
  static void Require(bool value,string message){if(!value)throw new Exception(message);}
  public static void Run(){
-  Require(GameStartPresentation.CountdownSeconds==1,"Countdown duration must be 1 second");
+  Require(GameStartPresentation.CountdownSeconds==3,"Countdown duration must be 3 seconds");
   Require(typeof(CrosswalkRun.CrosswalkGameManager).GetMethod("OnGUI",BindingFlags.NonPublic|BindingFlags.Instance)==null,"Crosswalk debug box still exists");Require(typeof(NetController).GetMethod("OnGUI",BindingFlags.NonPublic|BindingFlags.Instance)==null,"Legacy network box still exists");
   CrosswalkRun.CharacterRoundRestart.DeveloperSoloStart=false;Require(!CrosswalkRun.CharacterRoundRestart.HasEnoughPlayers(1)&&CrosswalkRun.CharacterRoundRestart.HasEnoughPlayers(2),"Normal start player threshold incorrect");CrosswalkRun.CharacterRoundRestart.DeveloperSoloStart=true;Require(CrosswalkRun.CharacterRoundRestart.HasEnoughPlayers(1),"Developer solo mode unavailable");CrosswalkRun.CharacterRoundRestart.DeveloperSoloStart=false;
   foreach(string name in new[]{"CrosswalkRun","SawBladeDodge","TileFlip","Qte","BlockFall"}){

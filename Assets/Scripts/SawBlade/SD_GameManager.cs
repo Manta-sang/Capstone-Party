@@ -328,9 +328,9 @@ public class SD_GameManager : NetworkBehaviour
         if (!IsSpawned || !IsServer) return;
         if (!runningNet.Value || player == null || player.IsDead) return;
 
-        // 탈락 직전 생존자 수가 이번 순위입니다. 횡단보도와 같은 3/2/1/0점 규칙을 사용합니다.
+        // 탈락 직전 생존자 수가 이번 순위입니다. 횡단보도와 같은 6/4/2/1점 규칙을 사용합니다.
         int rank = SD_PlayerDeath.All.Count(candidate => candidate != null && !candidate.IsDead);
-        AwardRankingScore(player, Mathf.Max(0, 4 - rank));
+        AwardRankingScore(player, PartyScoreRules.ForRank(rank));
         player.ApplyDeath();
         KillClientRpc(player.OwnerId);
     }
@@ -366,7 +366,7 @@ public class SD_GameManager : NetworkBehaviour
     {
         // 서버에서 한 번만 확정하여 복귀 코루틴이 중복 실행되지 않게 합니다.
         if (!IsServer || IsGameOver) return;
-        if (winner != null) AwardRankingScore(winner, 3);
+        if (winner != null) AwardRankingScore(winner, PartyScoreRules.ForRank(1));
         runningNet.Value = false;
         winnerIdNet.Value = winner != null ? winner.OwnerId : NoWinner;
         endedNet.Value = true;
@@ -404,6 +404,7 @@ public class SD_GameManager : NetworkBehaviour
 
         SD_PlayerDeath death = player.GetComponent<SD_PlayerDeath>();
         if (death != null && death.IsDead) yield break;
+        RoundEndFacing.Face(player);
 
         Rigidbody rb = player.GetComponent<Rigidbody>();
 
