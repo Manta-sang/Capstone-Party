@@ -99,6 +99,7 @@
     <Compile Include="Assets\Scripts\FinalRanking\FinalCelebrationPlayer.cs" />
     <Compile Include="Assets\Scripts\UgsBootstrap.cs" />
     <Compile Include="Assets\Scripts\PlayerMovement.cs" />
+    <Compile Include="Assets\Scripts\Qte\QteSequenceHud.cs" />
     <Compile Include="Assets\Scripts\FinalRanking\FinalRanking.cs" />
     <Compile Include="Assets\Scripts\LobbyRelayManager.cs" />
     <Compile Include="Assets\Scripts\GameplayUI\RoundEndFacing.cs" />
