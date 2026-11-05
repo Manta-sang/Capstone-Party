@@ -26,7 +26,7 @@ public sealed class GameStartPresentation : MonoBehaviour
         float remain=Remaining;
         if(presentationCanvas!=null)presentationCanvas.sortingOrder=!HasStarted&&PartyTicketTravel.UntilHalfReveal<=0?31001:ordinaryOrder;
         countdownText.gameObject.SetActive(!HasStarted && PartyTicketTravel.UntilHalfReveal<=0);
-        if(!HasStarted){countdownText.fontSize=remain>0?150:32;countdownText.text=remain>0?Mathf.Clamp(Mathf.CeilToInt(remain),1,(int)CountdownSeconds).ToString():"참가자 준비 중...";}
+        if(!HasStarted){countdownText.fontSize=remain>0?150:32;countdownText.text=remain>0?Mathf.Clamp(Mathf.CeilToInt(remain),1,(int)CountdownSeconds).ToString():qte!=null?string.Empty:"참가자 준비 중...";}
         if(tileTimer!=null&&tile!=null){int seconds=Mathf.CeilToInt(tile.RemainingTime);if(seconds!=lastTileSeconds){lastTileSeconds=seconds;tileTimer.text=Mathf.Clamp(seconds,0,99).ToString("00");}}
     }
     void OnDestroy(){if(current==this)current=null;}

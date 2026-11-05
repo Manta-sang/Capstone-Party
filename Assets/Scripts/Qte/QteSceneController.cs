@@ -22,6 +22,7 @@ public sealed class QteSceneController : MonoBehaviour
         public bool useGravity;
     }
 
+    [SerializeField] private GameObject competitionHurdlePrefab;
     [SerializeField] private GameObject[] characterPrefabs;
     [SerializeField] private GameObject[] spectatorPrefabs;
     [SerializeField] private Transform[] spawnPoints;
@@ -30,21 +31,34 @@ public sealed class QteSceneController : MonoBehaviour
     [SerializeField] private float hurdleSpacing = 18.5f;
     [SerializeField] private float inputLeadTime = 2f;
     [SerializeField] private float failStopDuration = 1f;
-    [SerializeField] private float cameraFollowSmoothTime = 0.22f;
+    [SerializeField] private float cameraFollowSmoothTime = 0.18f;
+    [Header("시작 전 철창 안쪽 구도") ]
+    [SerializeField] private Vector3 overviewPosition = new Vector3(0,52,-36);
+    [SerializeField] private Vector3 overviewLookAt = new Vector3(0,2,5);
+    [SerializeField,Range(30,90)] private float overviewFieldOfView = 64;
 
     private const string RosterMessage = "QTE.Entry.Roster";
     private const string ReadyMessage = "QTE.Entry.Ready";
     private const string ReadyStatusMessage = "QTE.Entry.ReadyStatus";
     private const string StartMessage = "QTE.Entry.Start";
+    private const string FinishCountdownMessage = "QTE.Finish.Countdown";
     private static readonly KeyCode[] Keys = { KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.LeftArrow, KeyCode.RightArrow };
+    private static readonly KeyCode[] AlternateKeys = { KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D };
     private static readonly string[] Arrows = { "↑", "↓", "←", "→" };
     private const int ArrowInputsPerHurdle=4;
+    private const float QteSuccessSpeedBonus=.65f;
+    private const float QteSuccessBoostDuration=1.6f;
+    private const float MapOverviewDuration=2.25f;
+    private const float CameraTransitionDuration=.8f;
+    private const int RaceCountdownSeconds=3;
 
     private readonly List<ulong> owners = new List<ulong>();
     private readonly List<ulong> objectIds = new List<ulong>();
     private readonly HashSet<ulong> readyClients = new HashSet<ulong>();
     private readonly HashSet<ulong> finishedPlayers = new HashSet<ulong>();
     private readonly HashSet<ulong> playersPastStart = new HashSet<ulong>();
+    private readonly Dictionary<ulong, float> observedRaceDistance = new Dictionary<ulong, float>();
+    private readonly Dictionary<ulong, float> lastTrackCoordinate = new Dictionary<ulong, float>();
     private readonly Dictionary<int, GameObject> hurdles = new Dictionary<int, GameObject>();
     private readonly Dictionary<string, Material> materials = new Dictionary<string, Material>();
     private readonly Dictionary<Rigidbody, RunnerBodyState> runnerBodyStates = new Dictionary<Rigidbody, RunnerBodyState>();
@@ -53,21 +67,31 @@ public sealed class QteSceneController : MonoBehaviour
     private NetworkObject activePlayer;
     private Animator activeAnimator;
     private Camera raceCamera;
-    private TextMeshProUGUI instructionText, countdownText, statusText;
+    private QteSequenceHud sequenceHud;
+    private string developerStatus="QTE 준비 중";
     private AudioSource whistleSource, musicSource;
     private Vector3 cameraVelocity;
+    private float cameraShakeUntil,cameraShakeStrength,cameraShakeDuration;
     private int entryToken;
     private double startsAt = -1;
     public bool HasRoundStarted => gameStarted;
-    public float CountdownRemaining => network==null||startsAt<0?0:Mathf.Max(0,(float)(startsAt-network.ServerTime.Time));
+    public float CountdownRemaining => network == null || startsAt < 0 ? 0 : Mathf.Max(0, (float)(startsAt - network.ServerTime.Time));
     private bool rosterReceived, localReady, startScheduled, gameStarted, spawnRequested, localFinished, roundEnding;
+    private double finishWindowEndsAt = -1;
+    private int lastFinishCountdownSent = -1;
     private bool overviewMode = true;
     private string entryError;
     private float distanceAlongTrack, stunUntil;
+    private float speedBoostUntil;
     private int hurdleNumber, arrowProgress;
     private readonly int[] expectedDirections=new int[ArrowInputsPerHurdle];
     private int lastArrowPromptProgress=-1,lastArrowPromptTenths=-1;
-    private bool hurdleResolved = true, hurdlePrompted, jumping, queuedJump;
+    private bool hurdleResolved = true, hurdlePrompted, jumping, queuedJump, allHurdlesResolved;
+    private bool fallRecoveryTriggered, queuedFailure, finishCameraLocked;
+    private float queuedFailureAt, stumbleStartedAt, fallAnimatorSpeed=1f;
+    private const float StumbleTravel=.65f;
+    private Vector3 finishCameraPosition, finishCameraLookAt;
+    private bool hurdlePreviewSpawned;
     private float jumpStartedAt;
     private float queuedJumpAt;
     private float startFlashUntil;
@@ -76,17 +100,19 @@ public sealed class QteSceneController : MonoBehaviour
     private const float FinishOffset = 13.2f;
     private const float StartClearance = 18f;
     private float RaceDistance => PlayerLapLength(3) + FinishOffset;
-    public string DeveloperStatus => statusText != null ? statusText.text : "QTE 준비 중";
+    private float CurrentRunSpeed => Time.time < speedBoostUntil ? runSpeed + QteSuccessSpeedBonus : runSpeed;
+    public string DeveloperStatus => developerStatus;
 
     private void Awake()
     {
         network = NetworkManager.Singleton;
         raceCamera = Camera.main;
-        if (raceCamera != null) { raceCamera.transform.position = new Vector3(0, 90, -106); raceCamera.transform.LookAt(Vector3.zero); raceCamera.fieldOfView = 58; }
+        if (raceCamera != null){raceCamera.farClipPlane=460;raceCamera.transform.position=overviewPosition;raceCamera.transform.LookAt(overviewLookAt);raceCamera.fieldOfView=overviewFieldOfView;}
         HidePrototypeSceneObjects();
         if (GameObject.Find("School ground") == null) BuildSchoolTrack();
         SetSceneSpectatorsIdle();
-        BuildRaceUi();
+        AddAudienceFillLights();
+        sequenceHud=FindObjectOfType<QteSequenceHud>();
         whistleSource = gameObject.AddComponent<AudioSource>();
         whistleSource.playOnAwake = false;
         whistleSource.spatialBlend = 0;
@@ -97,6 +123,7 @@ public sealed class QteSceneController : MonoBehaviour
         messages.RegisterNamedMessageHandler(ReadyMessage, OnReadyReceived);
         messages.RegisterNamedMessageHandler(ReadyStatusMessage, OnReadyStatusReceived);
         messages.RegisterNamedMessageHandler(StartMessage, OnStartReceived);
+        messages.RegisterNamedMessageHandler(FinishCountdownMessage, OnFinishCountdownReceived);
         if (network.IsServer) network.SceneManager.OnLoadEventCompleted += OnSceneLoaded;
     }
 
@@ -126,6 +153,8 @@ public sealed class QteSceneController : MonoBehaviour
             if (player == null) { Destroy(instance); FailEntry("캐릭터 프리팹에 NetworkObject가 없습니다."); yield break; }
             player.SpawnAsPlayerObject(id, true);
             owners.Add(id); objectIds.Add(player.NetworkObjectId);
+            lastTrackCoordinate[id] = StartOffsetForLane(slot);
+            observedRaceDistance[id] = 0f;
         }
         rosterReceived = true;
         using (var writer = new FastBufferWriter(128, Allocator.Temp))
@@ -142,7 +171,7 @@ public sealed class QteSceneController : MonoBehaviour
         foreach (NetworkObject p in network.SpawnManager.SpawnedObjectsList)
         {
             var movement = p.GetComponent<PlayerMovement>(); if (movement != null) movement.enabled = false;
-            var push=p.GetComponent<PlayerInteraction>();if(push!=null)push.enabled=false;
+            var push = p.GetComponent<PlayerInteraction>(); if (push != null) push.enabled = false;
             var legacy = p.GetComponent<QteRunner>(); if (legacy != null) legacy.enabled = false;
             if(p.IsPlayerObject)FreezeRunnerPhysics(p);
         }
@@ -161,34 +190,53 @@ public sealed class QteSceneController : MonoBehaviour
             if (startsAt >= 0 && network.ServerTime.Time >= startsAt)
             {
                 gameStarted = true; overviewMode = false; startFlashUntil = Time.unscaledTime + .8f;
-                countdownText.text = "<color=#FF625C>출발!</color>"; distanceAlongTrack = 0;
+                distanceAlongTrack = 0;
                 for (int hurdle = 1; hurdle <= Mathf.FloorToInt(RaceDistance / hurdleSpacing); hurdle++)
                     SpawnHurdle(hurdle, hurdle * hurdleSpacing);
                 PrepareNextHurdle(); PlayWhistle();
             }
             return;
         }
-        if (countdownText != null && Time.unscaledTime >= startFlashUntil) countdownText.text = string.Empty;
         if(localFinished||roundEnding){if(activePlayer!=null)RoundEndFacing.Face(activePlayer);return;}
         if(activePlayer==null)return;
-        if (Time.unscaledTime < stunUntil) { SetWalking(false); instructionText.text = $"<color=#FF625C>잠깐 멈춤 · {Mathf.Max(0, stunUntil - Time.unscaledTime):0.0}초</color>"; return; }
-        if (stunUntil > 0) { stunUntil = 0; hurdleResolved = true; PrepareNextHurdle(); }
+        if (Time.unscaledTime < stunUntil)
+        {
+            SetWalking(false);
+            int lane=Mathf.Max(0,objectIds.IndexOf(activePlayer.NetworkObjectId));
+            float slide=StumbleTravel*Mathf.SmoothStep(0,1,Mathf.Clamp01((Time.unscaledTime-stumbleStartedAt)/Mathf.Max(.05f,failStopDuration*.55f)));
+            float at=StartOffsetForLane(lane)+distanceAlongTrack+slide;
+            activePlayer.transform.SetPositionAndRotation(TrackPosition(at,lane),TrackRotation(at,lane));
+
+            if (!fallRecoveryTriggered && stunUntil - Time.unscaledTime <= Mathf.Min(.42f, failStopDuration * .42f))
+            {
+                if(activeAnimator!=null)activeAnimator.speed=fallAnimatorSpeed;
+                TriggerAnimator("getup");
+                fallRecoveryTriggered = true;
+            }
+            return;
+        }
+        if (stunUntil > 0) { if(activeAnimator!=null)activeAnimator.speed=fallAnimatorSpeed; distanceAlongTrack=Mathf.Min(RaceDistance,distanceAlongTrack+StumbleTravel); stunUntil = 0; fallRecoveryTriggered = false; hurdleResolved = true; PrepareNextHurdle(); }
         if (jumping) UpdateJump();
         float remaining = Mathf.Max(0, hurdleNumber * hurdleSpacing - distanceAlongTrack);
-        float timeToHurdle = remaining / runSpeed;
-        if (!hurdlePrompted && timeToHurdle <= inputLeadTime)
+        float timeToHurdle = remaining / CurrentRunSpeed;
+        if (!allHurdlesResolved && !hurdleResolved && !hurdlePrompted && timeToHurdle <= inputLeadTime)
         {
             hurdlePrompted = true;
             arrowProgress=0;lastArrowPromptProgress=-1;lastArrowPromptTenths=-1;
             for(int i=0;i<expectedDirections.Length;i++)expectedDirections[i]=UnityEngine.Random.Range(0,Keys.Length);
         }
-        if (hurdlePrompted && !hurdleResolved) { ShowInstruction(timeToHurdle);ReadArrowInput(); }
-        if (!hurdleResolved && hurdlePrompted && timeToHurdle <= 0.02f) ResolveHurdle(false);
-        float speed = stunUntil > 0 ? 0 : runSpeed;
-        distanceAlongTrack = Mathf.Min(RaceDistance, distanceAlongTrack + speed * Time.deltaTime);
+        if (hurdlePrompted && !hurdleResolved)
+        {
+            // Resolve this hurdle before advancing to the next one in ReadArrowInput.
+            if(timeToHurdle<=.02f)ResolveHurdle(false);
+            else ReadArrowInput();
+        }
+        float speed = stunUntil > 0 ? 0 : CurrentRunSpeed;
+        distanceAlongTrack = Mathf.Min(queuedFailure?queuedFailureAt:RaceDistance, distanceAlongTrack + speed * Time.deltaTime);
         if (queuedJump && distanceAlongTrack >= queuedJumpAt)
         {
             queuedJump = false; jumping = true; jumpStartedAt = Time.time;
+            PulseCameraShake(.07f,.16f);
             if(activeAnimator!=null&&activeAnimator.parameters.Any(p=>p.name=="doJump"&&p.type==AnimatorControllerParameterType.Trigger))activeAnimator.SetTrigger("doJump");
         }
         int movingLane=Mathf.Max(0,objectIds.IndexOf(activePlayer.NetworkObjectId));
@@ -196,20 +244,31 @@ public sealed class QteSceneController : MonoBehaviour
         Vector3 position=TrackPosition(laneDistance,movingLane);
         if (jumping) position.y += Mathf.Sin(Mathf.Clamp01((Time.time - jumpStartedAt) / .8f) * Mathf.PI) * 1.8f;
         activePlayer.transform.SetPositionAndRotation(position,TrackRotation(laneDistance,movingLane));
-        SetWalking(speed > 0 && !jumping);
-        if (distanceAlongTrack >= RaceDistance) { localFinished = true; SetWalking(false); instructionText.text = "완주! 다른 주자를 기다리는 중"; }
+        if(queuedFailure&&distanceAlongTrack>=queuedFailureAt)BeginHurdleFailure();
+        SetWalking(speed > 0 && !jumping && stunUntil<=0);
+        if (distanceAlongTrack >= RaceDistance) { localFinished = true; PulseCameraShake(.13f,.24f); SetWalking(false);  }
     }
 
     private void ReadArrowInput()
     {
         for(int i=0;i<Keys.Length;i++)
         {
-            if(!Input.GetKeyDown(Keys[i]))continue;
-            if(i!=expectedDirections[arrowProgress]){ResolveHurdle(false);return;}
-            arrowProgress++;
-            if(arrowProgress>=ArrowInputsPerHurdle)ResolveHurdle(true);
+            if(Input.GetKeyDown(Keys[i]))HandleQteKey(Keys[i]);
+            else if(Input.GetKeyDown(AlternateKeys[i]))HandleQteKey(AlternateKeys[i]);
+            else continue;
+            // Matching aliases pressed together still count as one step.
             return;
         }
+    }
+    private void HandleQteKey(KeyCode key)
+    {
+        if(hurdleResolved||!hurdlePrompted||arrowProgress>=ArrowInputsPerHurdle)return;
+        int direction=Array.IndexOf(Keys,key);
+        if(direction<0)direction=Array.IndexOf(AlternateKeys,key);
+        if(direction<0)return;
+        if(direction!=expectedDirections[arrowProgress]){ResolveHurdle(false);return;}
+        arrowProgress++;
+        if(arrowProgress>=ArrowInputsPerHurdle)ResolveHurdle(true);
     }
     private void ResolveHurdle(bool success)
     {
@@ -218,61 +277,106 @@ public sealed class QteSceneController : MonoBehaviour
         int lane = Mathf.Max(0, objectIds.IndexOf(activePlayer.NetworkObjectId));
         int hurdleKey = hurdleNumber * 4 + lane;
         if (!success && hurdles.TryGetValue(hurdleKey, out var hurdle) && hurdle != null)
-        { SetTransparent(hurdle); foreach (var collider in hurdle.GetComponentsInChildren<Collider>()) collider.enabled = false; }
+        { foreach (var collider in hurdle.GetComponentsInChildren<Collider>()) collider.enabled = false; }
+        if(sequenceHud!=null)sequenceHud.Complete(success);
         if (success)
         {
+            speedBoostUntil=Time.time+QteSuccessBoostDuration;
             queuedJump = true;
-            queuedJumpAt = hurdleNumber * hurdleSpacing - runSpeed * .4f;
-            instructionText.text = "<color=#69EFA0>좋아요! 점프 성공</color>";
+            queuedJumpAt = hurdleNumber * hurdleSpacing - CurrentRunSpeed * .4f;
+
             PrepareNextHurdle();
         }
         else
         {
-            stunUntil = Time.unscaledTime + failStopDuration;
-            // The missed hurdle fades out so the runner can continue through it after the one-second pause.
-            if (hurdles.TryGetValue(hurdleKey, out var missed) && missed != null) StartCoroutine(FadeHurdle(missed));
-            instructionText.text = $"<color=#FF625C>실패! {failStopDuration:0}초 멈춤</color>";
+            // Wrong input marks this hurdle as missed; trip at leg contact, not meters ahead.
+            queuedFailure=true;
+            queuedFailureAt=Mathf.Max(distanceAlongTrack,hurdleNumber*hurdleSpacing-.45f);
+
         }
     }
-    private IEnumerator FadeHurdle(GameObject hurdle)
+    private void BeginHurdleFailure()
     {
-        var renderers = hurdle.GetComponentsInChildren<Renderer>(); float elapsed = 0;
-        foreach (var r in renderers) foreach (var m in r.materials) { m.SetFloat("_Mode", 3); m.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha); m.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha); m.SetInt("_ZWrite", 0); m.DisableKeyword("_ALPHATEST_ON"); m.EnableKeyword("_ALPHABLEND_ON"); m.renderQueue = 3000; }
-        while (elapsed < .45f && hurdle != null)
+        queuedFailure=false;queuedJump=false;jumping=false;speedBoostUntil=0;
+        stumbleStartedAt=Time.unscaledTime;stunUntil=stumbleStartedAt+failStopDuration;
+        fallRecoveryTriggered=false;SetWalking(false);PulseCameraShake(.16f,.24f);
+        if(activeAnimator!=null)
         {
-            elapsed += Time.deltaTime; foreach (var r in renderers) if (r != null) foreach (var m in r.materials) { var c = m.color; c.a = Mathf.Lerp(1, .25f, elapsed / .45f); m.color = c; }
+            fallAnimatorSpeed=activeAnimator.speed;
+            float clipLength=activeAnimator.runtimeAnimatorController.animationClips.FirstOrDefault(c=>c.name.Equals("fall",StringComparison.OrdinalIgnoreCase))?.length??1.23f;
+            activeAnimator.speed=clipLength/Mathf.Max(.05f,failStopDuration*.64f);
+        }
+        TriggerAnimator("fall");
+        int lane=Mathf.Max(0,objectIds.IndexOf(activePlayer.NetworkObjectId));
+        if(hurdles.TryGetValue(hurdleNumber*4+lane,out var missed)&&missed!=null)
+            StartCoroutine(TipAndFadeHurdle(missed));
+    }
+
+    private IEnumerator TipAndFadeHurdle(GameObject hurdle)
+    {
+        var renderers = hurdle.GetComponentsInChildren<Renderer>();
+        var renderMaterials = new List<Material>();
+        foreach (var renderer in renderers)
+        foreach (var material in renderer.materials)
+        {
+            if (material == null || !material.HasProperty("_Color")) continue;
+            if (material.HasProperty("_Mode")) material.SetFloat("_Mode", 3);
+            if (material.HasProperty("_SrcBlend")) material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            if (material.HasProperty("_DstBlend")) material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            if (material.HasProperty("_ZWrite")) material.SetInt("_ZWrite", 0);
+            material.DisableKeyword("_ALPHATEST_ON"); material.EnableKeyword("_ALPHABLEND_ON"); material.renderQueue = 3000;
+            renderMaterials.Add(material);
+        }
+        Quaternion upright = hurdle.transform.localRotation;
+        Quaternion fallenBack = upright * Quaternion.Euler(76f, 0, 0);
+        float elapsed = 0;
+        const float toppleDuration = .38f;
+        const float fadeDuration = .55f;
+        while (elapsed < fadeDuration && hurdle != null)
+        {
+            elapsed += Time.deltaTime;
+            float tip = Mathf.SmoothStep(0, 1, Mathf.Clamp01(elapsed / toppleDuration));
+            hurdle.transform.localRotation = Quaternion.Slerp(upright, fallenBack, tip);
+            float alpha = Mathf.Lerp(1f, .38f, Mathf.Clamp01(elapsed / fadeDuration));
+            foreach (var material in renderMaterials) if (material != null) { var color = material.color; color.a = alpha; material.color = color; }
             yield return null;
         }
     }
-    private void SetTransparent(GameObject hurdle) { foreach (var r in hurdle.GetComponentsInChildren<Renderer>()) foreach (var m in r.materials) { var c = m.color; c.a = .35f; m.color = c; } }
-    private void UpdateJump() { if (Time.time - jumpStartedAt >= .8f) jumping = false; }
+    private void TriggerAnimator(string parameterName)
+    {
+        if (activeAnimator == null) return;
+        if (activeAnimator.parameters.Any(parameter => parameter.name == parameterName && parameter.type == AnimatorControllerParameterType.Trigger))
+            {
+            var synced=activePlayer!=null?activePlayer.GetComponent<ClientNetworkAnimator>():null;
+            if(synced!=null&&synced.IsSpawned)synced.SetTrigger(parameterName);else activeAnimator.SetTrigger(parameterName);
+        }
+    }
+    private void UpdateJump()
+    {
+        if (Time.time - jumpStartedAt < .8f)return;
+        jumping=false;
+        PulseCameraShake(.12f,.2f);
+    }
     private void PrepareNextHurdle()
     {
         float hurdleAt=(hurdleNumber+1)*hurdleSpacing;
-        if(hurdleAt>RaceDistance){hurdlePrompted=false;hurdleResolved=true;return;}
+        if(hurdleAt>RaceDistance){allHurdlesResolved=true;hurdlePrompted=false;hurdleResolved=true;if(sequenceHud!=null)sequenceHud.HideImmediately();return;}
         hurdleNumber++;hurdlePrompted=false;hurdleResolved=false;
         SpawnHurdle(hurdleNumber,hurdleAt);
     }
-    private void ShowInstruction(float secondsLeft)
-    {
-        int tenths=Mathf.CeilToInt(Mathf.Max(0,secondsLeft)*10f);
-        if(lastArrowPromptProgress==arrowProgress&&lastArrowPromptTenths==tenths)return;
-        lastArrowPromptProgress=arrowProgress;lastArrowPromptTenths=tenths;
-        var sequence=new string[ArrowInputsPerHurdle];
-        for(int i=0;i<sequence.Length;i++)
-        {
-            string arrow=Arrows[expectedDirections[i]];
-            sequence[i]=i<arrowProgress?$"<color=#69EFA0>{arrow}</color>":i==arrowProgress?$"<color=#FFD55A><b>{arrow}</b></color>":$"<color=#D6DDE7>{arrow}</color>";
-        }
-        instructionText.text=$"허들까지 {secondsLeft:0.0}초 · 방향키 4개 순서 입력\n{string.Join("  ",sequence)}\n<color=#AFC4D8>{arrowProgress}/{ArrowInputsPerHurdle}</color>";
-    }
     private void UpdateCountdown()
     {
-        if(GameStartPresentation.HasSharedCountdown){int sharedTick=Mathf.CeilToInt(CountdownRemaining-.001f);if(PartyTicketTravel.UntilHalfReveal<=0&&sharedTick>0&&sharedTick<=GameStartPresentation.CountdownSeconds)PlayCountdownTone(sharedTick);if(countdownText!=null)countdownText.text=string.Empty;return;}
-        int tick = startsAt < 0 ? 0 : Mathf.CeilToInt((float)(startsAt - network.ServerTime.Time) - .001f);
-        if (countdownText == null) return;
-        countdownText.text = tick > 0 ? $"<size=30>출발 준비</size>\n<color=#FFD55A>{tick}</color>" : (startsAt >= 0 ? "<color=#FF625C>출발!</color>" : "");
-        if (tick > 0 && tick <= GameStartPresentation.CountdownSeconds) PlayCountdownTone(tick);
+        // GameStartPresentation owns the same 3/2/1 text, font, color and timing as every game.
+        // QTE only prepares its camera and hurdles here.
+        if(startsAt<0||network==null){overviewMode=true;return;}
+        double countdownAt=startsAt-GameStartPresentation.CountdownSeconds;
+        overviewMode=network.ServerTime.Time<countdownAt-CameraTransitionDuration;
+        if(!overviewMode&&!hurdlePreviewSpawned)
+        {
+            for(int hurdle=1;hurdle<=Mathf.FloorToInt(RaceDistance/hurdleSpacing);hurdle++)
+                SpawnHurdle(hurdle,hurdle*hurdleSpacing);
+            hurdlePreviewSpawned=true;
+        }
     }
     private int lastTick = -1;
     private void PlayCountdownTone(int tick) { if (tick == lastTick) return; lastTick = tick; PlayTone(tick == 1 ? 1250 : 760, .12f); }
@@ -296,7 +400,7 @@ public sealed class QteSceneController : MonoBehaviour
     private void StartSchoolSportsMusic()
     {
         const int sampleRate=22050;
-        const float bpm=118f;
+        const float bpm=140f;
         const int bars=16;
         float beatLength=60f/bpm;
         float duration=bars*4f*beatLength;
@@ -339,12 +443,14 @@ public sealed class QteSceneController : MonoBehaviour
             float noise=(float)random.NextDouble()*2f-1f;
             float beatSeconds=beatPhase*beatLength;
             int beatInBar=beatIndex%4;
-            if((beatInBar==0||beatInBar==2)&&beatSeconds<.2f)
-                percussion+=Mathf.Sin(2f*Mathf.PI*(92f*beatSeconds-105f*beatSeconds*beatSeconds))*Mathf.Exp(-beatSeconds*22f)*.11f;
+            if((beatInBar==0||beatInBar==2)&&beatSeconds<.24f)
+                percussion+=Mathf.Sin(2f*Mathf.PI*(105f*beatSeconds-125f*beatSeconds*beatSeconds))*Mathf.Exp(-beatSeconds*17f)*.17f;
             if((beatInBar==1||beatInBar==3)&&beatSeconds<.14f)
-                percussion+=(noise*.7f+Mathf.Sin(2f*Mathf.PI*185f*beatSeconds)*.3f)*Mathf.Exp(-beatSeconds*28f)*.055f;
+                percussion+=(noise*.62f+Mathf.Sin(2f*Mathf.PI*220f*beatSeconds)*.38f)*Mathf.Exp(-beatSeconds*24f)*.085f;
             float eighthPhase=(t/eighthLength)-Mathf.Floor(t/eighthLength);
-            if(eighthPhase<.035f)percussion+=noise*Mathf.Exp(-eighthPhase*80f)*.018f;
+            if(eighthPhase<.045f)percussion+=noise*Mathf.Exp(-eighthPhase*62f)*.028f;
+            float offbeatPhase=((t+beatLength*.5f)/beatLength)-Mathf.Floor((t+beatLength*.5f)/beatLength);
+            if(offbeatPhase<.035f)percussion+=noise*Mathf.Exp(-offbeatPhase*72f)*.012f;
 
             float fade=Mathf.Clamp01(Mathf.Min(t/.045f,(duration-t)/.045f));
             float mix=(lead+pad+bass+percussion)*fade;
@@ -354,7 +460,7 @@ public sealed class QteSceneController : MonoBehaviour
         var clip=AudioClip.Create("School Sports Day Loop",sampleCount,2,sampleRate,false);
         clip.SetData(samples,0);
         musicSource=gameObject.AddComponent<AudioSource>();
-        musicSource.clip=clip;musicSource.loop=true;musicSource.volume=.42f;musicSource.spatialBlend=0;musicSource.playOnAwake=false;
+        musicSource.clip=clip;musicSource.loop=true;musicSource.volume=.5f;musicSource.spatialBlend=0;musicSource.playOnAwake=false;
         musicSource.Play();
     }
     private void PlayTone(float hz, float duration)
@@ -369,7 +475,8 @@ public sealed class QteSceneController : MonoBehaviour
         foreach(var body in player.GetComponentsInChildren<Rigidbody>())
         {
             if(!runnerBodyStates.ContainsKey(body))runnerBodyStates.Add(body,new RunnerBodyState{isKinematic=body.isKinematic,useGravity=body.useGravity});
-            if(!body.isKinematic){body.velocity=Vector3.zero;body.angularVelocity=Vector3.zero;}body.useGravity=false;body.isKinematic=true;
+            if(!body.isKinematic){body.velocity=Vector3.zero;body.angularVelocity=Vector3.zero;}
+            body.useGravity=false;body.isKinematic=true;
         }
     }
     private bool LocalRosterIsPresent()
@@ -399,29 +506,79 @@ public sealed class QteSceneController : MonoBehaviour
     private void OnReadyStatusReceived(ulong sender, FastBufferReader r){if(sender!=NetworkManager.ServerClientId||network.IsServer)return;r.ReadValueSafe(out int token);r.ReadValueSafe(out ulong id);if(token==entryToken&&owners.Contains(id))readyClients.Add(id);}
     private void ScheduleStart()
     {
-        startScheduled=true;startsAt=network.ServerTime.Time+GameStartPresentation.ScheduledStartDelay;
+        startScheduled=true;
+        startsAt=network.ServerTime.Time+GameStartPresentation.ScheduledStartDelay;
         using(var w=new FastBufferWriter(12,Allocator.Temp)){w.WriteValueSafe(entryToken);w.WriteValueSafe(startsAt);foreach(ulong id in owners)if(id!=NetworkManager.ServerClientId&&network.ConnectedClients.ContainsKey(id))messages.SendNamedMessage(StartMessage,id,w,NetworkDelivery.ReliableSequenced);}
     }
     private void OnStartReceived(ulong sender,FastBufferReader r){if(sender!=NetworkManager.ServerClientId||network.IsServer)return;r.ReadValueSafe(out int token);r.ReadValueSafe(out double t);if(token==entryToken)startsAt=t;}
+    private void OnFinishCountdownReceived(ulong sender, FastBufferReader r)
+    {
+        if (sender != NetworkManager.ServerClientId || network.IsServer) return;
+        r.ReadValueSafe(out int token); r.ReadValueSafe(out int seconds);
+        if (token != entryToken) return;
+
+    }
 
     private void LateUpdate()
     {
         if (raceCamera != null)
         {
             bool running=gameStarted&&activePlayer!=null&&!localFinished&&Time.unscaledTime>=stunUntil;
-            float targetFov=running?66f:58f;
+            bool speedBoosted=running&&Time.time<speedBoostUntil;
+            float targetFov=overviewMode?overviewFieldOfView:jumping?70f:(running?(speedBoosted?69f:67f):58f);
             raceCamera.fieldOfView=Mathf.Lerp(raceCamera.fieldOfView,targetFov,Time.unscaledDeltaTime*3.2f);
-            if (overviewMode) { /* Editor scene camera remains in its elevated overview while players get ready. */ }
+            if (overviewMode) { raceCamera.transform.position=overviewPosition;raceCamera.transform.LookAt(overviewLookAt); }
+            else if (activePlayer != null && (localFinished||roundEnding))
+            {
+                if(!finishCameraLocked)
+                {
+                    // Facing the viewer must not rotate the chase camera back into the finish gate.
+                    int lane=Mathf.Max(0,objectIds.IndexOf(activePlayer.NetworkObjectId));
+                    Vector3 heading=TrackRotation(StartOffsetForLane(lane)+distanceAlongTrack,lane)*Vector3.forward;
+                    finishCameraPosition=activePlayer.transform.position-heading*6.2f+Vector3.up*4.2f;
+                    finishCameraLookAt=activePlayer.transform.position+Vector3.up*1.1f;
+                    finishCameraLocked=true;cameraVelocity=Vector3.zero;cameraShakeUntil=0;
+                }
+                raceCamera.transform.position=Vector3.SmoothDamp(raceCamera.transform.position,finishCameraPosition,ref cameraVelocity,cameraFollowSmoothTime);
+                raceCamera.transform.LookAt(finishCameraLookAt);
+            }
             else if (activePlayer != null)
             {
                 Vector3 target=activePlayer.transform.position-activePlayer.transform.forward*6.2f+Vector3.up*3.8f;
-                if(running)target+=Vector3.up*(Mathf.Sin(Time.time*11f)*.045f);
+                if(running)
+                {
+                    float stride=Time.time*13f;
+                    target+=Vector3.up*(Mathf.Sin(stride)*.065f);
+                    target+=activePlayer.transform.right*(Mathf.Sin(stride*.5f)*.025f);
+                }
+                if(Time.unscaledTime<cameraShakeUntil)
+                {
+                    float fade=Mathf.Clamp01((cameraShakeUntil-Time.unscaledTime)/Mathf.Max(.01f,cameraShakeDuration));
+                    float shake=cameraShakeStrength*fade;
+                    target+=raceCamera.transform.right*(Mathf.Sin(Time.unscaledTime*92f)*shake);
+                    target+=Vector3.up*(Mathf.Sin(Time.unscaledTime*117f)*shake*.55f);
+                }
                 raceCamera.transform.position = Vector3.SmoothDamp(raceCamera.transform.position, target, ref cameraVelocity, cameraFollowSmoothTime);
                 raceCamera.transform.LookAt(activePlayer.transform.position+activePlayer.transform.forward*5.5f+Vector3.up*1.1f);
             }
         }
+        if(sequenceHud!=null)sequenceHud.Present(gameStarted&&!localFinished&&!roundEnding&&!allHurdlesResolved&&hurdlePrompted,expectedDirections,arrowProgress,Mathf.Max(0,hurdleNumber*hurdleSpacing-distanceAlongTrack)/CurrentRunSpeed,inputLeadTime,queuedFailure||stunUntil>Time.unscaledTime);
         RefreshStatus();
         CheckFinishScores();
+    }
+    private void PulseCameraShake(float strength,float duration)
+    {
+        if(Time.unscaledTime>=cameraShakeUntil)
+        {
+            cameraShakeStrength=strength;
+            cameraShakeDuration=duration;
+        }
+        else
+        {
+            cameraShakeStrength=Mathf.Max(cameraShakeStrength,strength);
+            cameraShakeDuration=Mathf.Max(cameraShakeDuration,duration);
+        }
+        cameraShakeUntil=Mathf.Max(cameraShakeUntil,Time.unscaledTime+duration);
     }
     private void CheckFinishScores()
     {
@@ -429,7 +586,10 @@ public sealed class QteSceneController : MonoBehaviour
         var ranking=RankingManager.Instance; bool canScore=ranking!=null&&ranking.IsSpawned;
         for(int i=0;i<objectIds.Count;i++)
         {
-            ulong owner=owners[i];if(finishedPlayers.Contains(owner)||!network.SpawnManager.SpawnedObjects.TryGetValue(objectIds[i],out var p))continue;
+            ulong owner=owners[i];
+            if(!network.SpawnManager.SpawnedObjects.TryGetValue(objectIds[i],out var p))continue;
+            UpdateObservedRaceDistance(owner, p.transform.position, i);
+            if(finishedPlayers.Contains(owner))continue;
             // Host observes each owner-authoritative runner crossing the same oval's finish mark after one full lap.
             int slot=i;
             Vector3 start=TrackPosition(StartOffsetForLane(slot),slot);
@@ -437,10 +597,101 @@ public sealed class QteSceneController : MonoBehaviour
             if(!playersPastStart.Contains(owner))continue;
             Vector3 finish=TrackPosition(FinishOffset,slot);
             if(Vector3.Distance(p.transform.position,finish)>2.75f)continue;
-            int place=finishedPlayers.Count+1; if(canScore)ranking.AddScore(owner,$"Player {owner}",PartyScoreRules.ForRank(place)); finishedPlayers.Add(owner);
+            int place=finishedPlayers.Count+1;
+            if(canScore)ranking.AddScore(owner,$"Player {owner}",PartyScoreRules.ForRank(place));
+            finishedPlayers.Add(owner);
+            if(finishWindowEndsAt < 0)
+            {
+                finishWindowEndsAt=network.ServerTime.Time+5d;
+                lastFinishCountdownSent=-1;
+            }
         }
-        if(!roundEnding&&owners.Count>0&&owners.All(id=>!network.ConnectedClients.ContainsKey(id)||finishedPlayers.Contains(id)))
-        {roundEnding=true;instructionText.text="모든 주자가 완주했습니다!";StartCoroutine(ReturnToRanking());}
+        if(finishWindowEndsAt>=0&&!roundEnding)
+        {
+            int secondsLeft=Mathf.CeilToInt((float)(finishWindowEndsAt-network.ServerTime.Time));
+            if(secondsLeft!=lastFinishCountdownSent)
+            {
+                lastFinishCountdownSent=secondsLeft;
+                BroadcastFinishCountdown(secondsLeft);
+            }
+            if(owners.All(finishedPlayers.Contains))
+            {
+                roundEnding=true;
+
+                StartCoroutine(ReturnToRanking());
+            }
+            else if(network.ServerTime.Time>=finishWindowEndsAt)
+            {
+                FinalizeUnfinishedByDistance(canScore?ranking:null);
+                roundEnding=true;
+
+                BroadcastFinishCountdown(0);
+                StartCoroutine(ReturnToRanking());
+            }
+        }
+        else if(!roundEnding&&owners.Count>0&&owners.All(id=>!network.ConnectedClients.ContainsKey(id)))
+        {roundEnding=true;StartCoroutine(ReturnToRanking());}
+    }
+    private void UpdateObservedRaceDistance(ulong owner, Vector3 position, int lane)
+    {
+        float lap=PlayerLapLength(lane);
+        float coordinate=NearestTrackCoordinate(position,lane);
+        if(!lastTrackCoordinate.TryGetValue(owner,out float previous))
+        {
+            lastTrackCoordinate[owner]=coordinate;
+            observedRaceDistance[owner]=0f;
+            return;
+        }
+        float delta=Mathf.Repeat(coordinate-previous,lap);
+        if(delta>lap*.5f)delta-=lap;
+        if(delta>0f)
+        {
+            observedRaceDistance.TryGetValue(owner,out float totalDistance);
+            observedRaceDistance[owner]=totalDistance+delta;
+        }
+        lastTrackCoordinate[owner]=coordinate;
+    }
+    private float NearestTrackCoordinate(Vector3 position,int lane)
+    {
+        float lap=PlayerLapLength(lane),bestDistance=float.MaxValue,bestCoordinate=0f;
+        for(float d=0f;d<lap;d+=1f)
+        {
+            Vector3 sample=TrackPosition(d,lane);
+            float dx=sample.x-position.x,dz=sample.z-position.z,squared=dx*dx+dz*dz;
+            if(squared<bestDistance){bestDistance=squared;bestCoordinate=d;}
+        }
+        float refined=bestCoordinate;
+        for(float d=bestCoordinate-1f;d<=bestCoordinate+1f;d+=.1f)
+        {
+            float coordinate=Mathf.Repeat(d,lap);
+            Vector3 sample=TrackPosition(coordinate,lane);
+            float dx=sample.x-position.x,dz=sample.z-position.z,squared=dx*dx+dz*dz;
+            if(squared<bestDistance){bestDistance=squared;refined=coordinate;}
+        }
+        return refined;
+    }
+    private void FinalizeUnfinishedByDistance(RankingManager ranking)
+    {
+        var remaining=owners.Where(id=>!finishedPlayers.Contains(id))
+            .OrderByDescending(id=>observedRaceDistance.TryGetValue(id,out float distance)?distance:0f)
+            .ThenBy(id=>id).ToArray();
+        foreach(ulong owner in remaining)
+        {
+            int place=finishedPlayers.Count+1;
+            if(ranking!=null)ranking.AddScore(owner,$"Player {owner}",PartyScoreRules.ForRank(place));
+            finishedPlayers.Add(owner);
+        }
+    }
+    private void BroadcastFinishCountdown(int seconds)
+    {
+
+        using(var writer=new FastBufferWriter(8,Allocator.Temp))
+        {
+            writer.WriteValueSafe(entryToken);writer.WriteValueSafe(seconds);
+            foreach(ulong id in owners)
+                if(id!=NetworkManager.ServerClientId&&network.ConnectedClients.ContainsKey(id))
+                    messages.SendNamedMessage(FinishCountdownMessage,id,writer,NetworkDelivery.ReliableSequenced);
+        }
     }
     private IEnumerator ReturnToRanking()
     {
@@ -451,12 +702,11 @@ public sealed class QteSceneController : MonoBehaviour
     }
     private void RefreshStatus()
     {
-        if(statusText==null)return;
-        if(entryError!=null){statusText.text=entryError;return;}
-        if(!rosterReceived){statusText.text="참가자 동기화 중";return;}
+        if(entryError!=null){developerStatus=entryError;return;}
+        if(!rosterReceived){developerStatus="참가자 동기화 중";return;}
         var lines=new List<string>{"학교 운동회 · QTE 허들"};
         foreach(var id in owners){bool connected=!network.IsServer||network.ConnectedClients.ContainsKey(id);lines.Add($"P{id+1} {(connected?(readyClients.Contains(id)?"준비 완료":"동기화 중"):"연결 끊김")}");}
-        statusText.text=string.Join("  ·  ",lines);
+        developerStatus=string.Join("  ·  ",lines);
     }
     private void FailEntry(string reason){entryError=reason;Debug.LogError("[QTE 입장] "+reason);}
     private void OnDestroy()
@@ -465,10 +715,10 @@ public sealed class QteSceneController : MonoBehaviour
         {
             if(state.Key==null)continue;
             state.Key.isKinematic=state.Value.isKinematic;state.Key.useGravity=state.Value.useGravity;
-            state.Key.velocity=Vector3.zero;state.Key.angularVelocity=Vector3.zero;
+            if(!state.Key.isKinematic){state.Key.velocity=Vector3.zero;state.Key.angularVelocity=Vector3.zero;}
         }
         if(network!=null&&network.IsServer&&network.SceneManager!=null)network.SceneManager.OnLoadEventCompleted-=OnSceneLoaded;
-        if(messages!=null){messages.UnregisterNamedMessageHandler(RosterMessage);messages.UnregisterNamedMessageHandler(ReadyMessage);messages.UnregisterNamedMessageHandler(ReadyStatusMessage);messages.UnregisterNamedMessageHandler(StartMessage);}
+        if(messages!=null){messages.UnregisterNamedMessageHandler(RosterMessage);messages.UnregisterNamedMessageHandler(ReadyMessage);messages.UnregisterNamedMessageHandler(ReadyStatusMessage);messages.UnregisterNamedMessageHandler(StartMessage);messages.UnregisterNamedMessageHandler(FinishCountdownMessage);}
     }
 
     private Vector3 TrackPosition(float distance, int lane)
@@ -490,7 +740,7 @@ public sealed class QteSceneController : MonoBehaviour
     {
         RenderSettings.ambientLight=new Color(.68f,.72f,.78f); RenderSettings.fog=false;
         var grass=MakeMat("School field",new Color(.22f,.48f,.24f));var track=MakeMat("Track terracotta",new Color(.66f,.22f,.16f));var lane=MakeMat("Track cream lines",new Color(.95f,.85f,.66f));var turf=MakeMat("Football turf",new Color(.16f,.42f,.19f));
-        Cube("School ground",new Vector3(0,-.28f,0),new Vector3(150,.5f,100),grass);
+        Cube("School ground",new Vector3(0,-.28f,0),new Vector3(620,.5f,520),grass);
         MakeOvalRibbon("Running track",0,0,15.2f,21.5f,track);
         for(int i=0;i<5;i++)MakeOvalLine("Lane marking",0,0,21.3f-i*1.4f,lane,.045f);
         // Keep the football pitch inside the inner lane boundary so the grass never covers the running track.
@@ -498,13 +748,38 @@ public sealed class QteSceneController : MonoBehaviour
         for(int x=-32;x<=32;x+=8)Cube("Football pitch stripe",new Vector3(x,.04f,0),new Vector3(4,.02f,27),new Color(.18f,.46f,.2f));
         Cube("Pitch halfway line",new Vector3(0,.04f,0),new Vector3(.16f,.03f,27),lane);
         var circle=GameObject.CreatePrimitive(PrimitiveType.Cylinder);circle.name="Center circle";circle.transform.position=new Vector3(0,.06f,0);circle.transform.localScale=new Vector3(10,.025f,10);circle.GetComponent<Renderer>().sharedMaterial=lane;RemoveCollider(circle);
-        foreach(float z in new[]{-12f,12f}){Cube("Goal box line",new Vector3(0,.05f,z),new Vector3(12,.03f,.12f),lane);Cube("Goal box side",new Vector3(-6,.05f,z/Mathf.Abs(z)*9),new Vector3(.12f,.03f,6),lane);Cube("Goal box side",new Vector3(6,.05f,z/Mathf.Abs(z)*9),new Vector3(.12f,.03f,6),lane);}
+        foreach(float end in new[]{-31f,31f})
+        {
+            float inward=Mathf.Sign(end);
+            Cube("Goal box line",new Vector3(end,.052f,0),new Vector3(.12f,.03f,14),lane);
+            Cube("Goal box side",new Vector3(end-inward*4f,.052f,-7),new Vector3(8,.03f,.12f),lane);
+            Cube("Goal box side",new Vector3(end-inward*4f,.052f,7),new Vector3(8,.03f,.12f),lane);
+            BuildFootballGoal(end,inward);
+        }
         for(int i=0;i<4;i++){float start=StartOffsetForLane(i);var spawn=new GameObject("QTE Spawn "+(i+1)).transform;spawn.position=TrackPosition(start,i);spawn.rotation=TrackRotation(start,i);}
         BuildRaceStartAndFinish();
         BuildSchoolBuilding();
         BuildBleachersAndSpectators();
-        for(int i=0;i<11;i++){float x=-50+i*10;Cylinder("Trackside tree trunk",new Vector3(x,1.2f,-46),.28f,2.4f,new Color(.34f,.22f,.12f));Sphere("Trackside tree crown",new Vector3(x,3,-46),1.5f,new Color(.18f,.42f,.2f));}
         hurdleNumber=0;
+    }
+    private void BuildFootballGoal(float end,float inward)
+    {
+        var white=MakeMat("Football goal enamel white",new Color(.94f,.96f,.92f));
+        var net=MakeMat("Football goal net soft gray",new Color(.76f,.83f,.80f));
+        float goalX=end-inward*.14f;
+        foreach(float z in new[]{-3.66f,3.66f})
+            Cube("Football goal upright",new Vector3(goalX,1.22f,z),new Vector3(.16f,2.44f,.16f),white);
+        Cube("Football goal crossbar",new Vector3(goalX,2.44f,0),new Vector3(.16f,.16f,7.32f),white);
+        float backX=end+inward*2.1f;
+        foreach(float z in new[]{-3.66f,3.66f})
+            Cube("Football goal net side",new Vector3((goalX+backX)*.5f,1.18f,z),new Vector3(2.1f,2.36f,.045f),net);
+        Cube("Football goal net roof",new Vector3((goalX+backX)*.5f,2.4f,0),new Vector3(2.1f,.045f,7.28f),net);
+        for(int row=1;row<5;row++)
+            Cube("Goal net vertical weave",new Vector3(backX,.12f+row*.46f,0),new Vector3(.04f,.025f,7.25f),net);
+        for(int column=1;column<9;column++)
+            Cube("Goal net horizontal weave",new Vector3(backX,.08f,column*.8f-3.6f),new Vector3(.04f,2.3f,.025f),net);
+        foreach(float z in new[]{-3.2f,3.2f})
+            Cylinder("Football goal ground anchor",new Vector3(goalX,.08f,z),.12f,.16f,new Color(.72f,.74f,.69f));
     }
     private void BuildRaceStartAndFinish()
     {
@@ -514,17 +789,31 @@ public sealed class QteSceneController : MonoBehaviour
         float laneWidth=1.4f;
         for(int lane=0;lane<4;lane++)
         {
-            Vector3 start=TrackPosition(StartOffsetForLane(lane),lane);
+            float startDistance=StartOffsetForLane(lane);
+            Vector3 start=TrackPosition(startDistance,lane);
             start.y=.045f;
-            Cube($"Lane {lane+1} staggered start line",start,new Vector3(.24f,.045f,laneWidth*.9f),startGold);
+            Quaternion startRotation=TrackRotation(startDistance,lane);
+            var startLine=Cube($"Lane {lane+1} staggered start line",start,new Vector3(laneWidth*.9f,.045f,.24f),startGold);
+            startLine.transform.rotation=startRotation;
+            foreach(float ahead in new[]{-.21f,.21f})
+            {
+                Vector3 edge=start+startRotation*new Vector3(0,0,ahead);
+                edge.y=.047f;
+                var edgeMark=Cube("Staggered start line white edge",edge,new Vector3(laneWidth*.9f,.035f,.10f),white);
+                edgeMark.transform.rotation=startRotation;
+            }
+            AddLaneNumberMarking("Start",lane,startDistance-1.35f,new Color(1f,.86f,.32f));
         }
         float finishX=-StraightLength*.5f+FinishOffset;
         float trackCenterZ=-TurnRadius+1.5f*laneWidth;
+        for(int row=0;row<2;row++)
         for(int tile=0;tile<8;tile++)
         {
             float z=trackCenterZ-2.8f+tile*.8f;
-            Cube("Finish checker",new Vector3(finishX,.045f,z),new Vector3(.48f,.05f,.8f),tile%2==0?white:finishRed);
+            float x=finishX-.24f+row*.48f;
+            Cube("Finish checker",new Vector3(x,.045f,z),new Vector3(.48f,.05f,.8f),(tile+row)%2==0?white:finishRed);
         }
+        for(int lane=0;lane<4;lane++)AddLaneNumberMarking("Finish",lane,FinishOffset-1.35f,white.color);
         foreach(float z in new[]{trackCenterZ-3.5f,trackCenterZ+3.5f})
             Cube("Finish arch post",new Vector3(finishX,2.1f,z),new Vector3(.32f,4.2f,.32f),finishRed);
         Cube("Finish arch header",new Vector3(finishX,4.25f,trackCenterZ),new Vector3(.42f,.42f,7.35f),finishRed);
@@ -534,6 +823,27 @@ public sealed class QteSceneController : MonoBehaviour
         label.font=koreanFont;label.text="FINISH";label.fontSize=2.2f;label.fontStyle=FontStyles.Bold;
         label.alignment=TextAlignmentOptions.Center;label.color=white.color;label.enableWordWrapping=false;
         labelObject.transform.SetPositionAndRotation(new Vector3(finishX-.25f,4.25f,trackCenterZ),Quaternion.Euler(0,270,0));
+        labelObject.transform.localScale=new Vector3(-1,1,1);
+    }
+    private void AddLaneNumberMarking(string lineName,int lane,float distance,Color color)
+    {
+        Vector3 position=TrackPosition(distance,lane);
+        position.y=.075f;
+        Vector3 runningDirection=TrackRotation(distance,lane)*Vector3.forward;
+        var marker=new GameObject($"{lineName} Lane {lane+1} Number",typeof(TextMeshPro));
+        var text=marker.GetComponent<TextMeshPro>();
+        text.font=koreanFont!=null?koreanFont:TMP_Settings.defaultFontAsset;
+        text.text=(lane+1).ToString();
+        text.fontSize=1.15f;
+        text.fontStyle=FontStyles.Bold;
+        text.alignment=TextAlignmentOptions.Center;
+        text.color=color;
+        text.outlineColor=new Color(.12f,.14f,.15f);
+        text.outlineWidth=.18f;
+        text.enableWordWrapping=false;
+        marker.transform.SetPositionAndRotation(position,Quaternion.LookRotation(Vector3.up,runningDirection));
+        var renderer=marker.GetComponent<MeshRenderer>();
+        if(renderer!=null)renderer.receiveShadows=false;
     }
     private void BuildSchoolBuilding()
     {
@@ -545,37 +855,89 @@ public sealed class QteSceneController : MonoBehaviour
         var accent=MakeMat("School entry accent",new Color(.72f,.42f,.26f));
 
         // A broad three-storey main hall with lower classroom wings and a connected corridor.
-        Cube("School main building",new Vector3(0,6,34),new Vector3(25,12,10),wall);
-        Cube("School west classroom wing",new Vector3(-23,4.6f,34),new Vector3(17,9.2f,9),wall);
-        Cube("School east classroom wing",new Vector3(23,4.6f,34),new Vector3(17,9.2f,9),wall);
-        Cube("School west corridor",new Vector3(-14.5f,4.2f,34),new Vector3(4,8.4f,8.5f),trim);
-        Cube("School east corridor",new Vector3(14.5f,4.2f,34),new Vector3(4,8.4f,8.5f),trim);
+        Cube("School main building",new Vector3(0,10,34),new Vector3(34,20,14),wall);
+        Cube("School west classroom wing",new Vector3(-30,8,34),new Vector3(23,16,12.5f),wall);
+        Cube("School east classroom wing",new Vector3(30,8,34),new Vector3(23,16,12.5f),wall);
+        Cube("School west corridor",new Vector3(-21.5f,7.2f,34),new Vector3(6,14.4f,12),trim);
+        Cube("School east corridor",new Vector3(21.5f,7.2f,34),new Vector3(6,14.4f,12),trim);
 
-        Cube("Main hall roof cap",new Vector3(0,12.2f,34),new Vector3(26,0.55f,10.8f),roof);
-        Cube("West wing roof cap",new Vector3(-23,9.35f,34),new Vector3(18,0.45f,9.8f),roof);
-        Cube("East wing roof cap",new Vector3(23,9.35f,34),new Vector3(18,0.45f,9.8f),roof);
-        Cube("Main hall floor band",new Vector3(0,6.1f,28.88f),new Vector3(24.8f,0.25f,0.22f),trim);
-        Cube("West wing floor band",new Vector3(-23,4.7f,29.38f),new Vector3(16.8f,0.22f,0.2f),trim);
-        Cube("East wing floor band",new Vector3(23,4.7f,29.38f),new Vector3(16.8f,0.22f,0.2f),trim);
+        BuildSchoolGableRoof("Main hall",0,34,35,14,20.15f,3.1f,roof,trim);
+        BuildSchoolGableRoof("West wing",-30,34,24,12.5f,16.15f,2.3f,roof,trim);
+        BuildSchoolGableRoof("East wing",30,34,24,12.5f,16.15f,2.3f,roof,trim);
+        Cube("Main hall floor band",new Vector3(0,10.1f,27.0f),new Vector3(33.8f,0.32f,.28f),trim);
+        Cube("West wing floor band",new Vector3(-30,8.2f,27.72f),new Vector3(22.8f,0.28f,.25f),trim);
+        Cube("East wing floor band",new Vector3(30,8.2f,27.72f),new Vector3(22.8f,0.28f,.25f),trim);
+        Cube("Main hall third floor cornice",new Vector3(0,15.1f,26.78f),new Vector3(34.6f,.34f,.35f),trim);
+        Cube("Main hall upper cornice",new Vector3(0,19.55f,26.78f),new Vector3(34.6f,.42f,.42f),trim);
+        Cube("Main hall front canopy gutter",new Vector3(0,19.95f,26.86f),new Vector3(35.2f,.22f,.3f),trim);
+        foreach(float wingX in new[]{-30f,30f})
+        {
+            Cube("School classroom wing upper cornice",new Vector3(wingX,15.5f,27.7f),new Vector3(23.6f,.34f,.32f),trim);
+            Cube("School classroom wing front canopy gutter",new Vector3(wingX,15.95f,27.75f),new Vector3(24.3f,.2f,.28f),trim);
+        }
+        Cube("Main hall lower plinth",new Vector3(0,.7f,26.75f),new Vector3(34.5f,1.3f,.5f),new Color(.63f,.60f,.53f));
+        Cube("School sign plaque",new Vector3(0,8.35f,26.48f),new Vector3(11.4f,1.55f,.2f),new Color(.19f,.31f,.34f));
+        Cube("School sign accent",new Vector3(0,7.47f,26.42f),new Vector3(11.8f,.12f,.28f),accent);
+        foreach(float x in new[]{-16.2f,16.2f})
+        {
+            Cube("School facade pilaster",new Vector3(x,10.1f,26.84f),new Vector3(.24f,18.8f,.3f),trim);
+            Cube("School roof drain",new Vector3(x,19.3f,27.1f),new Vector3(.16f,1.6f,.16f),new Color(.37f,.42f,.42f));
+        }
 
-        foreach(float y in new[]{2.5f,5.2f,8.8f})
-            foreach(float x in new[]{-9f,-4.5f,4.5f,9f}) AddSchoolWindow(x,y,28.72f,glass,trim);
-        foreach(float wingX in new[]{-23f,23f})
-            foreach(float y in new[]{2.4f,6.6f})
-                foreach(float offset in new[]{-5.8f,-2f,2f,5.8f}) AddSchoolWindow(wingX+offset,y,29.28f,glass,trim);
+        foreach(float y in new[]{3f,9.5f,16f})
+            foreach(float x in new[]{-13.5f,-8.5f,8.5f,13.5f}) AddSchoolWindow(x,y,26.84f,glass,trim);
+        foreach(float wingX in new[]{-30f,30f})
+            foreach(float y in new[]{3f,10.5f})
+                foreach(float offset in new[]{-8f,-3f,3f,8f}) AddSchoolWindow(wingX+offset,y,27.68f,glass,trim);
 
         // Recessed, covered entrance facing the track.
-        Cube("School entrance porch",new Vector3(0,2.1f,27.1f),new Vector3(9,4.2f,3.4f),trim);
-        Cube("School double front door",new Vector3(0,1.65f,25.34f),new Vector3(3.3f,3.3f,.18f),door);
-        Cube("School door glass",new Vector3(0,2.45f,25.22f),new Vector3(2.65f,1.15f,.08f),glass);
-        Cube("School entrance canopy",new Vector3(0,4.35f,26.4f),new Vector3(10,.35f,3.3f),accent);
-        foreach(float x in new[]{-4.2f,4.2f}) Cube("School entrance column",new Vector3(x,2.4f,25.5f),new Vector3(.45f,4.8f,.55f),trim);
-        Cube("School front steps",new Vector3(0,.25f,23.9f),new Vector3(11,.5f,2),trim);
+        Cube("School entrance porch",new Vector3(0,2.8f,26f),new Vector3(12,5.6f,2.8f),trim);
+        Cube("School double front door",new Vector3(0,2.2f,24.35f),new Vector3(4.4f,4.4f,.2f),door);
+        Cube("School door glass",new Vector3(0,3.2f,24.23f),new Vector3(3.5f,1.6f,.1f),glass);
+        Cube("School entrance canopy",new Vector3(0,5.8f,25.3f),new Vector3(13,.48f,2.6f),accent);
+        Cube("School entrance canopy soffit",new Vector3(0,5.48f,25.25f),new Vector3(11.8f,.12f,2.3f),trim);
+        foreach(float x in new[]{-5.6f,5.6f}) Cube("School entrance column",new Vector3(x,3.2f,24.7f),new Vector3(.55f,6.4f,.7f),trim);
+        Cube("School front step upper landing",new Vector3(0,.45f,24.45f),new Vector3(15,.34f,.8f),trim);
+        Cube("School front step middle",new Vector3(0,.25f,23.75f),new Vector3(16,.3f,.6f),trim);
+        Cube("School front step lower",new Vector3(0,.1f,23.25f),new Vector3(17,.18f,.4f),trim);
+        var gardenSoil=MakeMat("School entrance garden soil",new Color(.25f,.34f,.22f));
+        foreach(float x in new[]{-9f,9f})
+        {
+            Cube("School entrance planter",new Vector3(x,.5f,24.4f),new Vector3(3.8f,.9f,1.8f),trim);
+            Cube("School entrance shrub bed",new Vector3(x,.98f,24.4f),new Vector3(3.35f,.16f,1.5f),gardenSoil);
+            for(int plant=0;plant<5;plant++)
+                Sphere("School entrance clipped shrub",new Vector3(x-1.3f+plant*.65f,1.45f+(plant%2)*.1f,24.4f),.48f,plant%2==0?new Color(.18f,.39f,.24f):new Color(.26f,.48f,.28f));
+        }
+        var clock=GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        clock.name="School main hall clock";clock.transform.SetPositionAndRotation(new Vector3(0,18.1f,26.45f),Quaternion.Euler(90,0,0));clock.transform.localScale=new Vector3(1.05f,.16f,1.05f);clock.GetComponent<Renderer>().sharedMaterial=trim;RemoveCollider(clock);
+        Cube("School clock hand vertical",new Vector3(0,18.1f,26.32f),new Vector3(.065f,.52f,.06f),door);
+        Cube("School clock hand horizontal",new Vector3(.12f,18.22f,26.31f),new Vector3(.34f,.065f,.06f),door);
+        Cylinder("School roof flagpole",new Vector3(0,25.4f,34),.075f,5.1f,new Color(.34f,.38f,.37f));
+        Cube("School roof pennant",new Vector3(1.05f,26.7f,34),new Vector3(2.1f,1.35f,.1f),new Color(.94f,.9f,.77f));
+        Cube("School roof pennant blue stripe",new Vector3(1.05f,26.7f,33.92f),new Vector3(1.72f,.16f,.06f),new Color(.2f,.38f,.55f));
+        Cube("School roof pennant red mark",new Vector3(.72f,26.7f,33.88f),new Vector3(.32f,.32f,.05f),accent);
 
         var signObject=new GameObject("School name sign",typeof(TextMeshPro));
         var sign=signObject.GetComponent<TextMeshPro>();
-        sign.font=koreanFont;sign.text="학교";sign.fontSize=4.4f;sign.alignment=TextAlignmentOptions.Center;sign.color=new Color(.18f,.24f,.27f);sign.enableWordWrapping=false;
-        signObject.transform.position=new Vector3(0,10.65f,28.67f);signObject.transform.rotation=Quaternion.Euler(0,180,0);
+        sign.font=koreanFont;sign.text="한빛중학교";sign.fontSize=3.8f;sign.fontStyle=FontStyles.Bold;sign.alignment=TextAlignmentOptions.Center;sign.color=new Color(.97f,.91f,.73f);sign.enableWordWrapping=false;
+        signObject.transform.position=new Vector3(0,8.35f,26.30f);signObject.transform.rotation=Quaternion.Euler(0,180,0);signObject.transform.localScale=new Vector3(-1,1,1);
+        var eventSignObject=new GameObject("School sports day banner",typeof(TextMeshPro));
+        var eventSign=eventSignObject.GetComponent<TextMeshPro>();eventSign.font=koreanFont;eventSign.text="오늘은 학교 체육대회";eventSign.fontSize=1.15f;eventSign.fontStyle=FontStyles.Bold;
+        eventSign.alignment=TextAlignmentOptions.Center;eventSign.color=new Color(.28f,.18f,.13f);eventSign.enableWordWrapping=false;
+        eventSignObject.transform.SetPositionAndRotation(new Vector3(0,5.82f,24.12f),Quaternion.Euler(0,180,0));eventSignObject.transform.localScale=new Vector3(-1,1,1);
+    }
+    private void BuildSchoolGableRoof(string label,float centerX,float centerZ,float width,float depth,float eaveY,float rise,Material roof,Material trim)
+    {
+        float halfDepth=depth*.5f;
+        float halfSlopeLength=Mathf.Sqrt(halfDepth*halfDepth+rise*rise);
+        float angle=Mathf.Atan2(rise,halfDepth)*Mathf.Rad2Deg;
+        var front=Cube(label+" front pitched roof",new Vector3(centerX,eaveY+rise*.5f,centerZ-halfDepth*.5f),new Vector3(width+.9f,.48f,halfSlopeLength+.35f),roof);
+        front.transform.rotation=Quaternion.Euler(-angle,0,0);
+        var back=Cube(label+" back pitched roof",new Vector3(centerX,eaveY+rise*.5f,centerZ+halfDepth*.5f),new Vector3(width+.9f,.48f,halfSlopeLength+.35f),roof);
+        back.transform.rotation=Quaternion.Euler(angle,0,0);
+        Cube(label+" roof ridge",new Vector3(centerX,eaveY+rise,centerZ),new Vector3(width+1f,.42f,.72f),roof);
+        Cube(label+" front eave",new Vector3(centerX,eaveY,centerZ-halfDepth+.05f),new Vector3(width+1.3f,.35f,.42f),trim);
+        Cube(label+" rear eave",new Vector3(centerX,eaveY,centerZ+halfDepth-.05f),new Vector3(width+1.3f,.35f,.42f),trim);
     }
     private void BuildBleachersAndSpectators()
     {
@@ -604,21 +966,27 @@ public sealed class QteSceneController : MonoBehaviour
         }
 
         if(spectatorPrefabs==null||spectatorPrefabs.Length==0)return;
-        int[] seatedRows={1,3,5};
+        int[] seatedRows={1,3,5,7};
+        var crowdRandom=new System.Random(80421);
         for(int rowIndex=0;rowIndex<seatedRows.Length;rowIndex++)
         {
             int row=seatedRows[rowIndex];
             float z=-24.8f-row*1.65f;
             float y=.52f+row*.42f;
-            for(int seat=0;seat<10;seat++)
+            for(int seat=0;seat<12;seat++)
             {
-                GameObject prefab=spectatorPrefabs[(seat+rowIndex*2)%spectatorPrefabs.Length];
+                if(crowdRandom.NextDouble()<.17)continue;
+                GameObject prefab=spectatorPrefabs[crowdRandom.Next(spectatorPrefabs.Length)];
                 if(prefab==null)continue;
-                float x=-31.5f+seat*7f;
-                var audience=CreateSpectator(prefab,new Vector3(x,y,z),Quaternion.LookRotation(Vector3.forward));
+                float x=-33f+seat*6f+(float)(crowdRandom.NextDouble()*3.6-1.8);
+                float staggeredZ=z+(float)(crowdRandom.NextDouble()*1.05-.525);
+                float seatHeight=y+(float)(crowdRandom.NextDouble()*.16-.08);
+                float facing=(float)(crowdRandom.NextDouble()*30-15);
+                bool jumpCheer=crowdRandom.NextDouble()<.19;
+                var audience=CreateSpectator(prefab,new Vector3(x,seatHeight,staggeredZ),Quaternion.Euler(0,facing,0));
                 if(audience==null)continue;
-                audience.name=$"Audience Row {row+1} Seat {seat+1}"+(seat==1||seat==6?" Jump Cheer":"");
-                audience.transform.localScale*=.86f;
+                audience.name=$"Audience Row {row+1} Seat {seat+1}"+(jumpCheer?" Jump Cheer":"");
+                audience.transform.localScale*=.84f+(float)crowdRandom.NextDouble()*.16f;
             }
         }
     }
@@ -628,17 +996,24 @@ public sealed class QteSceneController : MonoBehaviour
         if(!Application.isPlaying)
         {
             var instance=PrefabUtility.InstantiatePrefab(prefab,SceneManager.GetActiveScene()) as GameObject;
-            if(instance!=null)instance.transform.SetPositionAndRotation(position,rotation);
+            if(instance!=null)
+            {
+                instance.transform.SetPositionAndRotation(position,rotation);
+                foreach(var renderer in instance.GetComponentsInChildren<Renderer>(true))renderer.receiveShadows=false;
+            }
             return instance;
         }
 #endif
-        return Instantiate(prefab,position,rotation);
+        var audience=Instantiate(prefab,position,rotation);
+        foreach(var renderer in audience.GetComponentsInChildren<Renderer>(true))renderer.receiveShadows=false;
+        return audience;
     }
     private void SetSceneSpectatorsIdle()
     {
         foreach(var root in SceneManager.GetActiveScene().GetRootGameObjects())
         {
             if(!root.name.StartsWith("Audience Row ",StringComparison.Ordinal))continue;
+            foreach(var renderer in root.GetComponentsInChildren<Renderer>(true))renderer.receiveShadows=false;
             var animator=root.GetComponentInChildren<Animator>();if(animator==null)continue;
             animator.applyRootMotion=false;
             foreach(var parameter in animator.parameters)
@@ -648,8 +1023,7 @@ public sealed class QteSceneController : MonoBehaviour
                 else if(parameter.type==AnimatorControllerParameterType.Trigger)animator.ResetTrigger(parameter.name);
             }
             animator.Play("Idle",0,0f);
-            string[] nameParts=root.name.Split(' ');
-            bool jumpCheer=root.name.Contains("Jump Cheer")||(nameParts.Length>=5&&int.TryParse(nameParts[4],out int seatNumber)&&(seatNumber==2||seatNumber==7));
+            bool jumpCheer=root.name.Contains("Jump Cheer");
             if(jumpCheer)StartCoroutine(CheerJumpLoop(animator,UnityEngine.Random.Range(.3f,2.2f)));
         }
     }
@@ -662,12 +1036,34 @@ public sealed class QteSceneController : MonoBehaviour
             yield return new WaitForSeconds(UnityEngine.Random.Range(3.5f,6f));
         }
     }
+    private void AddAudienceFillLights()
+    {
+        if(GameObject.Find("QTE Audience Fill Lights")!=null)return;
+        var group=new GameObject("QTE Audience Fill Lights");
+        group.transform.SetParent(transform,false);
+        foreach(float x in new[]{-27f,-9f,9f,27f})
+        {
+            var lightObject=new GameObject("Soft front fill");
+            lightObject.transform.SetParent(group.transform,false);
+            lightObject.transform.localPosition=new Vector3(x,6.5f,-23f);
+            var fill=lightObject.AddComponent<Light>();
+            fill.type=LightType.Point;
+            fill.color=new Color(1f,.88f,.72f);
+            fill.intensity=1.5f;
+            fill.range=20f;
+            fill.shadows=LightShadows.None;
+        }
+    }
     private void AddSchoolWindow(float x,float y,float z,Material glass,Material trim)
     {
         Cube("School window surround",new Vector3(x,y,z),new Vector3(2.75f,2.05f,.28f),trim);
-        Cube("School classroom window",new Vector3(x,y,z-.18f),new Vector3(2.42f,1.72f,.1f),glass);
-        Cube("Window vertical mullion",new Vector3(x,y,z-.25f),new Vector3(.11f,1.72f,.08f),trim);
-        Cube("Window horizontal mullion",new Vector3(x,y,z-.25f),new Vector3(2.42f,.11f,.08f),trim);
+        Cube("School classroom window",new Vector3(x,y,z-.2f),new Vector3(2.42f,1.72f,.1f),glass);
+        Cube("School window outer sill",new Vector3(x,y-1.02f,z-.12f),new Vector3(3.05f,.16f,.42f),trim);
+        Cube("School window upper lintel",new Vector3(x,y+1.02f,z-.1f),new Vector3(2.98f,.14f,.36f),trim);
+        Cube("Window vertical mullion",new Vector3(x,y,z-.29f),new Vector3(.11f,1.72f,.08f),trim);
+        Cube("Window horizontal mullion",new Vector3(x,y,z-.29f),new Vector3(2.42f,.11f,.08f),trim);
+        Cube("Window interior vertical divider",new Vector3(x-.63f,y,z-.27f),new Vector3(.055f,1.56f,.06f),trim);
+        Cube("Window interior vertical divider",new Vector3(x+.63f,y,z-.27f),new Vector3(.055f,1.56f,.06f),trim);
     }
     public void BuildSchoolTrackForEditor()
     {
@@ -687,12 +1083,69 @@ public sealed class QteSceneController : MonoBehaviour
         {
             int key=number*4+lane;if(hurdles.ContainsKey(key))continue;
             float laneDistance=StartOffsetForLane(lane)+at;
+            if(competitionHurdlePrefab!=null)
+            {
+                var instance=Instantiate(competitionHurdlePrefab,TrackPosition(laneDistance,lane),TrackRotation(laneDistance,lane));
+                instance.name=$"Hurdle {number} · Lane {lane+1}";
+                hurdles[key]=instance;
+                continue;
+            }
             var root=new GameObject($"Hurdle {number} · Lane {lane+1}");root.transform.position=TrackPosition(laneDistance,lane);root.transform.rotation=TrackRotation(laneDistance,lane);
-            var legMat=MakeMat("Hurdle painted wood",new Color(.96f,.72f,.24f));
-            var bar=Cube("Hurdle crossbar",root.transform.position,new Vector3(1.15f,.17f,.2f),legMat);bar.transform.SetParent(root.transform,false);bar.transform.localPosition=Vector3.up*.72f;bar.transform.localRotation=Quaternion.identity;bar.transform.localScale=new Vector3(1.15f,.17f,.2f);
-            foreach(float side in new[]{-1f,1f}){var leg=Cube("Hurdle upright",root.transform.position,new Vector3(.16f,.8f,.16f),legMat);leg.transform.SetParent(root.transform,false);leg.transform.localPosition=new Vector3(side*.43f,.38f,0);leg.transform.localRotation=Quaternion.identity;leg.transform.localScale=new Vector3(.16f,.8f,.16f);}
+            var frame=MakeMat("Hurdle brushed aluminum",new Color(.63f,.70f,.69f));frame.SetFloat("_Metallic",.62f);frame.SetFloat("_Glossiness",.48f);
+            var darkMetal=MakeMat("Hurdle dark metal joints",new Color(.20f,.25f,.25f));darkMetal.SetFloat("_Metallic",.72f);
+            var rubber=MakeMat("Hurdle rubber feet",new Color(.10f,.12f,.12f));
+            var topBar=MakeMat("Hurdle ivory crossbar",new Color(.93f,.92f,.84f));
+            var safetyOrange=MakeMat("Hurdle safety orange",new Color(.91f,.24f,.10f));
+            var reflective=MakeMat("Hurdle reflective silver",new Color(.94f,.83f,.46f));
+
+            // Stable rubberized feet run along the athlete's direction; the frame spans the lane.
+            foreach(float side in new[]{-1f,1f})
+            {
+                float x=side*.56f;
+                HurdleBox(root.transform,"Hurdle rubberized floor foot",new Vector3(x,.075f,0),new Vector3(.16f,.12f,.92f),rubber);
+                HurdleTube(root.transform,"Hurdle aluminum upright",new Vector3(x,.12f,0),new Vector3(x,.82f,0),.043f,frame);
+                HurdleTube(root.transform,"Hurdle front diagonal brace",new Vector3(x,.14f,-.40f),new Vector3(x,.68f,-.02f),.027f,frame);
+                HurdleTube(root.transform,"Hurdle rear diagonal brace",new Vector3(x,.14f,.40f),new Vector3(x,.68f,.02f),.027f,frame);
+                HurdleBox(root.transform,"Hurdle upright adjustment sleeve",new Vector3(x,.47f,0),new Vector3(.12f,.24f,.12f),darkMetal);
+                HurdleBox(root.transform,"Hurdle crossbar end collar",new Vector3(x,.84f,0),new Vector3(.18f,.16f,.17f),darkMetal);
+                HurdleBox(root.transform,"Hurdle safety end cap",new Vector3(x,.84f,0),new Vector3(.08f,.13f,.18f),safetyOrange);
+                for(int mark=0;mark<3;mark++)
+                    HurdleBox(root.transform,"Hurdle height adjustment mark",new Vector3(x,.27f+mark*.12f,-.064f),new Vector3(.045f,.035f,.012f),reflective);
+            }
+            HurdleBox(root.transform,"Hurdle ivory top bar",new Vector3(0,.84f,0),new Vector3(1.25f,.105f,.115f),topBar);
+            foreach(float x in new[]{-.43f,-.15f,.15f,.43f})
+                HurdleBox(root.transform,"Hurdle orange impact stripe",new Vector3(x,.84f,-.061f),new Vector3(.105f,.11f,.012f),safetyOrange);
+            HurdleBox(root.transform,"Hurdle center reflective stripe",new Vector3(0,.84f,-.068f),new Vector3(.055f,.112f,.014f),reflective);
+            HurdleBox(root.transform,"Hurdle front stabilizer bar",new Vector3(0,.12f,-.40f),new Vector3(1.18f,.09f,.11f),frame);
+            HurdleBox(root.transform,"Hurdle rear stabilizer bar",new Vector3(0,.12f,.40f),new Vector3(1.18f,.09f,.11f),frame);
+            HurdleBox(root.transform,"Hurdle number plate",new Vector3(0,1.02f,-.015f),new Vector3(.48f,.22f,.09f),safetyOrange);
+            var numberObject=new GameObject("Hurdle number label",typeof(TextMeshPro));
+            var numberLabel=numberObject.GetComponent<TextMeshPro>();
+            numberLabel.font=koreanFont;numberLabel.text=$"{number:00}";numberLabel.fontSize=3f;numberLabel.fontStyle=FontStyles.Bold;
+            numberLabel.alignment=TextAlignmentOptions.Center;numberLabel.color=new Color(.12f,.14f,.14f);numberLabel.enableWordWrapping=false;
+            numberObject.transform.SetParent(root.transform,false);
+            numberObject.transform.localPosition=new Vector3(0,1.02f,-.067f);
+            numberObject.transform.localRotation=Quaternion.Euler(0,180,0);
+            numberObject.transform.localScale=Vector3.one*.07f;
             hurdles[key]=root;
         }
+    }
+    private GameObject HurdleBox(Transform root,string label,Vector3 localPosition,Vector3 size,Material material)
+    {
+        var part=Cube(label,root.position,size,material);
+        part.transform.SetParent(root,false);part.transform.localPosition=localPosition;part.transform.localRotation=Quaternion.identity;part.transform.localScale=size;
+        return part;
+    }
+    private GameObject HurdleTube(Transform root,string label,Vector3 localStart,Vector3 localEnd,float radius,Material material)
+    {
+        var tube=GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        tube.name=label;tube.transform.SetParent(root,false);
+        Vector3 delta=localEnd-localStart;
+        tube.transform.localPosition=(localStart+localEnd)*.5f;
+        tube.transform.localRotation=Quaternion.FromToRotation(Vector3.up,delta.normalized);
+        tube.transform.localScale=new Vector3(radius*2,delta.magnitude*.5f,radius*2);
+        tube.GetComponent<Renderer>().sharedMaterial=material;RemoveCollider(tube);
+        return tube;
     }
     private Material MakeMat(string name,Color color)
     {
@@ -740,14 +1193,6 @@ public sealed class QteSceneController : MonoBehaviour
         var go=new GameObject(name);var filter=go.AddComponent<MeshFilter>();filter.sharedMesh=mesh;go.AddComponent<MeshRenderer>().sharedMaterial=mat;
     }
     private Vector3 OvalAtFraction(float phase,float r){float d=phase*(2*StraightLength+2*Mathf.PI*r);if(d<StraightLength)return new Vector3(-StraightLength/2+d,0,-r);d-=StraightLength;float arc=r*Mathf.PI;if(d<arc){float a=-Mathf.PI/2+d/r;return new Vector3(StraightLength/2+r*Mathf.Cos(a),0,r*Mathf.Sin(a));}d-=arc;if(d<StraightLength)return new Vector3(StraightLength/2-d,0,r);d-=StraightLength;float a2=Mathf.PI/2+d/r;return new Vector3(-StraightLength/2+r*Mathf.Cos(a2),0,r*Mathf.Sin(a2));}
-    private void BuildRaceUi()
-    {
-        var canvasGo=new GameObject("QTE Race HUD",typeof(RectTransform),typeof(Canvas),typeof(CanvasScaler),typeof(GraphicRaycaster));var canvas=canvasGo.GetComponent<Canvas>();canvas.renderMode=RenderMode.ScreenSpaceOverlay;canvas.sortingOrder=30;var scaler=canvasGo.GetComponent<CanvasScaler>();scaler.uiScaleMode=CanvasScaler.ScaleMode.ScaleWithScreenSize;scaler.referenceResolution=new Vector2(1920,1080);
-        instructionText=Label(canvasGo.transform,"QTE Prompt",42,TextAlignmentOptions.Center);Anchor(instructionText.rectTransform,new Vector2(.5f,.18f),new Vector2(.5f,.18f),new Vector2(900,170));instructionText.color=Color.white;instructionText.text="허들에 맞춰 방향키를 누르세요";
-        countdownText=Label(canvasGo.transform,"Race Countdown",88,TextAlignmentOptions.Center);Anchor(countdownText.rectTransform,new Vector2(.5f,.56f),new Vector2(.5f,.56f),new Vector2(700,280));
-        statusText=Label(canvasGo.transform,"Race Status",21,TextAlignmentOptions.TopLeft);Anchor(statusText.rectTransform,new Vector2(0,1),new Vector2(0,1),new Vector2(850,45));statusText.rectTransform.anchoredPosition=new Vector2(22,-18);
-        var bg=new GameObject("Prompt backing",typeof(RectTransform),typeof(Image));bg.transform.SetParent(canvasGo.transform,false);Anchor(bg.GetComponent<RectTransform>(),new Vector2(.5f,.18f),new Vector2(.5f,.18f),new Vector2(950,190));bg.GetComponent<RectTransform>().SetAsFirstSibling();bg.GetComponent<Image>().color=new Color(.04f,.08f,.1f,.78f);instructionText.transform.SetAsLastSibling();
-    }
     private TextMeshProUGUI Label(Transform parent,string name,float size,TextAlignmentOptions align){var go=new GameObject(name,typeof(RectTransform),typeof(TextMeshProUGUI));go.transform.SetParent(parent,false);var t=go.GetComponent<TextMeshProUGUI>();t.font=koreanFont;t.fontSize=size;t.alignment=align;t.color=Color.white;t.enableWordWrapping=true;t.richText=true;t.raycastTarget=false;return t;}
     private void Anchor(RectTransform r,Vector2 min,Vector2 max,Vector2 size){r.anchorMin=min;r.anchorMax=max;r.pivot=new Vector2(.5f,.5f);r.sizeDelta=size;}
 }
