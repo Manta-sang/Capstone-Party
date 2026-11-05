@@ -92,10 +92,10 @@ public static class QteSceneBuilder
         var cameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener));
         cameraObject.tag = "MainCamera";
         // Start inside the campus fence with an elevated view that includes the sky horizon.
-          cameraObject.transform.position = new Vector3(0, 55, -55);
-          cameraObject.transform.LookAt(new Vector3(0, 27, 20));
+          cameraObject.transform.position = new Vector3(0, 52, -36);
+          cameraObject.transform.LookAt(new Vector3(0, 2, 5));
         var camera = cameraObject.GetComponent<Camera>();
-        camera.fieldOfView = 82;
+        camera.fieldOfView = 64;
         camera.farClipPlane = 460;
         camera.backgroundColor = new Color(.52f, .72f, .88f);
         camera.clearFlags = CameraClearFlags.Skybox;
@@ -141,6 +141,7 @@ public static class QteSceneBuilder
         QteImportValidation.AttachSharedStartUI();
         EditorSceneManager.SaveScene(scene, "Assets/Scenes/Qte.unity");
         AssetDatabase.SaveAssets();
+        QteEnvironmentRefinement.Build();
         Debug.Log($"QTE_SCHOOL_TRACK_BUILD_PASS: saved scene with four network character prefabs, {audiencePrefabs.Length} idle crowd prefabs, bleachers, four lane spawns, an overview camera, and a school-day directional light.");
     }
 
