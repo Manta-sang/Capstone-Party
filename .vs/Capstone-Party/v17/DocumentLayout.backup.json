@@ -3,11 +3,19 @@
   "WorkspaceRootPath": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|c:\\users\\imsik\\desktop\\schproject\\capstone-party\\assets\\scripts\\sawblade\\sd_gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|c:\\users\\imsik\\desktop\\schproject\\capstone-party\\assets\\scripts\\tileflip\\tf_gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\tileflip\\tf_gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\assets\\scripts\\sawblade\\sd_gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\sawblade\\sd_gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|c:\\users\\imsik\\desktop\\schproject\\capstone-party\\assets\\scripts\\sawblade\\sd_playerdeath.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\assets\\scripts\\sawblade\\sd_blade.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\sawblade\\sd_blade.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\assets\\scripts\\sawblade\\sd_playerdeath.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\sawblade\\sd_playerdeath.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
@@ -23,19 +31,43 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "TF_GameManager.cs",
+              "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\TileFlip\\TF_GameManager.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\TileFlip\\TF_GameManager.cs",
+              "ToolTip": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\TileFlip\\TF_GameManager.cs",
+              "RelativeToolTip": "Assets\\Scripts\\TileFlip\\TF_GameManager.cs",
+              "ViewState": "AgIAAMACAAAAAAAAAAAcwN4CAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-06T02:06:09.361Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "SD_Blade.cs",
+              "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SD_Blade.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\SawBlade\\SD_Blade.cs",
+              "ToolTip": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SD_Blade.cs",
+              "RelativeToolTip": "Assets\\Scripts\\SawBlade\\SD_Blade.cs",
+              "ViewState": "AgIAAKwBAAAAAAAAAAAcwMoBAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-05T00:40:17.455Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "SD_GameManager.cs",
               "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SD_GameManager.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\SawBlade\\SD_GameManager.cs",
               "ToolTip": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SD_GameManager.cs",
               "RelativeToolTip": "Assets\\Scripts\\SawBlade\\SD_GameManager.cs",
-              "ViewState": "AgIAABICAAAAAAAAAAAcwDACAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACUCAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-11-05T00:26:31.625Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-11-05T00:26:31.625Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "SD_PlayerDeath.cs",
               "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SD_PlayerDeath.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\SawBlade\\SD_PlayerDeath.cs",
@@ -43,8 +75,7 @@
               "RelativeToolTip": "Assets\\Scripts\\SawBlade\\SD_PlayerDeath.cs",
               "ViewState": "AgIAAJsAAAAAAAAAAAAcwLkAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-11-05T00:26:28.896Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-11-05T00:26:28.896Z"
             }
           ]
         }

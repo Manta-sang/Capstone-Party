@@ -75,7 +75,7 @@ public class SD_GameManager : NetworkBehaviour
     private bool localReady;
     private bool roundStarted;
     public bool HasRoundStarted => roundStarted;
-    public float CountdownRemaining => !IsSpawned||startTimeNet.Value<0?0:Mathf.Max(0,(float)(startTimeNet.Value-NetworkManager.ServerTime.Time));
+    public float CountdownRemaining => !IsSpawned || startTimeNet.Value < 0 ? 0 : Mathf.Max(0, (float)(startTimeNet.Value - NetworkManager.ServerTime.Time));
     private int playersAtStart;
     private bool gameOverRaised;
     [Header("게임 종료 후 이동")]
