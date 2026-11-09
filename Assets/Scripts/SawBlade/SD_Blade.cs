@@ -29,10 +29,21 @@ public class SD_Blade : NetworkBehaviour
     [Tooltip("톱날마다 음높이를 ±이 비율만큼 무작위로 바꾼다 (0이면 그대로)")]
     [SerializeField, Range(0f, 0.3f)] private float pitchVariation = 0.08f;
 
-    [Tooltip("이 톱날이 플레이어를 맞혀 죽인 순간 재생할 소리가 들어 있는 AudioSource. 회전 소리(Loop Source)와 다른 AudioSource여야 한다 (Play On Awake는 끄고 Loop도 끈다). 비워 두면 피격 소리는 나지 않는다")]
-    [SerializeField] private AudioSource hitSource;
+    [Header("피격 소리")]
+    [Tooltip("이 톱날이 플레이어를 맞혀 죽인 순간 재생할 소리. AudioSource 없이 클립만 넣으면 된다. 거리에 따른 소리 크기(2D/3D 등)는 회전 소리(Loop Source)의 설정을 따라간다. 비워 두면 피격 소리는 나지 않는다")]
+    [SerializeField] private AudioClip hitClip;
+    [SerializeField, Range(0f, 1f)] private float hitVolume = 1f;
+
+    [Header("불꽃 이펙트 (톱날끼리 / 벽에 부딪칠 때)")]
+    [Tooltip("톱날끼리 또는 벽에 부딪친 지점에서 재생할 파티클 프리팹. NetworkObject는 붙이지 않는다 (각 컴퓨터가 로컬에서 재생). Looping은 끄고 Burst로 한 번만 터지게 만든다. 비워 두면 불꽃은 나지 않는다")]
+    [SerializeField] private ParticleSystem sparkPrefab;
+    [Tooltip("같은 톱날이 불꽃을 연달아 내는 최소 간격(초). 서로 비비며 지나갈 때 불꽃이 쏟아지는 것을 막는다")]
+    [SerializeField, Min(0f)] private float sparkCooldown = 0.1f;
+    [Tooltip("불꽃 파티클 오브젝트를 지우는 시간(초). 파티클이 모두 사라질 만큼 길게 둔다")]
+    [SerializeField, Min(0.1f)] private float sparkLifetime = 2f;
 
     private bool loopStopped;
+    private float lastSparkTime = -999f;
 
     private Rigidbody rb;
     private Collider[] myColliders;
@@ -81,14 +92,7 @@ public class SD_Blade : NetworkBehaviour
 
         myColliders = GetComponentsInChildren<Collider>();
         radius = EstimateRadius();
-        if (loopSource == null)
-        {
-            // 같은 오브젝트에 AudioSource가 둘이면, 피격 소리로 지정한 것을 뺀 나머지를 회전 소리로 쓴다
-            foreach (AudioSource source in GetComponents<AudioSource>())
-            {
-                if (source != hitSource) { loopSource = source; break; }
-            }
-        }
+        if (loopSource == null) loopSource = GetComponent<AudioSource>();
 
         allBlades.Add(this);
     }
@@ -213,9 +217,61 @@ public class SD_Blade : NetworkBehaviour
         PlayHitSound();
     }
 
+    // 피격 소리는 임시 오브젝트에서 한 번 재생한다. 회전 소리의 AudioSource를 쓰면 라운드 종료 때 회전 소리를 끄면서
+    // 마지막 피격 소리까지 끊기므로 따로 재생하고, 거리 감쇠 설정은 회전 소리의 것을 그대로 따라간다
     private void PlayHitSound()
     {
-        if (hitSource != null && hitSource.clip != null) hitSource.Play();
+        if (hitClip == null) return;
+
+        GameObject go = new GameObject("SD_BladeHitSound");
+        go.transform.position = transform.position;
+        AudioSource source = go.AddComponent<AudioSource>();
+        source.clip = hitClip;
+        source.volume = hitVolume;
+        source.playOnAwake = false;
+        source.loop = false;
+
+        if (loopSource != null)
+        {
+            source.spatialBlend = loopSource.spatialBlend;
+            source.minDistance = loopSource.minDistance;
+            source.maxDistance = loopSource.maxDistance;
+            source.rolloffMode = loopSource.rolloffMode;
+            if (loopSource.rolloffMode == AudioRolloffMode.Custom)
+                source.SetCustomCurve(AudioSourceCurveType.CustomRolloff, loopSource.GetCustomCurve(AudioSourceCurveType.CustomRolloff));
+            source.outputAudioMixerGroup = loopSource.outputAudioMixerGroup;
+        }
+        else
+        {
+            source.spatialBlend = 0f;
+        }
+
+        source.Play();
+        Destroy(go, hitClip.length + 0.1f);
+    }
+
+    // 톱날끼리 부딪쳤다: 모든 컴퓨터에서 부딪친 지점에 불꽃을 낸다 (피격 소리와 같은 방식)
+    private void NotifySpark(Vector3 point, Vector3 normal)
+    {
+        if (sparkPrefab == null) return;
+
+        if (IsSpawned) SparkClientRpc(point, normal); // Host에서 호출하면 Host 자신을 포함한 모든 컴퓨터에서 실행된다
+        else PlaySpark(point, normal);                // 네트워크 없이 단독 테스트할 때
+    }
+
+    [ClientRpc]
+    private void SparkClientRpc(Vector3 point, Vector3 normal)
+    {
+        PlaySpark(point, normal);
+    }
+
+    private void PlaySpark(Vector3 point, Vector3 normal)
+    {
+        if (sparkPrefab == null) return;
+
+        Quaternion rotation = normal.sqrMagnitude > 0.0001f ? Quaternion.LookRotation(normal) : Quaternion.identity;
+        ParticleSystem fx = Instantiate(sparkPrefab, point, rotation);
+        Destroy(fx.gameObject, sparkLifetime);
     }
 
     // 반복 소리 재생. 톱날마다 시작 위치와 음높이를 조금씩 달리한다
@@ -324,7 +380,18 @@ public class SD_Blade : NetworkBehaviour
         if (normal == Vector3.zero) return; // 바닥 등 수직 면은 무시
 
         // 다른 톱날과의 충돌은 반사만 하고 튕김 횟수에는 포함하지 않는다
-        bool hitBlade = collision.collider.GetComponentInParent<SD_Blade>() != null;
+        SD_Blade otherBlade = collision.collider.GetComponentInParent<SD_Blade>();
+        bool hitBlade = otherBlade != null;
+
+        // 불꽃: 톱날끼리 부딪칠 때는 같은 충돌이 양쪽 톱날에서 한 번씩 오므로 한쪽(ID가 작은 쪽)만 낸다.
+        // 벽에 부딪칠 때는 이 톱날 혼자이므로 그대로 낸다 (마지막 튕김으로 벽을 뚫고 나가는 순간에도 낸다)
+        bool emitSpark = !hitBlade || GetInstanceID() < otherBlade.GetInstanceID();
+        if (emitSpark && Time.time - lastSparkTime >= sparkCooldown)
+        {
+            lastSparkTime = Time.time;
+            ContactPoint contact = collision.GetContact(0);
+            NotifySpark(contact.point, contact.normal);
+        }
 
         if (!hitBlade && bounceCount >= maxBounces)
         {

@@ -3177,9 +3177,9 @@ MonoBehaviour:
   readyTimeout: 30
   beginWithoutSceneEvent: 0
   showDebugHUD: 1
-  flightDistance: 100
-  arcHeight: 100
-  flightDuration: 1.2
+  flightDistance: 25
+  arcHeight: 25
+  flightDuration: 2
   removeDelay: 1
   faceCameraAtEnd: 1
   faceCameraDuration: 0.4
