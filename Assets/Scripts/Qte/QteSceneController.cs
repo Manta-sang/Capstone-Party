@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,6 +41,8 @@ public sealed class QteSceneController : MonoBehaviour
     private const string ReadyMessage = "QTE.Entry.Ready";
     private const string ReadyStatusMessage = "QTE.Entry.ReadyStatus";
     private const string StartMessage = "QTE.Entry.Start";
+    private bool finishAudioPlayed;
+    private const string FinishConfirmedMessage = "QTE.Finish.Confirmed";
     private const string FinishCountdownMessage = "QTE.Finish.Countdown";
     private static readonly KeyCode[] Keys = { KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.LeftArrow, KeyCode.RightArrow };
     private static readonly KeyCode[] AlternateKeys = { KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D };
@@ -73,6 +75,11 @@ public sealed class QteSceneController : MonoBehaviour
     private QteSequenceHud sequenceHud;
     private string developerStatus="QTE 준비 중";
     private AudioSource whistleSource, musicSource;
+    private AudioClip[] runningFootsteps = Array.Empty<AudioClip>();
+    private AudioClip qteTickClip, qteSuccessClip, qteFailClip;
+    private AudioClip jumpTakeoffClip, jumpLandingClip, refereeWhistleClip;
+    private AudioClip hurdleMetalClip, hurdleWoodClip, playerFallClip, finishJingleClip;
+    private float nextFootstepAt;
     private Vector3 cameraVelocity;
     private float cameraShakeUntil,cameraShakeStrength,cameraShakeDuration;
     private int entryToken;
@@ -119,7 +126,8 @@ public sealed class QteSceneController : MonoBehaviour
         whistleSource = gameObject.AddComponent<AudioSource>();
         whistleSource.playOnAwake = false;
         whistleSource.spatialBlend = 0;
-        StartSchoolSportsMusic();
+        LoadQteAudio();
+        StartQteMusic();
         if (network == null || !network.IsListening) { entryError = "네트워크 연결을 기다리는 중입니다."; return; }
         messages = network.CustomMessagingManager;
         messages.RegisterNamedMessageHandler(RosterMessage, OnRosterReceived);
@@ -127,6 +135,7 @@ public sealed class QteSceneController : MonoBehaviour
         messages.RegisterNamedMessageHandler(ReadyStatusMessage, OnReadyStatusReceived);
         messages.RegisterNamedMessageHandler(StartMessage, OnStartReceived);
         messages.RegisterNamedMessageHandler(FinishCountdownMessage, OnFinishCountdownReceived);
+        messages.RegisterNamedMessageHandler(FinishConfirmedMessage, OnFinishConfirmedReceived);
         if (network.IsServer) network.SceneManager.OnLoadEventCompleted += OnSceneLoaded;
     }
 
@@ -195,7 +204,8 @@ public sealed class QteSceneController : MonoBehaviour
             UpdateCountdown();
             if (startsAt >= 0 && network.ServerTime.Time >= startsAt)
             {
-                gameStarted = true; overviewMode = false; startFlashUntil = Time.unscaledTime + .8f;
+                gameStarted = true; overviewMode = false; startFlashUntil = Time.unscaledTime + .8f; nextFootstepAt = Time.unscaledTime;
+                Debug.Log($"[QTE 진단] 경기 출발: localPlayer={(network.SpawnManager.GetLocalPlayerObject() != null)}, raceDistance={RaceDistance:0.0}");
                 distanceAlongTrack = 0;
                 for (int hurdle = 1; hurdle <= Mathf.FloorToInt(RaceDistance / hurdleSpacing); hurdle++)
                     SpawnHurdle(hurdle, hurdle * hurdleSpacing);
@@ -241,7 +251,7 @@ public sealed class QteSceneController : MonoBehaviour
         distanceAlongTrack = Mathf.Min(queuedFailure?queuedFailureAt:RaceDistance, distanceAlongTrack + speed * Time.deltaTime);
         if (queuedJump && distanceAlongTrack >= queuedJumpAt)
         {
-            queuedJump = false; jumping = true; jumpStartedAt = Time.time;
+            queuedJump = false; jumping = true; jumpStartedAt = Time.time; PlayQteSfx(jumpTakeoffClip, .42f);
             PulseCameraShake(.07f,.16f);
             if(activeAnimator!=null&&activeAnimator.parameters.Any(p=>p.name=="doJump"&&p.type==AnimatorControllerParameterType.Trigger))activeAnimator.SetTrigger("doJump");
         }
@@ -251,8 +261,21 @@ public sealed class QteSceneController : MonoBehaviour
         if (jumping) position.y += Mathf.Sin(Mathf.Clamp01((Time.time - jumpStartedAt) / .8f) * Mathf.PI) * 1.8f;
         activePlayer.transform.SetPositionAndRotation(position,TrackRotation(laneDistance,movingLane));
         if(queuedFailure&&distanceAlongTrack>=queuedFailureAt)BeginHurdleFailure();
-        SetWalking(speed > 0 && !jumping && stunUntil<=0);
-        if (distanceAlongTrack >= RaceDistance) { localFinished = true; PulseCameraShake(.13f,.24f); SetWalking(false);  }
+        bool runnerIsRunning = speed > 0 && !jumping && stunUntil <= 0;
+        SetWalking(runnerIsRunning);
+        if (runnerIsRunning && Time.unscaledTime >= nextFootstepAt && runningFootsteps.Length > 0)
+        {
+            PlayQteSfx(runningFootsteps[UnityEngine.Random.Range(0, runningFootsteps.Length)], .2f);
+            nextFootstepAt = Time.unscaledTime + .34f;
+        }
+        if (distanceAlongTrack >= RaceDistance)
+        {
+            localFinished = true;
+            Debug.Log($"[QTE 진단] 결승 조건 도달: distance={distanceAlongTrack:0.0}, target={RaceDistance:0.0}, localPlayer={activePlayer.NetworkObjectId}");
+            PulseCameraShake(.13f,.24f);
+            SetWalking(false);
+            // Audio waits for the server's confirmed finish result.
+        }
     }
 
     private void ReadArrowInput()
@@ -275,6 +298,7 @@ public sealed class QteSceneController : MonoBehaviour
         if(direction!=expectedDirections[arrowProgress]){ResolveHurdle(false);return;}
         arrowProgress++;
         if(arrowProgress>=ArrowInputsPerHurdle)ResolveHurdle(true);
+        else PlayQteSfx(qteTickClip, .24f);
     }
     private void ResolveHurdle(bool success)
     {
@@ -287,6 +311,7 @@ public sealed class QteSceneController : MonoBehaviour
         if(sequenceHud!=null)sequenceHud.Complete(success);
         if (success)
         {
+            PlayQteSfx(qteSuccessClip, .5f);
             speedBoostUntil=Time.time+QteSuccessBoostDuration;
             queuedJump = true;
             queuedJumpAt = hurdleNumber * hurdleSpacing - CurrentRunSpeed * .4f;
@@ -295,6 +320,7 @@ public sealed class QteSceneController : MonoBehaviour
         }
         else
         {
+            PlayQteSfx(qteFailClip, .4f);
             // Wrong input marks this hurdle as missed; trip at leg contact, not meters ahead.
             queuedFailure=true;
             queuedFailureAt=Mathf.Max(distanceAlongTrack,hurdleNumber*hurdleSpacing-.45f);
@@ -313,6 +339,9 @@ public sealed class QteSceneController : MonoBehaviour
             activeAnimator.speed=clipLength/Mathf.Max(.05f,failStopDuration*.64f);
         }
         TriggerAnimator("fall");
+        PlayQteSfx(hurdleMetalClip, .48f);
+        PlayQteSfx(hurdleWoodClip, .26f);
+        PlayQteSfx(playerFallClip, .58f);
         int lane=Mathf.Max(0,objectIds.IndexOf(activePlayer.NetworkObjectId));
         if(hurdles.TryGetValue(hurdleNumber*4+lane,out var missed)&&missed!=null)
             StartCoroutine(TipAndFadeHurdle(missed));
@@ -361,6 +390,7 @@ public sealed class QteSceneController : MonoBehaviour
     {
         if (Time.time - jumpStartedAt < .8f)return;
         jumping=false;
+        PlayQteSfx(jumpLandingClip, .46f);
         PulseCameraShake(.12f,.2f);
     }
     private void PrepareNextHurdle()
@@ -388,6 +418,11 @@ public sealed class QteSceneController : MonoBehaviour
     private void PlayCountdownTone(int tick) { if (tick == lastTick) return; lastTick = tick; PlayTone(tick == 1 ? 1250 : 760, .12f); }
     private void PlayWhistle()
     {
+        if (refereeWhistleClip != null)
+        {
+            PlayQteSfx(refereeWhistleClip, .8f);
+            return;
+        }
         const float duration = .72f;
         const int rate = 22050;
         int count = Mathf.CeilToInt(rate * duration);
@@ -403,71 +438,42 @@ public sealed class QteSceneController : MonoBehaviour
         clip.SetData(samples, 0);
         whistleSource.PlayOneShot(clip);
     }
-    private void StartSchoolSportsMusic()
+
+    private void LoadQteAudio()
     {
-        const int sampleRate=22050;
-        const float bpm=140f;
-        const int bars=16;
-        float beatLength=60f/bpm;
-        float duration=bars*4f*beatLength;
-        int sampleCount=Mathf.CeilToInt(duration*sampleRate);
-        var samples=new float[sampleCount*2];
-        var frequencies=new float[128];
-        for(int note=0;note<frequencies.Length;note++)frequencies[note]=440f*Mathf.Pow(2f,(note-69)/12f);
-        int[] melody={72,76,79,76,81,79,76,72,69,72,77,72,76,77,76,72,69,72,76,72,76,79,81,79,67,71,74,71,79,74,71,67,72,76,79,81,79,76,72,76,81,84,81,79,76,79,81,79,76,79,84,79,83,84,83,79,74,79,83,79,81,83,86,83,72,76,79,76};
-        int[] chordRoots={60,53,57,55};
-        var random=new System.Random(1847);
-        for(int i=0;i<sampleCount;i++)
-        {
-            float t=i/(float)sampleRate;
-            float beatPosition=t/beatLength;
-            int beatIndex=Mathf.FloorToInt(beatPosition);
-            float beatPhase=beatPosition-beatIndex;
-            int bar=Mathf.FloorToInt(beatPosition/4f);
-            int root=chordRoots[bar%chordRoots.Length];
-
-            float eighthLength=beatLength*.5f;
-            int noteIndex=Mathf.FloorToInt(t/eighthLength)%melody.Length;
-            float noteTime=t%eighthLength;
-            int midi=melody[noteIndex];
-            float lead=0f;
-            if(midi>0)
-            {
-                float frequency=frequencies[midi];
-                float phase=2f*Mathf.PI*frequency*noteTime;
-                float noteEnvelope=Mathf.Min(1f,noteTime/.025f)*Mathf.Clamp01((eighthLength-noteTime)/.075f);
-                lead=(Mathf.Sin(phase)+.22f*Mathf.Sin(phase*2f)+.08f*Mathf.Sin(phase*3f))*noteEnvelope*.13f;
-            }
-
-            float pad=(Mathf.Sin(2f*Mathf.PI*frequencies[root]*t)
-                +Mathf.Sin(2f*Mathf.PI*frequencies[root+4]*t)
-                +Mathf.Sin(2f*Mathf.PI*frequencies[root+7]*t))*.018f;
-            float bassFrequency=frequencies[root-12];
-            float bass=Mathf.Sin(2f*Mathf.PI*bassFrequency*t)*Mathf.Exp(-beatPhase*5f)*.045f;
-
-            float percussion=0f;
-            float noise=(float)random.NextDouble()*2f-1f;
-            float beatSeconds=beatPhase*beatLength;
-            int beatInBar=beatIndex%4;
-            if((beatInBar==0||beatInBar==2)&&beatSeconds<.24f)
-                percussion+=Mathf.Sin(2f*Mathf.PI*(105f*beatSeconds-125f*beatSeconds*beatSeconds))*Mathf.Exp(-beatSeconds*17f)*.17f;
-            if((beatInBar==1||beatInBar==3)&&beatSeconds<.14f)
-                percussion+=(noise*.62f+Mathf.Sin(2f*Mathf.PI*220f*beatSeconds)*.38f)*Mathf.Exp(-beatSeconds*24f)*.085f;
-            float eighthPhase=(t/eighthLength)-Mathf.Floor(t/eighthLength);
-            if(eighthPhase<.045f)percussion+=noise*Mathf.Exp(-eighthPhase*62f)*.028f;
-            float offbeatPhase=((t+beatLength*.5f)/beatLength)-Mathf.Floor((t+beatLength*.5f)/beatLength);
-            if(offbeatPhase<.035f)percussion+=noise*Mathf.Exp(-offbeatPhase*72f)*.012f;
-
-            float fade=Mathf.Clamp01(Mathf.Min(t/.045f,(duration-t)/.045f));
-            float mix=(lead+pad+bass+percussion)*fade;
-            samples[i*2]=mix+lead*.025f;
-            samples[i*2+1]=mix-lead*.025f;
-        }
-        var clip=AudioClip.Create("School Sports Day Loop",sampleCount,2,sampleRate,false);
-        clip.SetData(samples,0);
-        musicSource=gameObject.AddComponent<AudioSource>();
-        musicSource.clip=clip;musicSource.loop=true;musicSource.volume=.5f;musicSource.spatialBlend=0;musicSource.playOnAwake=false;
+        runningFootsteps = Resources.LoadAll<AudioClip>("QteAudio/SFX/Footsteps");
+        qteTickClip = Resources.Load<AudioClip>("QteAudio/SFX/UI/tick_001");
+        qteSuccessClip = Resources.Load<AudioClip>("QteAudio/SFX/UI/confirmation_001");
+        qteFailClip = Resources.Load<AudioClip>("QteAudio/SFX/UI/error_001");
+        jumpTakeoffClip = Resources.Load<AudioClip>("QteAudio/SFX/Jump/JumpTakeoff");
+        jumpLandingClip = Resources.Load<AudioClip>("QteAudio/SFX/Jump/JumpLanding");
+        refereeWhistleClip = Resources.Load<AudioClip>("QteAudio/SFX/Whistle/RefereeWhistle");
+        hurdleMetalClip = Resources.Load<AudioClip>("QteAudio/SFX/Hurdle/impactMetal_medium_000");
+        hurdleWoodClip = Resources.Load<AudioClip>("QteAudio/SFX/Hurdle/impactWood_medium_001");
+        playerFallClip = Resources.Load<AudioClip>("QteAudio/SFX/Impact/PlayerFall");
+        finishJingleClip = Resources.Load<AudioClip>("QteAudio/SFX/Finish/PositiveChoice");
+    }
+    private void StartQteMusic()
+    {
+        var clip = Resources.Load<AudioClip>("QteAudio/BGM/OverworldTheme");
+        if (clip == null) return;
+        musicSource = gameObject.AddComponent<AudioSource>();
+        musicSource.clip = clip;
+        musicSource.loop = true;
+        musicSource.volume = .38f;
+        musicSource.spatialBlend = 0;
+        musicSource.playOnAwake = false;
         musicSource.Play();
+    }
+    private void PlayQteSfx(AudioClip clip, float volume = 1f)
+    {
+        if (clip != null && whistleSource != null) whistleSource.PlayOneShot(clip, volume);
+    }
+    private void PlayFinishAudio()
+    {
+        if (finishAudioPlayed) return;
+        finishAudioPlayed = true;
+        PlayQteSfx(finishJingleClip, .48f);
     }
     private void PlayTone(float hz, float duration)
     {
@@ -523,6 +529,32 @@ public sealed class QteSceneController : MonoBehaviour
         using(var w=new FastBufferWriter(12,Allocator.Temp)){w.WriteValueSafe(entryToken);w.WriteValueSafe(startsAt);foreach(ulong id in owners)if(id!=NetworkManager.ServerClientId&&network.ConnectedClients.ContainsKey(id))messages.SendNamedMessage(StartMessage,id,w,NetworkDelivery.ReliableSequenced);}
     }
     private void OnStartReceived(ulong sender,FastBufferReader r){if(sender!=NetworkManager.ServerClientId||network.IsServer)return;r.ReadValueSafe(out int token);r.ReadValueSafe(out double t);if(token==entryToken)startsAt=t;}
+    private void ConfirmLocalFinish()
+    {
+        localFinished = true;
+        SetWalking(false);
+        PlayFinishAudio();
+    }
+    private void OnFinishConfirmedReceived(ulong sender, FastBufferReader reader)
+    {
+        if (sender != NetworkManager.ServerClientId || network.IsServer) return;
+        reader.ReadValueSafe(out int token);
+        if (token == entryToken) ConfirmLocalFinish();
+    }
+    private void NotifyFinishConfirmed(ulong owner)
+    {
+        if (owner == network.LocalClientId)
+        {
+            ConfirmLocalFinish();
+            return;
+        }
+        if (!network.ConnectedClients.ContainsKey(owner)) return;
+        using (var writer = new FastBufferWriter(4, Allocator.Temp))
+        {
+            writer.WriteValueSafe(entryToken);
+            messages.SendNamedMessage(FinishConfirmedMessage, owner, writer, NetworkDelivery.ReliableSequenced);
+        }
+    }
     private void OnFinishCountdownReceived(ulong sender, FastBufferReader r)
     {
         if (sender != NetworkManager.ServerClientId || network.IsServer) return;
@@ -612,6 +644,7 @@ public sealed class QteSceneController : MonoBehaviour
             int place=finishedPlayers.Count+1;
             if(canScore)ranking.AddScore(owner,$"Player {owner}",PartyScoreRules.ForRank(place));
             finishedPlayers.Add(owner);
+            NotifyFinishConfirmed(owner);
             if(finishWindowEndsAt < 0)
             {
                 finishWindowEndsAt=network.ServerTime.Time+5d;
@@ -740,7 +773,7 @@ public sealed class QteSceneController : MonoBehaviour
             if(!state.Key.isKinematic){state.Key.velocity=Vector3.zero;state.Key.angularVelocity=Vector3.zero;}
         }
         if(network!=null&&network.IsServer&&network.SceneManager!=null)network.SceneManager.OnLoadEventCompleted-=OnSceneLoaded;
-        if(messages!=null){messages.UnregisterNamedMessageHandler(RosterMessage);messages.UnregisterNamedMessageHandler(ReadyMessage);messages.UnregisterNamedMessageHandler(ReadyStatusMessage);messages.UnregisterNamedMessageHandler(StartMessage);messages.UnregisterNamedMessageHandler(FinishCountdownMessage);}
+        if(messages!=null){messages.UnregisterNamedMessageHandler(RosterMessage);messages.UnregisterNamedMessageHandler(ReadyMessage);messages.UnregisterNamedMessageHandler(ReadyStatusMessage);messages.UnregisterNamedMessageHandler(StartMessage);messages.UnregisterNamedMessageHandler(FinishCountdownMessage);messages.UnregisterNamedMessageHandler(FinishConfirmedMessage);}
     }
 
     private Vector3 TrackPosition(float distance, int lane)
@@ -764,7 +797,7 @@ public sealed class QteSceneController : MonoBehaviour
         var grass=MakeMat("School field",new Color(.22f,.48f,.24f));var track=MakeMat("Track terracotta",new Color(.66f,.22f,.16f));var lane=MakeMat("Track cream lines",new Color(.95f,.85f,.66f));var turf=MakeMat("Football turf",new Color(.16f,.42f,.19f));
         Cube("School ground",new Vector3(0,-.28f,0),new Vector3(620,.5f,520),grass);
         MakeOvalRibbon("Running track",0,0,15.2f,21.5f,track);
-        for(int i=0;i<5;i++)MakeOvalLine("Lane marking",0,0,21.3f-i*1.4f,lane,.045f);
+        for(int i=0;i<5;i++)MakeOvalLine("Lane marking",0,0,21.3f-i*1.4f,lane,.10f);
         // Keep the football pitch inside the inner lane boundary so the grass never covers the running track.
         Cube("Football field grass",new Vector3(0,.005f,0),new Vector3(70,.05f,30),turf);
         for(int x=-32;x<=32;x+=8)Cube("Football pitch stripe",new Vector3(x,.04f,0),new Vector3(4,.02f,27),new Color(.18f,.46f,.2f));
@@ -1198,11 +1231,11 @@ public sealed class QteSceneController : MonoBehaviour
         var collider=target.GetComponent<Collider>();if(collider==null)return;
         if(Application.isPlaying)Destroy(collider);else DestroyImmediate(collider);
     }
-    private void MakeOvalLine(string name,float cx,float cz,float radius,Material mat,float width){MakeOvalRibbon(name,cx,cz,radius-width/2,radius+width/2,mat);}
-    private void MakeOvalRibbon(string name,float cx,float cz,float inner,float outer,Material mat)
+    private void MakeOvalLine(string name,float cx,float cz,float radius,Material mat,float width){MakeOvalRibbon(name,cx,cz,radius-width/2,radius+width/2,mat,.055f);}
+    private void MakeOvalRibbon(string name,float cx,float cz,float inner,float outer,Material mat,float surfaceY=.015f)
     {
         int segments=160;var vertices=new Vector3[(segments+1)*2];var triangles=new int[segments*6];
-        for(int i=0;i<=segments;i++){float phase=i/(float)segments;Vector3 a=OvalAtFraction(phase,inner),b=OvalAtFraction(phase,outer);vertices[i*2]=new Vector3(a.x,.015f,a.z);vertices[i*2+1]=new Vector3(b.x,.015f,b.z);if(i<segments){int v=i*2,t=i*6;triangles[t]=v;triangles[t+1]=v+2;triangles[t+2]=v+1;triangles[t+3]=v+1;triangles[t+4]=v+2;triangles[t+5]=v+3;}}
+        for(int i=0;i<=segments;i++){float phase=i/(float)segments;Vector3 a=OvalAtFraction(phase,inner),b=OvalAtFraction(phase,outer);vertices[i*2]=new Vector3(a.x,surfaceY,a.z);vertices[i*2+1]=new Vector3(b.x,surfaceY,b.z);if(i<segments){int v=i*2,t=i*6;triangles[t]=v;triangles[t+1]=v+2;triangles[t+2]=v+1;triangles[t+3]=v+1;triangles[t+4]=v+2;triangles[t+5]=v+3;}}
         string meshName=$"{name}_{inner:0.0}_{outer:0.0}";
         var mesh=new Mesh{name=meshName};mesh.vertices=vertices;mesh.triangles=triangles;mesh.RecalculateNormals();
 #if UNITY_EDITOR
@@ -1216,7 +1249,27 @@ public sealed class QteSceneController : MonoBehaviour
 #endif
         var go=new GameObject(name);var filter=go.AddComponent<MeshFilter>();filter.sharedMesh=mesh;go.AddComponent<MeshRenderer>().sharedMaterial=mat;
     }
-    private Vector3 OvalAtFraction(float phase,float r){float d=phase*(2*StraightLength+2*Mathf.PI*r);if(d<StraightLength)return new Vector3(-StraightLength/2+d,0,-r);d-=StraightLength;float arc=r*Mathf.PI;if(d<arc){float a=-Mathf.PI/2+d/r;return new Vector3(StraightLength/2+r*Mathf.Cos(a),0,r*Mathf.Sin(a));}d-=arc;if(d<StraightLength)return new Vector3(StraightLength/2-d,0,r);d-=StraightLength;float a2=Mathf.PI/2+d/r;return new Vector3(-StraightLength/2+r*Mathf.Cos(a2),0,r*Mathf.Sin(a2));}
+    private Vector3 OvalAtFraction(float phase,float r)
+    {
+        float sectionPosition=Mathf.Clamp01(phase)*4f;
+        int section=Mathf.Min(3,Mathf.FloorToInt(sectionPosition));
+        float t=sectionPosition-section;
+        switch(section)
+        {
+            case 0: return new Vector3(-StraightLength*.5f+t*StraightLength,0,-r);
+            case 1:
+            {
+                float angle=-Mathf.PI*.5f+t*Mathf.PI;
+                return new Vector3(StraightLength*.5f+r*Mathf.Cos(angle),0,r*Mathf.Sin(angle));
+            }
+            case 2: return new Vector3(StraightLength*.5f-t*StraightLength,0,r);
+            default:
+            {
+                float angle=Mathf.PI*.5f+t*Mathf.PI;
+                return new Vector3(-StraightLength*.5f+r*Mathf.Cos(angle),0,r*Mathf.Sin(angle));
+            }
+        }
+    }
     private TextMeshProUGUI Label(Transform parent,string name,float size,TextAlignmentOptions align){var go=new GameObject(name,typeof(RectTransform),typeof(TextMeshProUGUI));go.transform.SetParent(parent,false);var t=go.GetComponent<TextMeshProUGUI>();t.font=koreanFont;t.fontSize=size;t.alignment=align;t.color=Color.white;t.enableWordWrapping=true;t.richText=true;t.raycastTarget=false;return t;}
     private void Anchor(RectTransform r,Vector2 min,Vector2 max,Vector2 size){r.anchorMin=min;r.anchorMax=max;r.pivot=new Vector2(.5f,.5f);r.sizeDelta=size;}
 }
