@@ -71,7 +71,7 @@
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryBuilder.cs" />
     <Compile Include="Assets\Editor\PartyFinaleBuilder.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryRefine.cs" />
-    <Compile Include="Assets\FREE\Pack_FREE_PartyCharacters\Editor\CharacterPromoWindow.cs" />
+    <Compile Include="Assets\DownloadAsset\Models\FREE\Pack_FREE_PartyCharacters\Editor\FreeCharacterCustomizerWindow.cs" />
     <Compile Include="Assets\Editor\CharacterCabinExpansion.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryContactLayout.cs" />
     <Compile Include="Assets\Editor\QteSchoolGeometry.cs" />
@@ -88,6 +88,7 @@
     <Compile Include="Assets\Editor\PushCooldownHUDBuilder.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallAppearance.cs" />
     <Compile Include="Assets\Editor\QteSceneBuilder.cs" />
+    <Compile Include="Assets\DownloadAsset\Models\FREE\Pack_FREE_PartyCharacters\Editor\CharacterPromoWindow.cs" />
     <Compile Include="Assets\Editor\CharacterCabinRefit.cs" />
     <Compile Include="Assets\Editor\QteEnvironmentRefinement.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallBuilder.cs" />
@@ -96,7 +97,6 @@
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallResize.cs" />
     <Compile Include="Assets\Editor\QteImportValidation.cs" />
     <Compile Include="Assets\Editor\TicketPileUpgrade.cs" />
-    <Compile Include="Assets\FREE\Pack_FREE_PartyCharacters\Editor\FreeCharacterCustomizerWindow.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallUniformGrid.cs" />
     <Compile Include="Assets\Editor\PartyFinaleValidation.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\Editor\CrosswalkModularBuilder.cs" />
