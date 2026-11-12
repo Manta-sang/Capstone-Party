@@ -49,6 +49,8 @@ public class SD_GameManager : NetworkBehaviour
     [SerializeField] private float flightDuration = 1.2f;
     [Tooltip("죽은 뒤 이 시간(초)이 지나면 플레이어 오브젝트가 제거된다")]
     [SerializeField] private float removeDelay = 3f;
+    [Tooltip("날아가는 동안 플레이어 뒤에 연기를 남기는 파티클 프리팹 (블래스트 오프). NetworkObject는 붙이지 않는다 (각 컴퓨터가 로컬에서 재생). 비워 두면 연기는 나지 않는다")]
+    [SerializeField] private ParticleSystem deathSmokePrefab;
 
     [Header("종료 연출 (살아남은 플레이어)")]
     [Tooltip("게임이 끝나면 살아남은 내 캐릭터가 카메라 쪽(화면 정면)을 바라보게 한다. Y축으로만 회전한다")]
@@ -75,7 +77,7 @@ public class SD_GameManager : NetworkBehaviour
     private bool localReady;
     private bool roundStarted;
     public bool HasRoundStarted => roundStarted;
-    public float CountdownRemaining => !IsSpawned||startTimeNet.Value<0?0:Mathf.Max(0,(float)(startTimeNet.Value-NetworkManager.ServerTime.Time));
+    public float CountdownRemaining => !IsSpawned || startTimeNet.Value < 0 ? 0 : Mathf.Max(0, (float)(startTimeNet.Value - NetworkManager.ServerTime.Time));
     private int playersAtStart;
     private bool gameOverRaised;
     [Header("게임 종료 후 이동")]
@@ -222,7 +224,7 @@ public class SD_GameManager : NetworkBehaviour
             if (!spawned.IsPlayerObject || spawned.GetComponent<SD_PlayerDeath>() != null) continue;
 
             SD_PlayerDeath death = spawned.gameObject.AddComponent<SD_PlayerDeath>();
-            death.Configure(flightDistance, arcHeight, flightDuration, removeDelay);
+            death.Configure(flightDistance, arcHeight, flightDuration, removeDelay, deathSmokePrefab);
 
             // 시작 전 대기 동안에는 조작을 잠근다
             if (!roundStarted) death.SetControlsEnabled(false);

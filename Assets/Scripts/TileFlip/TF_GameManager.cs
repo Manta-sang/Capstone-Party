@@ -53,6 +53,8 @@ public class TF_GameManager : NetworkBehaviour
     [Header("진행")]
     [Tooltip("게임 시간(초). 시작된 뒤 이 시간이 지나면 종료되고 승자가 정해진다")]
     [SerializeField] private float gameDuration = 60f;
+    [Tooltip("종료 시각이 지난 뒤에도 이 시간(초)만큼은 서버가 칠하기 보고를 받아 준다. 종료 직전에 칠한 타일의 보고가 네트워크 지연으로 늦게 도착해도 반영되게 한다. 이 시간이 지나면 종료가 확정된다 (보통 참가자의 핑보다 조금 크게)")]
+    [SerializeField, Min(0f)] private float paintEndGrace = 0.3f;
     [Tooltip("이 시간(초) 안에 모두 준비되지 않으면 입장 실패로 처리")]
     [SerializeField] private float readyTimeout = 30f;
     [Tooltip("이 씬에서 NetworkManager를 직접 시작해 테스트할 때만 켠다 (씬 전환 이벤트가 없어서 시작 신호를 직접 준다)")]
@@ -81,6 +83,8 @@ public class TF_GameManager : NetworkBehaviour
     private bool localReady;
     private bool roundStarted;
     public bool HasRoundStarted => roundStarted;
+    /// <summary>이 컴퓨터의 내 플레이어 자리 번호. 아직 정해지지 않았으면 -1. 소리 등 다른 스크립트가 "내 칠하기"를 가려낼 때 쓴다</summary>
+    public int LocalSlot => localSlot;
     private bool gameOverRaised;
 
     [Header("게임 종료 후 이동 (SD_GameManager와 같은 방식)")]
@@ -420,7 +424,8 @@ public class TF_GameManager : NetworkBehaviour
 
         if (!runningNet.Value || IsGameOver) return;
 
-        if (NetworkManager.ServerTime.Time >= endTimeNet.Value) EndGame();
+        // 종료 시각 + 유예 시간이 지나야 확정한다 (종료 직전에 칠한 타일의 보고가 늦게 도착해도 반영되게)
+        if (NetworkManager.ServerTime.Time >= endTimeNet.Value + paintEndGrace) EndGame();
     }
 
     // ---------------------------------------------------------------- 칠하기
@@ -462,6 +467,7 @@ public class TF_GameManager : NetworkBehaviour
         if (!IsServer || grid == null) return;
         if (!entryBegun || startTimeNet.Value < 0 || IsGameOver) return;
         if (NetworkManager.ServerTime.Time < startTimeNet.Value - PaintGrace) return; // 시작 전 보고는 무시
+        if (NetworkManager.ServerTime.Time > endTimeNet.Value + paintEndGrace) return; // 종료 유예 시간이 지난 보고는 무시
 
         if (grid.SetTileOwner(tileIndex, slot))
             PaintClientRpc(tileIndex, slot);
