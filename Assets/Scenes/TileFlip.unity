@@ -8108,6 +8108,7 @@ MonoBehaviour:
   - {fileID: 2066447304}
   - {fileID: 1316474807}
   gameDuration: 30
+  paintEndGrace: 0.3
   readyTimeout: 30
   beginWithoutSceneEvent: 0
   lockControlsBeforeStart: 1
@@ -8250,7 +8251,7 @@ MonoBehaviour:
   bgmVolume: 0.4
   bgmFadeInTime: 0.5
   bgmFadeOutTime: 1
-  paintClip: {fileID: 0}
+  paintClip: {fileID: 8300000, guid: 625ad317b451ec147984e94636d712a6, type: 3}
   paintVolume: 0.6
   paintPitchVariation: 0.1
   paintSoundMinInterval: 0.05

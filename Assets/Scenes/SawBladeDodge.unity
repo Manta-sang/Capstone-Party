@@ -3181,6 +3181,7 @@ MonoBehaviour:
   arcHeight: 25
   flightDuration: 2
   removeDelay: 1
+  deathSmokePrefab: {fileID: 1837750672986156977, guid: ecf06d57c005cee42adfdcd6013da464, type: 3}
   faceCameraAtEnd: 1
   faceCameraDuration: 0.4
   resultSceneName: Ranking

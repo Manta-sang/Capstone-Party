@@ -25,6 +25,12 @@ public class SD_PlayerDeath : MonoBehaviour
     private float flightDuration = 1.2f;
     private float removeDelay = 3f;
     private bool disableCollidersOnDeath = true;
+    private ParticleSystem smokePrefab; // 날아가는 동안 뒤에 남기는 연기 (없으면 연기 없음)
+
+    // 비행이 끝난 뒤에도 이 시간(초)만큼 연기를 더 낸다. 다른 컴퓨터에서는 위치 동기화 때문에 비행이 조금 늦게 끝나 보이는데,
+    // 멈춰 있으면 "이동 거리 기준 방출"은 연기를 내지 않으므로 여유를 둬도 손해가 없다
+    private const float SmokeStopMargin = 0.3f;
+    private const float SmokeCleanupDelay = 3f; // 방출을 멈춘 뒤 남은 연기가 사라지도록 기다렸다가 제거하는 시간
 
     private NetworkObject networkObject;
     private Rigidbody rb;
@@ -61,12 +67,13 @@ public class SD_PlayerDeath : MonoBehaviour
         All.Remove(this);
     }
 
-    public void Configure(float distance, float height, float duration, float removeAfter)
+    public void Configure(float distance, float height, float duration, float removeAfter, ParticleSystem smoke = null)
     {
         flightDistance = distance;
         arcHeight = height;
         flightDuration = duration;
         removeDelay = removeAfter;
+        smokePrefab = smoke;
     }
 
     /// <summary>이동/밀치기 조작을 켜고 끈다 (시작 전 대기 동안 잠그는 용도). 죽은 뒤에는 영향을 주지 않는다</summary>
@@ -113,12 +120,31 @@ public class SD_PlayerDeath : MonoBehaviour
             StartCoroutine(FlyRoutine(flyDirection));
         }
 
+        // 날아가는 동안 뒤에 연기를 남긴다: 이 캐릭터를 조종하는 컴퓨터가 아니어도, 모든 컴퓨터가 자기 화면에서 만든다
+        if (smokePrefab != null) StartCoroutine(SmokeRoutine());
+
         // 몇 초 뒤 제거: Host만 한다 (제거하면 모든 참가자 화면에서 사라진다)
         bool networked = networkObject != null && networkObject.IsSpawned;
         if (!networked) StartCoroutine(RemoveRoutine());       // 단독 테스트: 비활성화
         else if (OnServer) StartCoroutine(RemoveRoutine());
 
         Died?.Invoke(this);
+    }
+
+    // 연기 파티클을 캐릭터의 자식으로 만들어 따라다니게 하고, 비행이 끝나면 떼어 내서 남은 연기가 자연스럽게 사라지게 한다.
+    // 연기 프리팹은 Simulation Space를 World로, 방출은 Rate over Distance로 둔다 (지나간 자리에 연기가 남고, 멈추면 나오지 않는다).
+    // 프리팹 루트의 위치는 캐릭터 기준 오프셋이 된다 (예: Y를 올려 몸 중앙에서 나오게)
+    private IEnumerator SmokeRoutine()
+    {
+        ParticleSystem smoke = Instantiate(smokePrefab, transform);
+
+        yield return new WaitForSeconds(Mathf.Max(0.01f, flightDuration) + SmokeStopMargin);
+
+        if (smoke == null) yield break;
+
+        smoke.transform.SetParent(null, true);
+        smoke.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+        Destroy(smoke.gameObject, SmokeCleanupDelay);
     }
 
     private IEnumerator RemoveRoutine()
