@@ -12,6 +12,8 @@ public sealed class QteSequenceHud : MonoBehaviour
     public Image timeFill;
     private float holdUntil;
     private bool failed;
+    private int lastTimerTenth = -1;
+    private readonly int[] displayedDirections = { -1, -1, -1, -1 };
     private int lastProgress=-1;
     private static readonly string[] Symbols={"↑","↓","←","→"};
     private static readonly string[] Letters={"W","S","A","D"};
@@ -25,9 +27,20 @@ public sealed class QteSequenceHud : MonoBehaviour
         group.alpha=Mathf.MoveTowards(group.alpha,show?1:0,Time.unscaledDeltaTime*10);
         if(!visible)return;
         failed=missed;lastProgress=progress;
-        for(int i=0;i<4;i++){arrows[i].text=Symbols[directions[i]];letters[i].text=Letters[directions[i]];}
+        for(int i=0;i<4;i++)
+        {
+            if (displayedDirections[i] == directions[i]) continue;
+            displayedDirections[i] = directions[i];
+            arrows[i].text=Symbols[directions[i]];letters[i].text=Letters[directions[i]];
+        }
         Paint(progress);
-        timer.text=Mathf.Max(0,seconds).ToString("0.0");
+        float remaining = Mathf.Max(0, seconds);
+        int timerTenth = Mathf.RoundToInt(remaining * 10f);
+        if (timerTenth != lastTimerTenth)
+        {
+            lastTimerTenth = timerTenth;
+            timer.text=remaining.ToString("0.0");
+        }
         timer.color=missed?Miss:seconds<.65f?Active:new Color(.92f,.96f,1);
         timeFill.fillAmount=Mathf.Clamp01(seconds/Mathf.Max(.01f,limit));timeFill.color=timer.color;
     }

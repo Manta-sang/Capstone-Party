@@ -1,0 +1,37 @@
+QTE audio asset sources and licenses
+
+BGM/OverworldTheme.ogg
+  Overworld Theme (alternate version) by Louswan
+  https://opengameart.org/content/overworld-theme-0
+  CC0. Cheerful, loopable chiptune; 41 seconds. Plays from the beginning and loops.
+
+BGM/ShineBlitz.ogg (previous option; not currently used)
+  Shine Blitz by Chris Murphy (zesona)
+  https://opengameart.org/content/shine-blitz
+  CC0.
+
+SFX/Jump/JumpTakeoff.wav, SFX/Jump/JumpLanding.wav, SFX/Whistle/RefereeWhistle.wav
+  The Essential Retro Video Game Sound Effects Collection by Juhani Junkala
+  https://opengameart.org/content/512-sound-effects-8-bit-style
+  CC0. Full license and asset inventory: Licenses/Juhani-Junkala-512-SFX-CC0.txt
+
+SFX/Crowd/Cheers.ogg
+  Cheers by Nocturnal_Vanguard
+  https://opengameart.org/content/cheers-0
+  CC0.
+
+SFX/Finish/PositiveChoice.ogg
+  Short Jingle by OO
+  https://opengameart.org/content/short-jingle
+  CC0 / public domain.
+
+SFX/Footsteps, SFX/Hurdle, SFX/Impact
+  Kenney, Impact Sounds 1.0
+  https://kenney.nl/assets/impact-sounds
+  CC0. License copy: Licenses/Kenney-Impact-Sounds-License.txt
+
+SFX/UI
+  Kenney, Interface Sounds 1.0
+  https://kenney.nl/assets/interface-sounds
+  CC0. License copy: Licenses/Kenney-Interface-Sounds-License.txt
+
