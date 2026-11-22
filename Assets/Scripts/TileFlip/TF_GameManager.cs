@@ -85,6 +85,8 @@ public class TF_GameManager : NetworkBehaviour
     public bool HasRoundStarted => roundStarted;
     /// <summary>이 컴퓨터의 내 플레이어 자리 번호. 아직 정해지지 않았으면 -1. 소리 등 다른 스크립트가 "내 칠하기"를 가려낼 때 쓴다</summary>
     public int LocalSlot => localSlot;
+    /// <summary>이 라운드에 참가한 플레이어 수 (자리 번호는 0부터 이 수 미만). UI가 몇 칸을 보여줄지 정할 때 쓴다</summary>
+    public int PlayerCount => Mathf.Min(players.Count, MaxPlayers);
     private bool gameOverRaised;
 
     [Header("게임 종료 후 이동 (SD_GameManager와 같은 방식)")]

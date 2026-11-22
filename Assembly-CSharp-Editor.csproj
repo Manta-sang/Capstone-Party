@@ -74,15 +74,19 @@
     <Compile Include="Assets\DownloadAsset\Models\FREE\Pack_FREE_PartyCharacters\Editor\FreeCharacterCustomizerWindow.cs" />
     <Compile Include="Assets\Editor\CharacterCabinExpansion.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryContactLayout.cs" />
+    <Compile Include="Assets\Editor\QteAudiencePresentation.cs" />
     <Compile Include="Assets\Editor\QteSchoolGeometry.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryFrontLayout.cs" />
+    <Compile Include="Assets\Editor\QteHierarchyOptimization.cs" />
     <Compile Include="Assets\Editor\TicketPresentationRefinement.cs" />
+    <Compile Include="Assets\Editor\QteSchoolQuality.cs" />
     <Compile Include="Assets\Editor\AirportRuinUpgrade.cs" />
     <Compile Include="Assets\Editor\GameStartUIBuilder.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\MagicLibraryMotionUpgrade.cs" />
     <Compile Include="Assets\Editor\BoardingPassUI.cs" />
     <Compile Include="Assets\Editor\TicketPresentationValidation.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallSideTier.cs" />
+    <Compile Include="Assets\Editor\QteBasketballCourts.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallLandingValidation.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallValidation.cs" />
     <Compile Include="Assets\Editor\PushCooldownHUDBuilder.cs" />
@@ -90,6 +94,7 @@
     <Compile Include="Assets\Editor\QteSceneBuilder.cs" />
     <Compile Include="Assets\DownloadAsset\Models\FREE\Pack_FREE_PartyCharacters\Editor\CharacterPromoWindow.cs" />
     <Compile Include="Assets\Editor\CharacterCabinRefit.cs" />
+    <Compile Include="Assets\Editor\QteCampusFurniture.cs" />
     <Compile Include="Assets\Editor\QteEnvironmentRefinement.cs" />
     <Compile Include="Assets\Scripts\BlockFall\Editor\BlockFallBuilder.cs" />
     <Compile Include="Assets\Editor\IllustratedMenuBuilder.cs" />

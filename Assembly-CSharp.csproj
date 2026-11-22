@@ -99,6 +99,7 @@
     <Compile Include="Assets\Scripts\FinalRanking\FinalCelebrationPlayer.cs" />
     <Compile Include="Assets\Scripts\UgsBootstrap.cs" />
     <Compile Include="Assets\Scripts\PlayerMovement.cs" />
+    <Compile Include="Assets\Scripts\TileFlip\TF_ScoreHUD.cs" />
     <Compile Include="Assets\Scripts\Qte\QteSequenceHud.cs" />
     <Compile Include="Assets\Scripts\FinalRanking\FinalRanking.cs" />
     <Compile Include="Assets\Scripts\LobbyRelayManager.cs" />
@@ -122,6 +123,7 @@
     <Compile Include="Assets\Scripts\TileFlip\TF_CameraFollow.cs" />
     <Compile Include="Assets\Scripts\GameplayUI\PushGestureGraphic.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_BladeSpawner.cs" />
+    <Compile Include="Assets\Scripts\Qte\QteAudienceCheer.cs" />
     <Compile Include="Assets\Scripts\TileFlip\TF_GameSound.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_CameraFollow.cs" />
     <Compile Include="Assets\Scripts\SceneLoader.cs" />
@@ -140,6 +142,8 @@
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Mobile.cginc" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF SSD.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Surface-Mobile.shader" />
+    <None Include="Assets\Resources\QteAudio\Licenses\SOURCES.txt" />
+    <None Include="Assets\Resources\QteAudio\Licenses\Kenney-Interface-Sounds-License.txt" />
     <None Include="Assets\DownloadAsset\Models\Lowpolyindustrialpack\Materials\RednerPipelinesupport.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Surface.shader" />
     <None Include="Assets\TextMesh Pro\Sprites\EmojiOne Attribution.txt" />
@@ -151,8 +155,10 @@
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Surface.cginc" />
     <None Include="Assets\Scripts\BlockFall\CrystalHalo.shader" />
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Following Characters.txt" />
+    <None Include="Assets\Resources\QteAudio\Licenses\Juhani-Junkala-512-SFX-CC0.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Masking.shader" />
     <None Include="Assets\Scripts\BlockFall\Warning.shader" />
+    <None Include="Assets\Resources\QteAudio\Licenses\Kenney-Impact-Sounds-License.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF Overlay.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap-Mobile.shader" />
     <None Include="Assets\TextMesh Pro\Fonts\LiberationSans - OFL.txt" />

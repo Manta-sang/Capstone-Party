@@ -33,6 +33,8 @@ public class SD_BladeSpawner : MonoBehaviour
     [SerializeField] private float timeLimit = 15f;
 
     [Header("Rate")]
+    [Tooltip("라운드가 시작된 뒤 첫 톱날이 나오기까지 기다리는 시간(초). 이 시간 동안은 톱날이 없고, 난이도 타이머도 이 시간이 지난 뒤부터 흐른다. 0이면 시작하자마자 첫 톱날이 나온다")]
+    [SerializeField, Min(0f)] private float startDelay = 3f;
     [SerializeField] private float spawnInterval = 2f;
     [SerializeField] private int maxBlades = 10;
     [Tooltip("최소 톱날 속도(초당 유니티 단위)")]
@@ -111,7 +113,10 @@ public class SD_BladeSpawner : MonoBehaviour
 
     private IEnumerator SpawnLoop()
     {
-        float startTime = Time.time;
+        // 시작하자마자 만들지 않고 먼저 기다린다 (그동안 플레이어가 자리를 잡을 수 있다)
+        if (startDelay > 0f) yield return new WaitForSeconds(startDelay);
+
+        float startTime = Time.time; // 난이도는 첫 톱날이 나오는 순간부터 오른다
         while (true)
         {
             // 0(시작) ~ 1(최대 난이도). 시작 값에서 끝 값까지 선형으로 변한다

@@ -223,6 +223,23 @@ public class TF_TileGridManager : MonoBehaviour
         return scores[playerIndex];
     }
 
+    /// <summary>플레이어(자리)의 색 번호. 캐릭터 프리팹 번호와 같다. 잘못된 번호면 -1. 초상화 같은 캐릭터별 이미지를 고를 때도 쓴다</summary>
+    public int GetPlayerColorIndex(int playerIndex)
+    {
+        if (playerIndex < 0 || playerIndex >= MaxPlayers) return -1;
+        return playerColorIndex[playerIndex];
+    }
+
+    /// <summary>플레이어(자리)가 칠하는 타일의 색. UI가 같은 색을 쓰도록 머티리얼에서 읽는다 (URP의 _BaseColor, 기본 파이프라인의 _Color 모두 처리)</summary>
+    public Color GetPlayerColor(int playerIndex)
+    {
+        Material material = GetMaterial(playerIndex);
+        if (material == null) return Color.white;
+        if (material.HasProperty("_BaseColor")) return material.GetColor("_BaseColor");
+        if (material.HasProperty("_Color")) return material.GetColor("_Color");
+        return Color.white;
+    }
+
     // ───────────────────────── 내부 처리 ─────────────────────────
 
     private void ApplyTileVisual(int tileIndex, int ownerIndex)
