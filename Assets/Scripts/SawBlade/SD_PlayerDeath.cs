@@ -89,6 +89,8 @@ public class SD_PlayerDeath : MonoBehaviour
     {
         if (IsDead) return;
         IsDead = true;
+        // 호스트와 각 클라이언트의 기존 사망 처리에서 한 번씩 재생합니다.
+        GetComponent<SurvivalDeathEffect>()?.Play();
 
         if (movement != null) movement.enabled = false;
         if (interaction != null) interaction.enabled = false;

@@ -64,6 +64,8 @@ namespace CrosswalkRun
         {
             if (isDead) return;
             isDead = true;
+            // 기존 탈락 동기화로 확정된 경우에만 Souls 연출을 재생합니다.
+            GetComponent<SurvivalDeathEffect>()?.Play();
             Debug.Log($"<color=orange>[CrosswalkPlayer]</color> {playerName} ({gameObject.name}) 탈락! 사유: {reason}");
 
             // 1. 이동 및 조작 스크립트 비활성화

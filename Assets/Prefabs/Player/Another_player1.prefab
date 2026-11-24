@@ -1005,6 +1005,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2658054056529435163}
+  - component: {fileID: 789401130220260001}
   - component: {fileID: 6549972292896582495}
   - component: {fileID: 6984253429540793017}
   - component: {fileID: 1941129980519337468}
@@ -1037,6 +1038,22 @@ Transform:
   - {fileID: 158241344652688511}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &789401130220260001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8493455008323162100}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3738c962c7704f60ac493e7422be9171, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  effectPrefab: {fileID: 1889919486439536, guid: 35ad08272de78064cbd645a70f31f454, type: 3}
+  effectScale: 2
+  positionOffset: {x: 0, y: 1, z: 0}
+  cleanupDelay: 5
 --- !u!95 &6549972292896582495
 Animator:
   serializedVersion: 5
@@ -1161,6 +1178,16 @@ MonoBehaviour:
   pushRadius: 3
   pushCooldown: 3
   stunDuration: 0.8
+  pushEffectPrefab: {fileID: 1269060166065924, guid: 1810168468ffe7b4db7f3c67e0743de4, type: 3}
+  pushEffectPrefabs:
+  - {fileID: 7256411017948896141, guid: b3b8f9b5600cc40418354354f2b8f177, type: 3}
+  - {fileID: 107418, guid: ea6edc3a0a047a243a9ec62ca1655977, type: 3}
+  - {fileID: 6145654522340348391, guid: d911cda3caeb9844f9d98873646ec0a8, type: 3}
+  pushEffectScale: 2
+  pushEffectOffset: {x: 0, y: 1, z: 0}
+  pushEffectLifetime: 3
+  pushHitClip: {fileID: 8300000, guid: 11390b4b43824e54e9eaada95422a366, type: 3}
+  pushHitVolume: 0.6
 --- !u!114 &4056044379567361265
 MonoBehaviour:
   m_ObjectHideFlags: 0

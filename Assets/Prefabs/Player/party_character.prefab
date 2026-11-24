@@ -66,6 +66,9 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f9f65d468731bcf4fba794d064637f84, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 789401130220260001}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f9f65d468731bcf4fba794d064637f84, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 2848944652643182038}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f9f65d468731bcf4fba794d064637f84, type: 3}
       insertIndex: -1
@@ -194,6 +197,16 @@ MonoBehaviour:
   pushRadius: 3
   pushCooldown: 3
   stunDuration: 0.8
+  pushEffectPrefab: {fileID: 1269060166065924, guid: 1810168468ffe7b4db7f3c67e0743de4, type: 3}
+  pushEffectPrefabs:
+  - {fileID: 1269060166065924, guid: 1810168468ffe7b4db7f3c67e0743de4, type: 3}
+  - {fileID: 107418, guid: ea6edc3a0a047a243a9ec62ca1655977, type: 3}
+  - {fileID: 1399272208883120, guid: e624e1dfeaae3814a9bd36f515a6f79b, type: 3}
+  pushEffectScale: 2
+  pushEffectOffset: {x: 0, y: 1, z: 0}
+  pushEffectLifetime: 3
+  pushHitClip: {fileID: 8300000, guid: 11390b4b43824e54e9eaada95422a366, type: 3}
+  pushHitVolume: 0.6
 --- !u!114 &-6860172642709188538
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -251,3 +264,19 @@ Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: f9f65d468731bcf4fba794d064637f84, type: 3}
   m_PrefabInstance: {fileID: 1445608200242207122}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &789401130220260001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1787574108986877123}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3738c962c7704f60ac493e7422be9171, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  effectPrefab: {fileID: 1889919486439536, guid: 35ad08272de78064cbd645a70f31f454, type: 3}
+  effectScale: 2
+  positionOffset: {x: 0, y: 1, z: 0}
+  cleanupDelay: 5
