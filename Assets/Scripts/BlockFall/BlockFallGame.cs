@@ -185,6 +185,8 @@ namespace BlockFall
         [ClientRpc] void DeathClientRpc(NetworkObjectReference playerReference)
         {
             if(!playerReference.TryGet(out var player,NetworkManager)) return;
+            // 서버의 탈락 알림을 받은 뒤, 캐릭터를 숨기기 전에 연출을 생성합니다.
+            player.GetComponent<SurvivalDeathEffect>()?.Play();
             Controls(player.gameObject,false);
             foreach(var c in player.GetComponentsInChildren<Collider>()) c.enabled=false;
             foreach(var r in player.GetComponentsInChildren<Renderer>()) r.enabled=false;

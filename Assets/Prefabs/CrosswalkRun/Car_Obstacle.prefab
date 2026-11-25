@@ -151,6 +151,10 @@ MonoBehaviour:
   moveDirection: {x: 1, y: 0, z: 0}
   lifeTime: 12
   hitImpactForce: 15
+  hornClip: {fileID: 8300000, guid: 0d34d6e748eb93042b0ff0bf1c6f120c, type: 3}
+  hornDistance: 6
+  hornHalfWidth: 2.5
+  hornVolume: 1
 --- !u!1001 &3303664826754443370
 PrefabInstance:
   m_ObjectHideFlags: 0
