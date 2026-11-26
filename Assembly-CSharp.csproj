@@ -124,6 +124,7 @@
     <Compile Include="Assets\Scripts\GameplayUI\PushGestureGraphic.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_BladeSpawner.cs" />
     <Compile Include="Assets\Scripts\Qte\QteAudienceCheer.cs" />
+    <Compile Include="Assets\Scripts\Presentation\LocalPlayerFootRing.cs" />
     <Compile Include="Assets\Scripts\TileFlip\TF_GameSound.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_CameraFollow.cs" />
     <Compile Include="Assets\Scripts\SceneLoader.cs" />

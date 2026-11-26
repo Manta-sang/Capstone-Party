@@ -69,6 +69,9 @@ PrefabInstance:
       addedObject: {fileID: 789401130220260001}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f9f65d468731bcf4fba794d064637f84, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 789401130220260002}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f9f65d468731bcf4fba794d064637f84, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 2848944652643182038}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f9f65d468731bcf4fba794d064637f84, type: 3}
       insertIndex: -1
@@ -280,3 +283,19 @@ MonoBehaviour:
   effectScale: 2
   positionOffset: {x: 0, y: 1, z: 0}
   cleanupDelay: 5
+--- !u!114 &789401130220260002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1787574108986877123}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ce8efd9886749a191cbf408d0ad6deb, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  ringColor: {r: 0.3, g: 0.95, b: 1, a: 1}
+  radius: 0.85
+  width: 0.09
+  heightOffset: 0.06
