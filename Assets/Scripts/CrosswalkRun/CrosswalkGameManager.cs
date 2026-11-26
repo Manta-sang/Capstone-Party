@@ -16,10 +16,6 @@ namespace CrosswalkRun
         [Header("참조")]
         [SerializeField] private AutoScrollCamera scrollCamera;
 
-        [Header("설정")]
-        [Tooltip("최소 요구 플레이어 수 (1인 솔로 테스트 시 1, 멀티플레이 시 2 이상)")]
-        [SerializeField] private int minPlayersToStart = 1;
-
         // 등록된 전체 플레이어 및 현재 생존 플레이어 목록
         private readonly List<GameObject> allPlayers = new List<GameObject>();
         private readonly List<GameObject> alivePlayers = new List<GameObject>();

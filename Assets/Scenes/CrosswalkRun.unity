@@ -791,7 +791,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   scrollCamera: {fileID: 131888692}
-  minPlayersToStart: 1
 --- !u!4 &762865073
 Transform:
   m_ObjectHideFlags: 0

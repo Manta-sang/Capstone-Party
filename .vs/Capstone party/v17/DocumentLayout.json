@@ -3,11 +3,15 @@
   "WorkspaceRootPath": "C:\\KSPUnityProject\\Capstone party\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{1FF7BAFA-E558-EF74-A047-68076E4EA53D}|Assembly-CSharp.csproj|c:\\kspunityproject\\capstone party\\assets\\scripts\\crosswalkrun\\roadchunk.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1FF7BAFA-E558-EF74-A047-68076E4EA53D}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\crosswalkrun\\roadchunk.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{1FF7BAFA-E558-EF74-A047-68076E4EA53D}|Assembly-CSharp.csproj|c:\\kspunityproject\\capstone party\\assets\\scripts\\sawblade\\sd_gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{1FF7BAFA-E558-EF74-A047-68076E4EA53D}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\sawblade\\sd_gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1FF7BAFA-E558-EF74-A047-68076E4EA53D}|Assembly-CSharp.csproj|c:\\kspunityproject\\capstone party\\assets\\scripts\\crosswalkrun\\crosswalknetworkentry.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{1FF7BAFA-E558-EF74-A047-68076E4EA53D}|Assembly-CSharp.csproj|C:\\KSPUnityProject\\Capstone party\\assets\\scripts\\crosswalkrun\\crosswalknetworkentry.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{1FF7BAFA-E558-EF74-A047-68076E4EA53D}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\crosswalkrun\\crosswalknetworkentry.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
@@ -79,6 +83,19 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "RoadChunk.cs",
+              "DocumentMoniker": "C:\\KSPUnityProject\\Capstone party\\Assets\\Scripts\\CrosswalkRun\\RoadChunk.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\CrosswalkRun\\RoadChunk.cs",
+              "ToolTip": "C:\\KSPUnityProject\\Capstone party\\Assets\\Scripts\\CrosswalkRun\\RoadChunk.cs",
+              "RelativeToolTip": "Assets\\Scripts\\CrosswalkRun\\RoadChunk.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-26T01:25:26.224Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "SD_GameManager.cs",
               "DocumentMoniker": "C:\\KSPUnityProject\\Capstone party\\Assets\\Scripts\\SawBlade\\SD_GameManager.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\SawBlade\\SD_GameManager.cs",
@@ -91,7 +108,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "SceneLoader.cs",
               "DocumentMoniker": "C:\\KSPUnityProject\\Capstone party\\Assets\\Scripts\\SceneLoader.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\SceneLoader.cs",
@@ -103,7 +120,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "SlipperyZone.cs",
               "DocumentMoniker": "C:\\KSPUnityProject\\Capstone party\\Assets\\Scripts\\CrosswalkRun\\SlipperyZone.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\CrosswalkRun\\SlipperyZone.cs",
@@ -115,7 +132,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 15,
               "Title": "CameraDeathZone.cs",
               "DocumentMoniker": "C:\\KSPUnityProject\\Capstone party\\Assets\\Scripts\\CrosswalkRun\\CameraDeathZone.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\CrosswalkRun\\CameraDeathZone.cs",
@@ -127,7 +144,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "CarObstacle.cs",
               "DocumentMoniker": "C:\\KSPUnityProject\\Capstone party\\Assets\\Scripts\\CrosswalkRun\\CarObstacle.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\CrosswalkRun\\CarObstacle.cs",
@@ -139,7 +156,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "CharacterRoundRestart.cs",
               "DocumentMoniker": "C:\\KSPUnityProject\\Capstone party\\Assets\\Scripts\\CrosswalkRun\\CharacterRoundRestart.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\CrosswalkRun\\CharacterRoundRestart.cs",
@@ -151,7 +168,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "CrosswalkNetworkEntry.cs",
               "DocumentMoniker": "C:\\KSPUnityProject\\Capstone party\\Assets\\Scripts\\CrosswalkRun\\CrosswalkNetworkEntry.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\CrosswalkRun\\CrosswalkNetworkEntry.cs",
@@ -159,12 +176,11 @@
               "RelativeToolTip": "Assets\\Scripts\\CrosswalkRun\\CrosswalkNetworkEntry.cs",
               "ViewState": "AgIAAHABAAAAAAAAAAAqwAgBAAAsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-11T06:25:52.892Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-11T06:25:52.892Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 10,
               "Title": "CrosswalkGameManager.cs",
               "DocumentMoniker": "C:\\KSPUnityProject\\Capstone party\\Assets\\Scripts\\CrosswalkRun\\CrosswalkGameManager.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\CrosswalkRun\\CrosswalkGameManager.cs",
@@ -176,7 +192,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 12,
               "Title": "CrosswalkModularBuilder.cs",
               "DocumentMoniker": "C:\\KSPUnityProject\\Capstone party\\Assets\\Scripts\\CrosswalkRun\\Editor\\CrosswalkModularBuilder.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\CrosswalkRun\\Editor\\CrosswalkModularBuilder.cs",
@@ -188,7 +204,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 9,
               "Title": "CrosswalkPlayer.cs",
               "DocumentMoniker": "C:\\KSPUnityProject\\Capstone party\\Assets\\Scripts\\CrosswalkRun\\CrosswalkPlayer.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\CrosswalkRun\\CrosswalkPlayer.cs",
@@ -200,7 +216,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 14,
               "Title": "PlayerMovement.cs",
               "DocumentMoniker": "C:\\KSPUnityProject\\Capstone party\\Assets\\Scripts\\PlayerMovement.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\PlayerMovement.cs",
@@ -211,7 +227,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 11,
               "Title": "LobbyUI.cs",
               "DocumentMoniker": "C:\\KSPUnityProject\\Capstone party\\Assets\\Scripts\\LobbyUI.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\LobbyUI.cs",
@@ -223,7 +239,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "LobbyRelayManager.cs",
               "DocumentMoniker": "C:\\KSPUnityProject\\Capstone party\\Assets\\Scripts\\LobbyRelayManager.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\LobbyRelayManager.cs",
@@ -235,7 +251,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "UgsBootstrap.cs",
               "DocumentMoniker": "C:\\KSPUnityProject\\Capstone party\\Assets\\Scripts\\UgsBootstrap.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\UgsBootstrap.cs",
@@ -247,7 +263,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 13,
               "Title": "FileSystem.cs",
               "DocumentMoniker": "C:\\KSPUnityProject\\Capstone party\\Library\\PackageCache\\com.unity.services.core@1.14.0\\Editor\\Core\\Utils\\FileSystem\\FileSystem.cs",
               "RelativeDocumentMoniker": "Library\\PackageCache\\com.unity.services.core@1.14.0\\Editor\\Core\\Utils\\FileSystem\\FileSystem.cs",
