@@ -72,6 +72,7 @@
     <Compile Include="Assets\Scripts\Ranking\RankingUI.cs" />
     <Compile Include="Assets\Scripts\GameplayUI\PartyJumpProbe.cs" />
     <Compile Include="Assets\Scripts\PartyTitle.cs" />
+    <Compile Include="Assets\Scripts\SawBlade\SD_BladeEffects.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CharacterRoundRestart.cs" />
     <Compile Include="Assets\Scripts\PartyFlow\PartyGameRotation.cs" />
     <Compile Include="Assets\Scripts\BlockFall\BlockFallCrystalGlow.cs" />
@@ -127,6 +128,7 @@
     <Compile Include="Assets\Scripts\TileFlip\TF_GameSound.cs" />
     <Compile Include="Assets\Scripts\SawBlade\SD_CameraFollow.cs" />
     <Compile Include="Assets\Scripts\SceneLoader.cs" />
+    <Compile Include="Assets\Scripts\Presentation\SurvivalDeathEffect.cs" />
     <Compile Include="Assets\Scripts\PartyFlow\PartyButtonFeedback.cs" />
     <Compile Include="Assets\Scripts\CharacterCabin\CharacterCabinCamera.cs" />
     <Compile Include="Assets\Scripts\PartyRoster.cs" />

@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 9057519654255889178}
   - component: {fileID: 6375694023861653149}
   - component: {fileID: 440368165871720523}
+  - component: {fileID: -8990678336914894385}
   - component: {fileID: 8089903650354224719}
   - component: {fileID: 3318126842952834122}
   - component: {fileID: 4760937321950660155}
@@ -220,9 +221,23 @@ MonoBehaviour:
   pitchVariation: 0.08
   hitClip: {fileID: 8300000, guid: 08ab2ec7fb4062046adb6e0039239d2e, type: 3}
   hitVolume: 0.8
+--- !u!114 &-8990678336914894385
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1525069960973320479}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88f3dae9df55f3646a5f1ab1cc496969, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
   sparkPrefab: {fileID: 6328213389956092154, guid: 6b53af5ef9be13e4e935c9725464d248, type: 3}
   sparkCooldown: 0.1
   sparkLifetime: 2
+  hitPrefab: {fileID: 19894030, guid: 30a1ca85182ce3e439e8d6cb843ab9ad, type: 3}
+  hitLifetime: 1
 --- !u!114 &8089903650354224719
 MonoBehaviour:
   m_ObjectHideFlags: 0
