@@ -17,11 +17,21 @@ public class RankingUI : MonoBehaviour
     [SerializeField] private string returnSceneName = "Character";
     [SerializeField] private string returnButtonLabel = "다음 게임으로 가기";
     [SerializeField] private TMP_Text flowHint;
+    [Header("중간정산 배경음악")]
+    [SerializeField] private AudioClip intermissionMusic;
+    [SerializeField, Range(0f, 1f)] private float musicVolume = .35f;
+    private AudioSource musicSource;
     private RankingManager ranking;
     private NetworkManager network;
     private bool sceneReady;
     private bool loading;
-    private void LateUpdate(){if(FinalResult && sceneReady && !loading && network!=null && network.IsServer)loading=network.SceneManager.LoadScene("FinalRanking",LoadSceneMode.Single)==SceneEventProgressStatus.Started;}
+    private void LateUpdate()
+    {
+        if (!FinalResult) return;
+        if (musicSource != null && musicSource.isPlaying) musicSource.Stop();
+        if (sceneReady && !loading && network != null && network.IsServer)
+            loading = network.SceneManager.LoadScene("FinalRanking", LoadSceneMode.Single) == SceneEventProgressStatus.Started;
+    }
     private bool FinalResult => PartyRoster.Current != null ? PartyRoster.Current.GamesStarted.Value >= PartyGameRotation.Scenes.Length : PartyGameRotation.IsComplete;
 
     // 모든 참가자의 랭킹 씬 로딩이 끝나기 전에 다음 씬을 요청하지 않습니다.
@@ -36,6 +46,17 @@ public class RankingUI : MonoBehaviour
     {
         if (actionButtonText != null) actionButtonText.text = returnButtonLabel;
         RefreshScores();
+        if (!FinalResult && intermissionMusic != null)
+        {
+            // Scene-owned 2D audio runs locally for each participant and ends on scene unload.
+            musicSource = gameObject.AddComponent<AudioSource>();
+            musicSource.playOnAwake = false;
+            musicSource.spatialBlend = 0;
+            musicSource.loop = true;
+            musicSource.volume = musicVolume;
+            musicSource.clip = intermissionMusic;
+            musicSource.Play();
+        }
     }
 
     private void OnLoadCompleted(string scene, LoadSceneMode mode, List<ulong> completed, List<ulong> timedOut)

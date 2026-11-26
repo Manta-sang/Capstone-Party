@@ -91969,6 +91969,8 @@ MonoBehaviour:
   returnSceneName: Character
   returnButtonLabel: "\uB2E4\uC74C \uAC8C\uC784\uC73C\uB85C \uAC00\uAE30"
   flowHint: {fileID: 2025043784}
+  intermissionMusic: {fileID: 8300000, guid: 5cf1811851a443e4ac482a7bfa0fcb34, type: 3}
+  musicVolume: 0.35
 --- !u!4 &1046520242
 Transform:
   m_ObjectHideFlags: 0
