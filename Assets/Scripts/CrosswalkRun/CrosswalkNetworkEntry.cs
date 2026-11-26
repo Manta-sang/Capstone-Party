@@ -362,6 +362,7 @@ namespace CrosswalkRun
                     var interaction = player.GetComponent<PlayerInteraction>();
                     if (movement != null) movement.enabled = false;
                     if (interaction != null) interaction.enabled = false;
+                    if(player.GetComponent<CrosswalkPlayer>()!=null&&!player.GetComponent<CrosswalkPlayer>().IsDead)RoundEndFacing.Face(player);
                 }
             if (network.IsServer) StartCoroutine(MoveToRanking());
         }

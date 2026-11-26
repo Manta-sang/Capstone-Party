@@ -1,22 +1,22 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\\uC774\uC900\uC601\\Desktop\\26.2\uD559\uAE30\\\uCEA1\uC2A4\uD1A4\uB514\uC790\uC7782\\Capstone-Party\\",
+  "WorkspaceRootPath": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|c:\\users\\\uC774\uC900\uC601\\desktop\\26.2\uD559\uAE30\\\uCEA1\uC2A4\uD1A4\uB514\uC790\uC7782\\capstone-party\\assets\\scripts\\lobbyui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\lobbyui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|c:\\users\\imsik\\desktop\\schproject\\capstone-party\\assets\\scripts\\sawblade\\sd_blade.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\sawblade\\sd_blade.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|c:\\users\\\uC774\uC900\uC601\\desktop\\26.2\uD559\uAE30\\\uCEA1\uC2A4\uD1A4\uB514\uC790\uC7782\\capstone-party\\assets\\scripts\\clientnetworkanimator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\clientnetworkanimator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\assets\\scripts\\tileflip\\tf_gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\tileflip\\tf_gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|C:\\Users\\\uC774\uC900\uC601\\Desktop\\26.2\uD559\uAE30\\\uCEA1\uC2A4\uD1A4\uB514\uC790\uC7782\\Capstone-Party\\assets\\scripts\\sceneloader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\sceneloader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\assets\\scripts\\sawblade\\sd_gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\sawblade\\sd_gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|C:\\Users\\\uC774\uC900\uC601\\Desktop\\26.2\uD559\uAE30\\\uCEA1\uC2A4\uD1A4\uB514\uC790\uC7782\\Capstone-Party\\assets\\scripts\\netcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\netcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\assets\\scripts\\sawblade\\sd_playerdeath.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E40474A8-5209-0762-8268-B65643094C97}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\sawblade\\sd_playerdeath.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -29,59 +29,53 @@
           "SelectedChildIndex": 1,
           "Children": [
             {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "TF_GameManager.cs",
+              "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\TileFlip\\TF_GameManager.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\TileFlip\\TF_GameManager.cs",
+              "ToolTip": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\TileFlip\\TF_GameManager.cs",
+              "RelativeToolTip": "Assets\\Scripts\\TileFlip\\TF_GameManager.cs",
+              "ViewState": "AgIAAMQCAAAAAAAAAAAcwNkCAAAwAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-06T02:06:09.361Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "LobbyUI.cs",
-              "DocumentMoniker": "C:\\Users\\\uC774\uC900\uC601\\Desktop\\26.2\uD559\uAE30\\\uCEA1\uC2A4\uD1A4\uB514\uC790\uC7782\\Capstone-Party\\Assets\\Scripts\\LobbyUI.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\LobbyUI.cs",
-              "ToolTip": "C:\\Users\\\uC774\uC900\uC601\\Desktop\\26.2\uD559\uAE30\\\uCEA1\uC2A4\uD1A4\uB514\uC790\uC7782\\Capstone-Party\\Assets\\Scripts\\LobbyUI.cs",
-              "RelativeToolTip": "Assets\\Scripts\\LobbyUI.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
+              "Title": "SD_Blade.cs",
+              "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SD_Blade.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\SawBlade\\SD_Blade.cs",
+              "ToolTip": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SD_Blade.cs",
+              "RelativeToolTip": "Assets\\Scripts\\SawBlade\\SD_Blade.cs",
+              "ViewState": "AgIAAO8BAAAAAAAAAAAcwA0CAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-29T04:34:54.45Z",
+              "WhenOpened": "2026-11-05T00:40:17.455Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "SceneLoader.cs",
-              "DocumentMoniker": "C:\\Users\\\uC774\uC900\uC601\\Desktop\\26.2\uD559\uAE30\\\uCEA1\uC2A4\uD1A4\uB514\uC790\uC7782\\Capstone-Party\\Assets\\Scripts\\SceneLoader.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\SceneLoader.cs",
-              "ToolTip": "C:\\Users\\\uC774\uC900\uC601\\Desktop\\26.2\uD559\uAE30\\\uCEA1\uC2A4\uD1A4\uB514\uC790\uC7782\\Capstone-Party\\Assets\\Scripts\\SceneLoader.cs",
-              "RelativeToolTip": "Assets\\Scripts\\SceneLoader.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAbAAAAAAAAAA==",
+              "Title": "SD_GameManager.cs",
+              "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SD_GameManager.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\SawBlade\\SD_GameManager.cs",
+              "ToolTip": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SD_GameManager.cs",
+              "RelativeToolTip": "Assets\\Scripts\\SawBlade\\SD_GameManager.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACUCAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-01T05:36:19.774Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "ClientNetworkAnimator.cs",
-              "DocumentMoniker": "C:\\Users\\\uC774\uC900\uC601\\Desktop\\26.2\uD559\uAE30\\\uCEA1\uC2A4\uD1A4\uB514\uC790\uC7782\\Capstone-Party\\Assets\\Scripts\\ClientNetworkAnimator.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\ClientNetworkAnimator.cs",
-              "ToolTip": "C:\\Users\\\uC774\uC900\uC601\\Desktop\\26.2\uD559\uAE30\\\uCEA1\uC2A4\uD1A4\uB514\uC790\uC7782\\Capstone-Party\\Assets\\Scripts\\ClientNetworkAnimator.cs",
-              "RelativeToolTip": "Assets\\Scripts\\ClientNetworkAnimator.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-08T04:27:34.468Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-11-05T00:26:31.625Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 3,
-              "Title": "NetController.cs",
-              "DocumentMoniker": "C:\\Users\\\uC774\uC900\uC601\\Desktop\\26.2\uD559\uAE30\\\uCEA1\uC2A4\uD1A4\uB514\uC790\uC7782\\Capstone-Party\\Assets\\Scripts\\NetController.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\NetController.cs",
-              "ToolTip": "C:\\Users\\\uC774\uC900\uC601\\Desktop\\26.2\uD559\uAE30\\\uCEA1\uC2A4\uD1A4\uB514\uC790\uC7782\\Capstone-Party\\Assets\\Scripts\\NetController.cs",
-              "RelativeToolTip": "Assets\\Scripts\\NetController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACAAAAABAAAAAAAAAA==",
+              "Title": "SD_PlayerDeath.cs",
+              "DocumentMoniker": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SD_PlayerDeath.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\SawBlade\\SD_PlayerDeath.cs",
+              "ToolTip": "C:\\Users\\imsik\\Desktop\\schproject\\Capstone-Party\\Assets\\Scripts\\SawBlade\\SD_PlayerDeath.cs",
+              "RelativeToolTip": "Assets\\Scripts\\SawBlade\\SD_PlayerDeath.cs",
+              "ViewState": "AgIAAJsAAAAAAAAAAAAcwLkAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-01T05:05:54.927Z"
+              "WhenOpened": "2026-11-05T00:26:28.896Z"
             }
           ]
         }

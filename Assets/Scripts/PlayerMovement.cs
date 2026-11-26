@@ -15,7 +15,15 @@ public class PlayerMovement : NetworkBehaviour
     private Rigidbody rb;
     private Collider movementCollider; // 미끄러운 구역은 캐릭터 발 위치에서만 판정합니다.
     private ClientNetworkAnimator netAnim; // ★ 네트워크 애니메이터 추가
-    private bool isGrounded = true;
+    private bool isGrounded;
+    private float jumpBlockedUntil;
+    private int groundedSteps;
+    private bool jumpInFlight;
+    private float jumpTakeoffY;
+    public float NormalJumpSpeed => Mathf.Max(.1f,jumpForce/Mathf.Max(.1f,rb!=null?rb.mass:1));
+    private PhysicMaterial antiStickMaterial, originalMaterial;
+    private readonly RaycastHit[] groundHits = new RaycastHit[16];
+    public bool IsGrounded => isGrounded;
     private Quaternion targetRotation;
 
     void Start()
@@ -25,6 +33,9 @@ public class PlayerMovement : NetworkBehaviour
         movementCollider = GetComponent<Collider>();
         netAnim = GetComponent<ClientNetworkAnimator>(); // ★ 컴포넌트 가져오기
         targetRotation = transform.rotation;
+        rb.maxDepenetrationVelocity=2f;
+        if(!rb.isKinematic)rb.collisionDetectionMode=CollisionDetectionMode.ContinuousDynamic;
+        if(movementCollider!=null){originalMaterial=movementCollider.sharedMaterial;antiStickMaterial=new PhysicMaterial("Player wall slide"){dynamicFriction=0,staticFriction=0,frictionCombine=PhysicMaterialCombine.Minimum,bounciness=0,bounceCombine=PhysicMaterialCombine.Minimum};movementCollider.sharedMaterial=antiStickMaterial;}
     }
 
     void Update()
@@ -53,15 +64,23 @@ public class PlayerMovement : NetworkBehaviour
 
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
 
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+        if (Input.GetKeyDown(KeyCode.Space)) TryJump();
+    }
+    public bool TryJump()
+    {
+        if(!IsOwner||!enabled||rb==null||rb.isKinematic||GameStartPresentation.BlocksGameplayInput||isKnockedBack||jumpInFlight||groundedSteps<2||!CheckGround())return false;
         {
-            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            // A jump has a fixed takeoff speed; contact impulses cannot be added to it.
+            rb.velocity=new Vector3(rb.velocity.x,NormalJumpSpeed,rb.velocity.z);
+            jumpInFlight=true;jumpTakeoffY=rb.position.y;groundedSteps=0;
 
             // ★ Trigger(점프)는 반드시 네트워크 애니메이터를 통해서 실행해야 동기화됩니다!
             if (netAnim != null) netAnim.SetTrigger("doJump");
             else anim.SetTrigger("doJump");
 
             isGrounded = false;
+            jumpBlockedUntil=Time.time+.16f;
+            return true;
         }
     }
 
@@ -80,15 +99,59 @@ public class PlayerMovement : NetworkBehaviour
             Vector3 current = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
             desired = Vector3.MoveTowards(current, desired, acceleration * Time.deltaTime);
         }
+        // Stop driving into a wall or platform face before the solver can launch us.
+        for(int pass=0;pass<2&&desired.sqrMagnitude>.001f;pass++){
+            if(!rb.SweepTest(desired.normalized,out var obstruction,desired.magnitude*Time.fixedDeltaTime+.04f,QueryTriggerInteraction.Ignore))break;
+            if(obstruction.collider.GetComponentInParent<PlayerMovement>()!=null||obstruction.normal.y>=.60f)break;
+            Vector3 normal=new Vector3(obstruction.normal.x,0,obstruction.normal.z).normalized;
+            float inward=Vector3.Dot(desired,normal);if(inward>=0)break;desired-=normal*inward;
+        }
         rb.velocity = new Vector3(desired.x, rb.velocity.y, desired.z);
     }
 
-    void OnCollisionEnter(Collision collision)
+    void FixedUpdate()
     {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            isGrounded = true;
+        if(!IsOwner||rb==null||movementCollider==null||rb.isKinematic)return;
+        isGrounded=CheckGround();
+        groundedSteps=isGrounded?groundedSteps+1:0;
+        if(groundedSteps>=2)jumpInFlight=false;
+        if(!isKnockedBack){
+            Vector3 velocity=rb.velocity;
+            float maximumRise=NormalJumpSpeed;
+            if(jumpInFlight){float rise=Mathf.Max(0,rb.position.y-jumpTakeoffY);maximumRise=Mathf.Sqrt(Mathf.Max(0,NormalJumpSpeed*NormalJumpSpeed-2*Mathf.Abs(Physics.gravity.y)*rise));}
+            velocity.y=Mathf.Min(velocity.y,maximumRise);
+            Vector2 horizontal=Vector2.ClampMagnitude(new Vector2(velocity.x,velocity.z),moveSpeed*1.35f);
+            rb.velocity=new Vector3(horizontal.x,velocity.y,horizontal.y);
         }
+    }
+    private bool CheckGround()
+    {
+        if(Time.time<jumpBlockedUntil||rb.velocity.y>.3f)return false;
+        Bounds bounds=movementCollider.bounds;
+        float radius=Mathf.Min(bounds.extents.x,bounds.extents.z)*.78f;
+        Vector3 origin=new Vector3(bounds.center.x,bounds.min.y+radius+.06f,bounds.center.z);
+        int count=Physics.SphereCastNonAlloc(origin,radius,Vector3.down,groundHits,.15f,~0,QueryTriggerInteraction.Ignore);
+        for(int i=0;i<count;i++){
+            var hit=groundHits[i];
+            if(hit.collider==null||hit.collider.transform.IsChildOf(transform)||hit.normal.y<.60f)continue;
+            // Another character and a vertical wall are never a landing surface.
+            if(hit.collider.GetComponentInParent<PlayerMovement>()!=null)continue;
+            return true;
+        }
+        return false;
+    }
+    void OnCollisionStay(Collision collision)
+    {
+        if(rb==null||movementCollider==null||Time.time<jumpBlockedUntil||rb.velocity.y>.3f)return;
+        if(collision.collider.GetComponentInParent<PlayerMovement>()!=null)return;
+        float feet=movementCollider.bounds.min.y;
+        for(int i=0;i<collision.contactCount;i++){var contact=collision.GetContact(i);if(contact.normal.y>=.60f&&contact.point.y<=feet+.22f){isGrounded=true;return;}}
+    }
+    public override void OnDestroy()
+    {
+        if(movementCollider!=null&&movementCollider.sharedMaterial==antiStickMaterial)movementCollider.sharedMaterial=originalMaterial;
+        if(antiStickMaterial!=null)Destroy(antiStickMaterial);
+        base.OnDestroy();
     }
 
     public void ResetKnockback()

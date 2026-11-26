@@ -122,7 +122,7 @@ namespace CrosswalkRun
                 alivePlayers.Remove(player);
                 // kjs2의 순위별 점수를 유지하며 실제 누적은 서버에서만 수행합니다.
                 int rank = alivePlayers.Count + 1;
-                AwardRankingScore(player, Mathf.Max(0, 4 - rank));
+                AwardRankingScore(player, PartyScoreRules.ForRank(rank));
                 Debug.Log($"[CrosswalkGameManager] 플레이어 탈락: {player.name} (사유: {reason}) / 남은 생존자: {alivePlayers.Count}");
 
                 OnPlayerEliminated?.Invoke(player, reason);
@@ -161,7 +161,7 @@ namespace CrosswalkRun
                     // 최후의 1인 생존
                     winnerPlayer = alivePlayers[0];
                     // 최후 생존자 점수는 종료 판정을 수행하는 호스트만 한 번 지급합니다.
-                    AwardRankingScore(winnerPlayer, 3);
+                    AwardRankingScore(winnerPlayer, PartyScoreRules.ForRank(1));
                     EndGame($"승리! 최후의 생존자: {winnerPlayer.name}");
                 }
                 else if (alivePlayers.Count == 0)

@@ -9,6 +9,7 @@ public sealed class PartyTicketTravel : MonoBehaviour {
  public float duration=2.25f;
  static PartyTicketTravel current;
  public static bool Busy => current!=null;
+ public static float UntilHalfReveal => current!=null&&current.revealing?Mathf.Max(0,current.duration*.5f-current.revealElapsed):0;
  public static float RemainingReveal => current!=null&&current.revealing?Mathf.Max(0,current.duration-current.revealElapsed):0;
  bool revealing;float revealElapsed;
  Vector2[] positions; Quaternion[] rotations; Vector3[] scales;

@@ -23,9 +23,9 @@ public static class PartyFinaleRefinement
   var final=Object.FindObjectOfType<FinalRanking>();for(int i=0;i<final.displaySpots.Length;i++){final.displaySpots[i].position=i==0?new Vector3(0,.02f,1.5f):new Vector3((i-2)*3.1f,0,i==2?5.7f:5.0f);final.displaySpots[i].rotation=Quaternion.Euler(0,180+(i==0?0:i*11-22),0);}
   EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
   foreach(var name in PartyGameRotation.Scenes){string path="Assets/Scenes/"+name+".unity";string original=System.IO.File.ReadAllText(path);var lights=new Dictionary<string,string>();foreach(Match match in Regex.Matches(original,@"(?ms)--- !u!108 &(\d+).*?m_Intensity: ([^\r\n]+)"))lights[match.Groups[1].Value]=match.Groups[2].Value;
-   EditorSceneManager.OpenScene(path);Object.FindObjectOfType<GameStartPresentation>().countdownText.text="1";EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());string saved=System.IO.File.ReadAllText(path);saved=Regex.Replace(saved,@"(?ms)(--- !u!108 &(\d+).*?m_Intensity: )[^\r\n]+",m=>lights.TryGetValue(m.Groups[2].Value,out var value)?m.Groups[1].Value+value:m.Value);System.IO.File.WriteAllText(path,saved);AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport);
+   EditorSceneManager.OpenScene(path);Object.FindObjectOfType<GameStartPresentation>().countdownText.text="3";EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());string saved=System.IO.File.ReadAllText(path);saved=Regex.Replace(saved,@"(?ms)(--- !u!108 &(\d+).*?m_Intensity: )[^\r\n]+",m=>lights.TryGetValue(m.Groups[2].Value,out var value)?m.Groups[1].Value+value:m.Value);System.IO.File.WriteAllText(path,saved);AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport);
   }
-  EditorSceneManager.RestoreSceneManagerSetup(setup);System.IO.File.WriteAllText("Library/PartyFinale.timing","PASS: five-second guide, one-second countdown text, front winner / rear fallen poses, all four platforms removed.");
+  EditorSceneManager.RestoreSceneManagerSetup(setup);System.IO.File.WriteAllText("Library/PartyFinale.timing","PASS: five-second guide, three-second countdown text, front winner / rear fallen poses, all four platforms removed.");
  }
  public static void Apply()
  {
