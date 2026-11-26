@@ -95,7 +95,6 @@ public sealed class QteSceneController : MonoBehaviour
     private float speedBoostUntil;
     private int hurdleNumber, arrowProgress;
     private readonly int[] expectedDirections=new int[ArrowInputsPerHurdle];
-    private int lastArrowPromptProgress=-1,lastArrowPromptTenths=-1;
     private bool hurdleResolved = true, hurdlePrompted, jumping, queuedJump, allHurdlesResolved;
     private bool fallRecoveryTriggered, queuedFailure, finishCameraLocked;
     private float queuedFailureAt, stumbleStartedAt, fallAnimatorSpeed=1f;
@@ -238,7 +237,7 @@ public sealed class QteSceneController : MonoBehaviour
         if (!allHurdlesResolved && !hurdleResolved && !hurdlePrompted && timeToHurdle <= inputLeadTime)
         {
             hurdlePrompted = true;
-            arrowProgress=0;lastArrowPromptProgress=-1;lastArrowPromptTenths=-1;
+            arrowProgress=0;
             for(int i=0;i<expectedDirections.Length;i++)expectedDirections[i]=UnityEngine.Random.Range(0,Keys.Length);
         }
         if (hurdlePrompted && !hurdleResolved)
