@@ -72,6 +72,7 @@
     <Compile Include="Assets\Scripts\Ranking\RankingUI.cs" />
     <Compile Include="Assets\Scripts\GameplayUI\PartyJumpProbe.cs" />
     <Compile Include="Assets\Scripts\PartyTitle.cs" />
+    <Compile Include="Assets\Scripts\SawBlade\SD_BladeEffects.cs" />
     <Compile Include="Assets\Scripts\CrosswalkRun\CharacterRoundRestart.cs" />
     <Compile Include="Assets\Scripts\PartyFlow\PartyGameRotation.cs" />
     <Compile Include="Assets\Scripts\BlockFall\BlockFallCrystalGlow.cs" />
